@@ -6,7 +6,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 
 ## Configuration
 
-| Key | Type | Required | Default | Description |
+| Key | Type | Required | Value | Description |
 |---|---|---|---|---|
 | `platform` | string | true | `xiaomi_cloud_map_extractor` | Name of a platform |
 | `host` | string | true | `192.168.0.123` | IP address of a vacuum |
@@ -18,6 +18,22 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `room_colors` | map | false |  | Room colors configuration |
 | `draw` | list | false |  | List of elements to draw on a map |
 | `map_transformation` | map | false |  | Parameters of map transformation |
+
+Colors configuration
+
+`TODO`
+
+Room colors configuration
+
+`TODO`
+
+Draw configuration
+
+`TODO`
+
+Map transformation configuration
+
+`TODO`
 
 ### Examples
 

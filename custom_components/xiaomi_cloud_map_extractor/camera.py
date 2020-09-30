@@ -115,8 +115,7 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_WALLS: self._map_data.walls,
                 ATTRIBUTE_NO_GO_AREAS: self._map_data.no_go_areas,
                 ATTRIBUTE_NO_MOPPING_AREAS: self._map_data.no_mopping_areas,
-                ATTRIBUTE_OBSTACLES: self._map_data.obstacles,
-                ATTRIBUTE_BLOCKS: self._map_data.blocks
+                ATTRIBUTE_OBSTACLES: self._map_data.obstacles
             }
         return {}
 

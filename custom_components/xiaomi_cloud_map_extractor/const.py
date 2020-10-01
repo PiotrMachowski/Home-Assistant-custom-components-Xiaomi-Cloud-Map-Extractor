@@ -29,7 +29,6 @@ ATTRIBUTE_WALLS = "walls"
 ATTRIBUTE_NO_GO_AREAS = "no_go_areas"
 ATTRIBUTE_NO_MOPPING_AREAS = "no_mopping_areas"
 ATTRIBUTE_OBSTACLES = "obstacles"
-ATTRIBUTE_BLOCKS = "blocks"
 
 ATTR_X = "x"
 ATTR_Y = "y"

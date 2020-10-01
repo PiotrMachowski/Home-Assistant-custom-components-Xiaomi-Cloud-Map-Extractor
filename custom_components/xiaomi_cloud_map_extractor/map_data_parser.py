@@ -79,11 +79,13 @@ class MapDataParser:
         image_left = MapDataParser.get_int32(header, block_header_length - 12)
         image_height = MapDataParser.get_int32(header, block_header_length - 8)
         image_width = MapDataParser.get_int32(header, block_header_length - 4)
-        if image_width - image_config[CONF_TRIM][CONF_LEFT] - image_config[CONF_TRIM][CONF_RIGHT] \
+        if image_width \
+                - image_width * (image_config[CONF_TRIM][CONF_LEFT] + image_config[CONF_TRIM][CONF_RIGHT]) / 100 \
                 < MINIMAL_IMAGE_WIDTH:
             image_config[CONF_TRIM][CONF_LEFT] = 0
             image_config[CONF_TRIM][CONF_RIGHT] = 0
-        if image_height - image_config[CONF_TRIM][CONF_TOP] - image_config[CONF_TRIM][CONF_BOTTOM] \
+        if image_height \
+                - image_height * (image_config[CONF_TRIM][CONF_TOP] + image_config[CONF_TRIM][CONF_BOTTOM]) / 100 \
                 < MINIMAL_IMAGE_HEIGHT:
             image_config[CONF_TRIM][CONF_TOP] = 0
             image_config[CONF_TRIM][CONF_BOTTOM] = 0
@@ -287,10 +289,10 @@ class ImageDimensions:
 
 class ImageData:
     def __init__(self, size, top, left, height, width, image_config, data):
-        trim_left = image_config[CONF_TRIM][CONF_LEFT]
-        trim_right = image_config[CONF_TRIM][CONF_RIGHT]
-        trim_top = image_config[CONF_TRIM][CONF_TOP]
-        trim_bottom = image_config[CONF_TRIM][CONF_BOTTOM]
+        trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
+        trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * width / 100)
+        trim_top = int(image_config[CONF_TRIM][CONF_TOP] * height / 100)
+        trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * height / 100)
         scale = image_config[CONF_SCALE]
         rotation = image_config[CONF_ROTATE]
         self.size = size

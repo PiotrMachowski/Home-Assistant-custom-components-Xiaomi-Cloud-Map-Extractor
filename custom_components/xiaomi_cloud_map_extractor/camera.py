@@ -27,6 +27,8 @@ COLOR_SCHEMA = vol.Or(
     vol.All(vol.Length(min=4, max=4), vol.ExactSequence((cv.byte, cv.byte, cv.byte, cv.byte)), vol.Coerce(tuple))
 )
 
+PERCENT_SCHEMA = vol.All(vol.Coerce(float), vol.Range(min=0, max=100))
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HOST): cv.string,
@@ -47,10 +49,10 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                 vol.Optional(CONF_SCALE, default=1): cv.positive_int,
                 vol.Optional(CONF_ROTATE, default=0): vol.In([0, 90, 180, 270]),
                 vol.Optional(CONF_TRIM, default=DEFAULT_TRIMS): vol.Schema({
-                    vol.Optional(CONF_LEFT, default=0): cv.positive_int,
-                    vol.Optional(CONF_RIGHT, default=0): cv.positive_int,
-                    vol.Optional(CONF_TOP, default=0): cv.positive_int,
-                    vol.Optional(CONF_BOTTOM, default=0): cv.positive_int
+                    vol.Optional(CONF_LEFT, default=0): PERCENT_SCHEMA,
+                    vol.Optional(CONF_RIGHT, default=0): PERCENT_SCHEMA,
+                    vol.Optional(CONF_TOP, default=0): PERCENT_SCHEMA,
+                    vol.Optional(CONF_BOTTOM, default=0): PERCENT_SCHEMA
                 }),
             })
     })

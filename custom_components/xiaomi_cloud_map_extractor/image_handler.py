@@ -51,10 +51,10 @@ class ImageHandler:
     @staticmethod
     def parse(raw_data: bytes, width, height, colors, image_config):
         scale = image_config[CONF_SCALE]
-        trim_left = image_config[CONF_TRIM][CONF_LEFT]
-        trim_right = image_config[CONF_TRIM][CONF_RIGHT]
-        trim_top = image_config[CONF_TRIM][CONF_TOP]
-        trim_bottom = image_config[CONF_TRIM][CONF_BOTTOM]
+        trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
+        trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * width / 100)
+        trim_top = int(image_config[CONF_TRIM][CONF_TOP] * height / 100)
+        trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * height / 100)
         trimmed_height = height - trim_top - trim_bottom
         trimmed_width = width - trim_left - trim_right
         image = Image.new('RGB', (trimmed_width, trimmed_height))

@@ -19,6 +19,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `room_colors` | map | false |  | Room colors configuration (see below) |
 | `draw` | list | false |  | List of elements to draw on a map (see below) |
 | `map_transformation` | map | false |  | Parameters of map transformation (see below) |
+| `attributes` | list | false |  | List of desired entity attributes (see below) |
 
 * Colors configuration
 
@@ -68,15 +69,32 @@ This custom integration provides a way to present a live view of a map for a Xia
   - `no_mopping_zones`
   - `vacuum_position`
   - `virtual_walls`
-  - `zones`  
+  - `zones`
 
 * Map transformation configuration
 
   | Parameter | Type | Required | Default value | Description |
   |---|---|---|---|---|
-  | `scale` | integer | false | 1 | Scaling factor for a map. |
+  | `scale` | float | false | 1 | Scaling factor for a map. |
   | `rotate` | integer | false | 0 | Angle of map rotation. Available values: [`0`, `90`, `180`, `270`] |
   | `trim` | map | false | 0 | Map trimming configuration. Each trimming direction is percents: 25 means trimming of quater in a given dimension. Available keys: [`left`, `right`, `top`, `bottom`] |
+
+* Attributes configuration
+
+  A list of attributes that an entity should have.
+  Available values:
+  - `charger`
+  - `goto`
+  - `goto_path`
+  - `goto_predicted_path`
+  - `image`
+  - `no_go_areas`
+  - `no_mopping_areas`
+  - `obstacles`
+  - `path`
+  - `vacuum_position`
+  - `walls`
+  - `zones`
   
 ### Examples
 
@@ -158,6 +176,19 @@ camera:
         bottom: 20
         left: 30
         right: 40
+    attributes:
+      - charger
+      - goto
+      - goto_path
+      - goto_predicted_path
+      - image
+      - no_go_areas
+      - no_mopping_areas
+      - obstacles
+      - path
+      - vacuum_position
+      - walls
+      - zones
 ```
 
 ## Supported devices

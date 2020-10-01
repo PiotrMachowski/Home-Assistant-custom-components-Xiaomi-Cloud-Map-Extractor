@@ -46,7 +46,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_DRAW, default=[]): vol.All(cv.ensure_list, [vol.In(CONF_AVAILABLE_DRAWABLES)]),
         vol.Optional(CONF_MAP_TRANSFORM, default={CONF_SCALE: 1, CONF_ROTATE: 0, CONF_TRIM: DEFAULT_TRIMS}): vol.Schema(
             {
-                vol.Optional(CONF_SCALE, default=1): cv.positive_int,
+                vol.Optional(CONF_SCALE, default=1): vol.All(vol.Coerce(float), vol.Range(min=0)),
                 vol.Optional(CONF_ROTATE, default=0): vol.In([0, 90, 180, 270]),
                 vol.Optional(CONF_TRIM, default=DEFAULT_TRIMS): vol.Schema({
                     vol.Optional(CONF_LEFT, default=0): PERCENT_SCHEMA,
@@ -54,7 +54,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                     vol.Optional(CONF_TOP, default=0): PERCENT_SCHEMA,
                     vol.Optional(CONF_BOTTOM, default=0): PERCENT_SCHEMA
                 }),
-            })
+            }),
+        vol.Optional(CONF_ATTRIBUTES, default=[]): vol.All(cv.ensure_list, [vol.In(CONF_AVAILABLE_ATTRIBUTES)])
     })
 
 
@@ -73,12 +74,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     drawables = config[CONF_DRAW]
     if "all" in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
-    async_add_entities(
-        [VacuumCamera(hass, host, token, username, password, country, name, image_config, colors, drawables)])
+    attributes = config[CONF_ATTRIBUTES]
+    async_add_entities([VacuumCamera(hass, host, token, username, password, country, name, image_config, colors,
+                                     drawables, attributes)])
 
 
 class VacuumCamera(Camera):
-    def __init__(self, hass, host, token, username, password, country, name, image_config, colors, drawables):
+    def __init__(self, hass, host, token, username, password, country, name, image_config, colors, drawables,
+                 attributes):
         super().__init__()
         self.hass = hass
         self._vacuum = miio.Vacuum(host, token)
@@ -87,6 +90,7 @@ class VacuumCamera(Camera):
         self._image_config = image_config
         self._colors = colors
         self._drawables = drawables
+        self._attributes = attributes
         self._image = None
         self._map_data = None
         self._logged = False
@@ -104,8 +108,9 @@ class VacuumCamera(Camera):
 
     @property
     def device_state_attributes(self):
+        attributes = {}
         if self._map_data is not None:
-            return {
+            for name, value in {
                 ATTRIBUTE_CHARGER: self._map_data.charger,
                 ATTRIBUTE_IMAGE: self._map_data.image,
                 ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
@@ -118,8 +123,10 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_NO_GO_AREAS: self._map_data.no_go_areas,
                 ATTRIBUTE_NO_MOPPING_AREAS: self._map_data.no_mopping_areas,
                 ATTRIBUTE_OBSTACLES: self._map_data.obstacles
-            }
-        return {}
+            }.items():
+                if name in self._attributes:
+                    attributes[name] = value
+        return attributes
 
     @property
     def should_poll(self):

@@ -84,7 +84,7 @@ class ImageHandler:
                     else:
                         pixels[x, y] = ImageHandler.__get_color__(COLOR_UNKNOWN, colors)
         if image_config["scale"] != 1:
-            image = image.resize((trimmed_width * scale, trimmed_height * scale), resample=Image.NEAREST)
+            image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
         return image
 
     @staticmethod

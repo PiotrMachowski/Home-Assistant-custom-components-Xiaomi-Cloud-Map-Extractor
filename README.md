@@ -21,7 +21,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `map_transformation` | map | false |  | Parameters of map transformation (see below) |
 | `attributes` | list | false |  | List of desired entity attributes (see below) |
 
-* Colors configuration
+#### Colors configuration
 
   Each color is represented by a list of 3 or 4 parameters: `[red, green, blue]` or `[red, green, blue, alpha]`.
   Each parameter is a number from a range 0-255 and can be also provided as a HEX value: [0x12, 0xAF, 0xC5] matches #12AFC5. 
@@ -48,13 +48,13 @@ This custom integration provides a way to present a live view of a map for a Xia
   | `color_scan` | Areas not assigned to any room (for software with rooms support) |
   | `color_unknown` | Other areas |
 
-* Room colors configuration
+#### Room colors configuration
 
   This section contains mapping between room numbers and colors.
   Each color is represented by a list of 3 or 4 parameters: `[red, green, blue]` or `[red, green, blue, alpha]`.
   Each parameter is a number from a range 0-255 and can be also provided as a HEX value: [0x12, 0xAF, 0xC5] matches #12AFC5. 
 
-* Draw configuration
+#### Draw configuration
 
   A list of features to be drawn on a map. If all features should be drawn it can be replaced with:
   ```yaml
@@ -71,7 +71,7 @@ This custom integration provides a way to present a live view of a map for a Xia
   - `virtual_walls`
   - `zones`
 
-* Map transformation configuration
+#### Map transformation configuration
 
   | Parameter | Type | Required | Default value | Description |
   |---|---|---|---|---|
@@ -79,7 +79,7 @@ This custom integration provides a way to present a live view of a map for a Xia
   | `rotate` | integer | false | 0 | Angle of map rotation. Available values: [`0`, `90`, `180`, `270`] |
   | `trim` | map | false | 0 | Map trimming configuration. Each trimming direction is percents: 25 means trimming of quater in a given dimension. Available keys: [`left`, `right`, `top`, `bottom`] |
 
-* Attributes configuration
+#### Attributes configuration
 
   A list of attributes that an entity should have.
   Available values:

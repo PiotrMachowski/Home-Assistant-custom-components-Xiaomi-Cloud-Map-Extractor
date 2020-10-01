@@ -160,4 +160,12 @@ camera:
         right: 40
 ```
 
+## Supported devices
+
+This integration was tested on following vacuums:
+ - Xiaomi Vacuum Gen 1 (Mi Robot Vacuum/SDJQR02RR)
+ - Roborock S5 (software without rooms support)
+ - Roborock S5 (software with rooms support)
+ - Roborock S5 Max
+
 <a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>

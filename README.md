@@ -12,7 +12,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `platform` | string | true | `xiaomi_cloud_map_extractor` | Name of a platform |
 | `host` | string | true | `192.168.0.123` | IP address of a vacuum |
 | `token` | string | true | `ghjhca3ykg8o2zyyj7xb5adamhgsypel` | Token of a vacuum |
-| `username` | string | true | `xiaomi.account@gmail.com` | Username used to connect to Xiaomi cloud |
+| `username` | string | true | `xiaomi.account@gmail.com` | Username (email or user ID) used to connect to Xiaomi cloud. |
 | `password` | string | true | `aVerySecretPassword` | Password used to connect to Xiaomi cloud |
 | `country` | string | true | One of: `ru`, `us`, `tw`, `sg`, `cn`, `de` | Server used in Xiaomi cloud |
 | `colors` | map | false |  | Colors configuration (see below) |
@@ -198,5 +198,6 @@ This integration was tested on following vacuums:
  - Roborock S5 (software without rooms support)
  - Roborock S5 (software with rooms support)
  - Roborock S5 Max
+ - Roborock S6
 
 <a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>

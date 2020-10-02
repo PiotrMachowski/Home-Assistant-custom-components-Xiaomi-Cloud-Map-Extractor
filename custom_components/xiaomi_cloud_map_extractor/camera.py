@@ -111,6 +111,7 @@ class VacuumCamera(Camera):
         attributes = {}
         if self._map_data is not None:
             for name, value in {
+                ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
                 ATTRIBUTE_CHARGER: self._map_data.charger,
                 ATTRIBUTE_IMAGE: self._map_data.image,
                 ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,

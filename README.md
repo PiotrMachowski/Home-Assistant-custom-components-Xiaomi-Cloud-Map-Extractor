@@ -83,6 +83,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 
   A list of attributes that an entity should have.
   Available values:
+  - `calibration_points` - Calculated calibration points for [Lovelace Xiaomi Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card)
   - `charger`
   - `goto`
   - `goto_path`

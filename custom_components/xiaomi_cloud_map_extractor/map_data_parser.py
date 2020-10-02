@@ -1,5 +1,7 @@
-from .image_handler import ImageHandler
+from typing import List, Optional
+
 from .const import *
+from .image_handler import ImageHandler
 
 
 class MapDataParser:
@@ -232,19 +234,29 @@ class MapDataParser:
 
 class MapData:
     def __init__(self):
-        self.charger = None
-        self.image = None
-        self.vacuum_position = None
-        self.path = None
-        self.goto_path = None
-        self.predicted_path = None
-        self.zones = None
-        self.goto = None
-        self.walls = None
-        self.no_go_areas = None
-        self.no_mopping_areas = None
+        self.charger: Optional[Point] = None
+        self.image: Optional[ImageData] = None
+        self.vacuum_position: Optional[Point] = None
+        self.path: Optional[List[Point]] = None
+        self.goto_path: Optional[List[Point]] = None
+        self.predicted_path: Optional[List[Point]] = None
+        self.zones: Optional[List[Area]] = None
+        self.goto: Optional[List[Point]] = None
+        self.walls: Optional[List[Wall]] = None
+        self.no_go_areas: Optional[List[Area]] = None
+        self.no_mopping_areas: Optional[List[Area]] = None
         self.obstacles = None
         self.blocks = None
+
+    def calibration(self):
+        calibration_points = []
+        for point in [Point(25500, 25500), Point(26500, 25500), Point(26500, 26500)]:
+            img_point = point.to_img(self.image.dimensions)
+            calibration_points.append({
+                ATTR_VACUUM: {ATTR_X: point.x, ATTR_Y: point.y},
+                ATTR_MAP: {ATTR_X: int(img_point.x), ATTR_Y: int(img_point.y)}
+            })
+        return calibration_points
 
 
 class Point:

@@ -33,25 +33,45 @@ class MapDataParser:
 
         block_start_position = map_header_length
         while block_start_position < len(raw):
-            block_header_length = MapDataParser.get_int16(raw, block_start_position + 0x02)
-            header = MapDataParser.get_bytes(raw, block_start_position, block_header_length)
+            block_header_length = MapDataParser.get_int16(
+                raw, block_start_position + 0x02
+            )
+            header = MapDataParser.get_bytes(
+                raw, block_start_position, block_header_length
+            )
             block_type = MapDataParser.get_int16(header, 0x00)
             block_data_length = MapDataParser.get_int32(header, 0x04)
             block_data_start = block_start_position + block_header_length
             data = MapDataParser.get_bytes(raw, block_data_start, block_data_length)
             if block_type == MapDataParser.CHARGER:
-                map_data.charger = MapDataParser.parse_charger(block_start_position, raw)
+                map_data.charger = MapDataParser.parse_charger(
+                    block_start_position, raw
+                )
             elif block_type == MapDataParser.IMAGE:
-                map_data.image = MapDataParser.parse_image(block_data_length, block_header_length, data, header, colors,
-                                                           image_config)
+                map_data.image = MapDataParser.parse_image(
+                    block_data_length,
+                    block_header_length,
+                    data,
+                    header,
+                    colors,
+                    image_config,
+                )
             elif block_type == MapDataParser.ROBOT_POSITION:
-                map_data.vacuum_position = MapDataParser.parse_vacuum_position(block_data_length, data)
+                map_data.vacuum_position = MapDataParser.parse_vacuum_position(
+                    block_data_length, data
+                )
             elif block_type == MapDataParser.PATH:
-                map_data.path = MapDataParser.parse_path(block_start_position, header, raw)
+                map_data.path = MapDataParser.parse_path(
+                    block_start_position, header, raw
+                )
             elif block_type == MapDataParser.GOTO_PATH:
-                map_data.goto_path = MapDataParser.parse_path(block_start_position, header, raw)
+                map_data.goto_path = MapDataParser.parse_path(
+                    block_start_position, header, raw
+                )
             elif block_type == MapDataParser.GOTO_PREDICTED_PATH:
-                map_data.predicted_path = MapDataParser.parse_path(block_start_position, header, raw)
+                map_data.predicted_path = MapDataParser.parse_path(
+                    block_start_position, header, raw
+                )
             elif block_type == MapDataParser.CURRENTLY_CLEANED_ZONES:
                 map_data.zones = MapDataParser.parse_zones(data, header)
             elif block_type == MapDataParser.GOTO_TARGET:
@@ -69,36 +89,52 @@ class MapDataParser:
             elif block_type == MapDataParser.BLOCKS:
                 block_pairs = MapDataParser.get_int16(header, 0x08)
                 map_data.blocks = MapDataParser.get_bytes(data, 0, block_pairs)
-            block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
+            block_start_position = (
+                block_start_position + block_data_length + (header[2] & 0xFF)
+            )
         MapDataParser.draw_elements(colors, drawables, map_data)
         ImageHandler.rotate(map_data.image)
         return map_data
 
     @staticmethod
-    def parse_image(block_data_length, block_header_length, data, header, colors, image_config):
+    def parse_image(
+        block_data_length, block_header_length, data, header, colors, image_config
+    ):
         image_size = block_data_length
         image_top = MapDataParser.get_int32(header, block_header_length - 16)
         image_left = MapDataParser.get_int32(header, block_header_length - 12)
         image_height = MapDataParser.get_int32(header, block_header_length - 8)
         image_width = MapDataParser.get_int32(header, block_header_length - 4)
-        if image_width \
-                - image_width * (image_config[CONF_TRIM][CONF_LEFT] + image_config[CONF_TRIM][CONF_RIGHT]) / 100 \
-                < MINIMAL_IMAGE_WIDTH:
+        if (
+            image_width
+            - image_width
+            * (image_config[CONF_TRIM][CONF_LEFT] + image_config[CONF_TRIM][CONF_RIGHT])
+            / 100
+            < MINIMAL_IMAGE_WIDTH
+        ):
             image_config[CONF_TRIM][CONF_LEFT] = 0
             image_config[CONF_TRIM][CONF_RIGHT] = 0
-        if image_height \
-                - image_height * (image_config[CONF_TRIM][CONF_TOP] + image_config[CONF_TRIM][CONF_BOTTOM]) / 100 \
-                < MINIMAL_IMAGE_HEIGHT:
+        if (
+            image_height
+            - image_height
+            * (image_config[CONF_TRIM][CONF_TOP] + image_config[CONF_TRIM][CONF_BOTTOM])
+            / 100
+            < MINIMAL_IMAGE_HEIGHT
+        ):
             image_config[CONF_TRIM][CONF_TOP] = 0
             image_config[CONF_TRIM][CONF_BOTTOM] = 0
-        image = ImageHandler.parse(data, image_width, image_height, colors, image_config)
-        return ImageData(image_size,
-                         image_top,
-                         image_left,
-                         image_height,
-                         image_width,
-                         image_config,
-                         image)
+        image = ImageHandler.parse(
+            data, image_width, image_height, colors, image_config
+        )
+        return ImageData(
+            image_size,
+            image_top,
+            image_left,
+            image_height,
+            image_width,
+            image_config,
+            image,
+        )
 
     @staticmethod
     def parse_goto_target(data):
@@ -190,18 +226,30 @@ class MapDataParser:
     def draw_elements(colors, drawables, map_data):
         if DRAWABLE_CHARGER in drawables and map_data.charger is not None:
             ImageHandler.draw_charger(map_data.image, map_data.charger, colors)
-        if DRAWABLE_VACUUM_POSITION in drawables and map_data.vacuum_position is not None:
-            ImageHandler.draw_vacuum_position(map_data.image, map_data.vacuum_position, colors)
+        if (
+            DRAWABLE_VACUUM_POSITION in drawables
+            and map_data.vacuum_position is not None
+        ):
+            ImageHandler.draw_vacuum_position(
+                map_data.image, map_data.vacuum_position, colors
+            )
         if DRAWABLE_PATH in drawables and map_data.path is not None:
             ImageHandler.draw_path(map_data.image, map_data.path, colors)
         if DRAWABLE_GOTO_PATH in drawables and map_data.goto_path is not None:
             ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, colors)
         if DRAWABLE_PREDICTED_PATH in drawables and map_data.predicted_path is not None:
-            ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, colors)
+            ImageHandler.draw_predicted_path(
+                map_data.image, map_data.predicted_path, colors
+            )
         if DRAWABLE_NO_GO_AREAS in drawables and map_data.no_go_areas is not None:
             ImageHandler.draw_no_go_areas(map_data.image, map_data.no_go_areas, colors)
-        if DRAWABLE_NO_MOPPING_AREAS in drawables and map_data.no_mopping_areas is not None:
-            ImageHandler.draw_no_mopping_areas(map_data.image, map_data.no_mopping_areas, colors)
+        if (
+            DRAWABLE_NO_MOPPING_AREAS in drawables
+            and map_data.no_mopping_areas is not None
+        ):
+            ImageHandler.draw_no_mopping_areas(
+                map_data.image, map_data.no_mopping_areas, colors
+            )
         if DRAWABLE_VIRTUAL_WALLS in drawables and map_data.walls is not None:
             ImageHandler.draw_walls(map_data.image, map_data.walls, colors)
         if DRAWABLE_ZONES in drawables and map_data.zones is not None:
@@ -211,7 +259,7 @@ class MapDataParser:
 
     @staticmethod
     def get_bytes(data: bytes, start_index: int, size: int):
-        return data[start_index:  start_index + size]
+        return data[start_index : start_index + size]
 
     @staticmethod
     def get_first_int16(data: bytes):
@@ -219,17 +267,16 @@ class MapDataParser:
 
     @staticmethod
     def get_int16(data: bytes, address: int):
-        return \
-            ((data[address + 0] << 0) & 0xFF) | \
-            ((data[address + 1] << 8) & 0xFFFF)
+        return ((data[address + 0] << 0) & 0xFF) | ((data[address + 1] << 8) & 0xFFFF)
 
     @staticmethod
     def get_int32(data: bytes, address: int):
-        return \
-            ((data[address + 0] << 0) & 0xFF) | \
-            ((data[address + 1] << 8) & 0xFFFF) | \
-            ((data[address + 2] << 16) & 0xFFFFFF) | \
-            ((data[address + 3] << 24) & 0xFFFFFFFF)
+        return (
+            ((data[address + 0] << 0) & 0xFF)
+            | ((data[address + 1] << 8) & 0xFFFF)
+            | ((data[address + 2] << 16) & 0xFFFFFF)
+            | ((data[address + 3] << 24) & 0xFFFFFFFF)
+        )
 
 
 class MapData:
@@ -252,10 +299,12 @@ class MapData:
         calibration_points = []
         for point in [Point(25500, 25500), Point(26500, 25500), Point(26500, 26500)]:
             img_point = point.to_img(self.image.dimensions)
-            calibration_points.append({
-                ATTR_VACUUM: {ATTR_X: point.x, ATTR_Y: point.y},
-                ATTR_MAP: {ATTR_X: int(img_point.x), ATTR_Y: int(img_point.y)}
-            })
+            calibration_points.append(
+                {
+                    ATTR_VACUUM: {ATTR_X: point.x, ATTR_Y: point.y},
+                    ATTR_MAP: {ATTR_X: int(img_point.x), ATTR_Y: int(img_point.y)},
+                }
+            )
         return calibration_points
 
 
@@ -272,15 +321,8 @@ class Point:
 
     def as_dict(self):
         if self.a is None:
-            return {
-                ATTR_X: self.x,
-                ATTR_Y: self.y
-            }
-        return {
-            ATTR_X: self.x,
-            ATTR_Y: self.y,
-            ATTR_A: self.a
-        }
+            return {ATTR_X: self.x, ATTR_Y: self.y}
+        return {ATTR_X: self.x, ATTR_Y: self.y, ATTR_A: self.a}
 
     def to_img(self, image_dimensions):
         x = self.x / MapDataParser.MM - image_dimensions.left
@@ -308,12 +350,14 @@ class ImageData:
         scale = image_config[CONF_SCALE]
         rotation = image_config[CONF_ROTATE]
         self.size = size
-        self.dimensions = ImageDimensions(top + trim_bottom,
-                                          left + trim_left,
-                                          height - trim_top - trim_bottom,
-                                          width - trim_left - trim_right,
-                                          scale,
-                                          rotation)
+        self.dimensions = ImageDimensions(
+            top + trim_bottom,
+            left + trim_left,
+            height - trim_top - trim_bottom,
+            width - trim_left - trim_right,
+            scale,
+            rotation,
+        )
         self.data = data
 
     def as_dict(self):
@@ -324,7 +368,7 @@ class ImageData:
             ATTR_HEIGHT: self.dimensions.height,
             ATTR_SCALE: self.dimensions.scale,
             ATTR_ROTATION: self.dimensions.rotation,
-            ATTR_WIDTH: self.dimensions.width
+            ATTR_WIDTH: self.dimensions.width,
         }
 
 
@@ -340,7 +384,7 @@ class Path:
             ATTR_POINT_LENGTH: self.point_length,
             ATTR_POINT_SIZE: self.point_size,
             ATTR_ANGLE: self.angle,
-            ATTR_PATH: self.path
+            ATTR_PATH: self.path,
         }
 
 
@@ -355,15 +399,12 @@ class Zone:
         return f"[{self.x0}, {self.y0}, {self.x1}, {self.y1}]"
 
     def as_dict(self):
-        return {
-            ATTR_X0: self.x0,
-            ATTR_Y0: self.y0,
-            ATTR_X1: self.x1,
-            ATTR_Y1: self.y1
-        }
+        return {ATTR_X0: self.x0, ATTR_Y0: self.y0, ATTR_X1: self.x1, ATTR_Y1: self.y1}
 
     def as_area(self):
-        return Area(self.x0, self.y0, self.x0, self.y1, self.x1, self.y1, self.x1, self.y0)
+        return Area(
+            self.x0, self.y0, self.x0, self.y1, self.x1, self.y1, self.x1, self.y0
+        )
 
 
 class Wall:
@@ -377,12 +418,7 @@ class Wall:
         return f"[{self.x0}, {self.y0}, {self.x1}, {self.y1}]"
 
     def as_dict(self):
-        return {
-            ATTR_X0: self.x0,
-            ATTR_Y0: self.y0,
-            ATTR_X1: self.x1,
-            ATTR_Y1: self.y1
-        }
+        return {ATTR_X0: self.x0, ATTR_Y0: self.y0, ATTR_X1: self.x1, ATTR_Y1: self.y1}
 
     def to_img(self, image_dimensions):
         p0 = Point(self.x0, self.y0).to_img(image_dimensions)
@@ -416,7 +452,7 @@ class Area:
             ATTR_X2: self.x2,
             ATTR_Y2: self.y2,
             ATTR_X3: self.x3,
-            ATTR_Y3: self.y3
+            ATTR_Y3: self.y3,
         }
 
     def as_list(self):

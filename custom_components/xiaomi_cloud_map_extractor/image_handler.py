@@ -23,7 +23,7 @@ class ImageHandler:
         COLOR_NO_GO_ZONES_OUTLINE: (255, 0, 0),
         COLOR_NO_MOPPING_ZONES: (163, 130, 211, 127),
         COLOR_NO_MOPPING_ZONES_OUTLINE: (163, 130, 211),
-        COLOR_CHARGER: (0x66, 0xfe, 0xda, 0x7f),
+        COLOR_CHARGER: (0x66, 0xFE, 0xDA, 0x7F),
         COLOR_ROBO: (75, 235, 149),
         COLOR_UNKNOWN: (0, 0, 0),
         COLOR_SCAN: (0xDF, 0xDF, 0xDF),
@@ -42,11 +42,26 @@ class ImageHandler:
         COLOR_ROOM_13: (245, 176, 65),
         COLOR_ROOM_14: (82, 190, 128),
         COLOR_ROOM_15: (72, 201, 176),
-        COLOR_ROOM_16: (165, 105, 189)
+        COLOR_ROOM_16: (165, 105, 189),
     }
-    ROOM_COLORS = [COLOR_ROOM_1, COLOR_ROOM_2, COLOR_ROOM_3, COLOR_ROOM_4, COLOR_ROOM_5, COLOR_ROOM_6, COLOR_ROOM_7,
-                   COLOR_ROOM_8, COLOR_ROOM_9, COLOR_ROOM_10, COLOR_ROOM_11, COLOR_ROOM_12, COLOR_ROOM_13,
-                   COLOR_ROOM_14, COLOR_ROOM_15, COLOR_ROOM_16]
+    ROOM_COLORS = [
+        COLOR_ROOM_1,
+        COLOR_ROOM_2,
+        COLOR_ROOM_3,
+        COLOR_ROOM_4,
+        COLOR_ROOM_5,
+        COLOR_ROOM_6,
+        COLOR_ROOM_7,
+        COLOR_ROOM_8,
+        COLOR_ROOM_9,
+        COLOR_ROOM_10,
+        COLOR_ROOM_11,
+        COLOR_ROOM_12,
+        COLOR_ROOM_13,
+        COLOR_ROOM_14,
+        COLOR_ROOM_15,
+        COLOR_ROOM_16,
+    ]
 
     @staticmethod
     def parse(raw_data: bytes, width, height, colors, image_config):
@@ -57,7 +72,7 @@ class ImageHandler:
         trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * height / 100)
         trimmed_height = height - trim_top - trim_bottom
         trimmed_width = width - trim_left - trim_right
-        image = Image.new('RGB', (trimmed_width, trimmed_height))
+        image = Image.new("RGB", (trimmed_width, trimmed_height))
         pixels = image.load()
         for y in range(trimmed_height):
             for x in range(trimmed_width):
@@ -74,56 +89,83 @@ class ImageHandler:
                 else:
                     obstacle = pixel_type & 0x07
                     if obstacle == 0:
-                        pixels[x, y] = ImageHandler.__get_color__(COLOR_GREY_WALL, colors)
+                        pixels[x, y] = ImageHandler.__get_color__(
+                            COLOR_GREY_WALL, colors
+                        )
                     elif obstacle == 1:
-                        pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_WALL_V2, colors)
+                        pixels[x, y] = ImageHandler.__get_color__(
+                            COLOR_MAP_WALL_V2, colors
+                        )
                     elif obstacle == 7:
                         room_number = (pixel_type & 0xFF) >> 3
                         default = ImageHandler.ROOM_COLORS[room_number >> 1]
-                        pixels[x, y] = ImageHandler.__get_color__(f"{COLOR_ROOM_PREFIX}{room_number}", colors, default)
+                        pixels[x, y] = ImageHandler.__get_color__(
+                            f"{COLOR_ROOM_PREFIX}{room_number}", colors, default
+                        )
                     else:
                         pixels[x, y] = ImageHandler.__get_color__(COLOR_UNKNOWN, colors)
         if image_config["scale"] != 1:
-            image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
+            image = image.resize(
+                (int(trimmed_width * scale), int(trimmed_height * scale)),
+                resample=Image.NEAREST,
+            )
         return image
 
     @staticmethod
     def draw_path(image, path, colors):
-        ImageHandler.__draw_path__(image, path, ImageHandler.__get_color__(COLOR_PATH, colors))
+        ImageHandler.__draw_path__(
+            image, path, ImageHandler.__get_color__(COLOR_PATH, colors)
+        )
 
     @staticmethod
     def draw_goto_path(image, path, colors):
-        ImageHandler.__draw_path__(image, path, ImageHandler.__get_color__(COLOR_GOTO_PATH, colors))
+        ImageHandler.__draw_path__(
+            image, path, ImageHandler.__get_color__(COLOR_GOTO_PATH, colors)
+        )
 
     @staticmethod
     def draw_predicted_path(image, path, colors):
-        ImageHandler.__draw_path__(image, path, ImageHandler.__get_color__(COLOR_PREDICTED_PATH, colors))
+        ImageHandler.__draw_path__(
+            image, path, ImageHandler.__get_color__(COLOR_PREDICTED_PATH, colors)
+        )
 
     @staticmethod
     def draw_no_go_areas(image, areas, colors):
-        ImageHandler.__draw_areas__(image, areas,
-                                    ImageHandler.__get_color__(COLOR_NO_GO_ZONES, colors),
-                                    ImageHandler.__get_color__(COLOR_NO_GO_ZONES_OUTLINE, colors))
+        ImageHandler.__draw_areas__(
+            image,
+            areas,
+            ImageHandler.__get_color__(COLOR_NO_GO_ZONES, colors),
+            ImageHandler.__get_color__(COLOR_NO_GO_ZONES_OUTLINE, colors),
+        )
 
     @staticmethod
     def draw_no_mopping_areas(image, areas, colors):
-        ImageHandler.__draw_areas__(image, areas,
-                                    ImageHandler.__get_color__(COLOR_NO_MOPPING_ZONES, colors),
-                                    ImageHandler.__get_color__(COLOR_NO_MOPPING_ZONES_OUTLINE, colors))
+        ImageHandler.__draw_areas__(
+            image,
+            areas,
+            ImageHandler.__get_color__(COLOR_NO_MOPPING_ZONES, colors),
+            ImageHandler.__get_color__(COLOR_NO_MOPPING_ZONES_OUTLINE, colors),
+        )
 
     @staticmethod
     def draw_walls(image, walls, colors):
-        draw = ImageDraw.Draw(image.data, 'RGBA')
+        draw = ImageDraw.Draw(image.data, "RGBA")
         for wall in walls:
-            draw.line(wall.to_img(image.dimensions).as_list(),
-                      ImageHandler.__get_color__(COLOR_VIRTUAL_WALLS, colors), width=2)
+            draw.line(
+                wall.to_img(image.dimensions).as_list(),
+                ImageHandler.__get_color__(COLOR_VIRTUAL_WALLS, colors),
+                width=2,
+            )
 
     @staticmethod
     def draw_zones(image, zones, colors):
         areas = list(map(lambda z: z.as_area(), zones))
-        ImageHandler.__draw_areas__(image, areas,
-                                    ImageHandler.__get_color__(COLOR_ZONES, colors),
-                                    ImageHandler.__get_color__(COLOR_ZONES_OUTLINE, colors))
+        ImageHandler.__draw_areas__(
+            image,
+            areas,
+            ImageHandler.__get_color__(COLOR_ZONES, colors),
+            ImageHandler.__get_color__(COLOR_ZONES_OUTLINE, colors),
+        )
 
     @staticmethod
     def draw_charger(image, charger, colors):
@@ -147,7 +189,7 @@ class ImageHandler:
     @staticmethod
     def __draw_circle__(image, center, r, outline, fill):
         point = center.to_img(image.dimensions)
-        draw = ImageDraw.Draw(image.data, 'RGBA')
+        draw = ImageDraw.Draw(image.data, "RGBA")
         coords = [point.x - r, point.y - r, point.x + r, point.y + r]
         draw.ellipse(coords, outline=outline, fill=fill)
 
@@ -155,7 +197,7 @@ class ImageHandler:
     def __draw_areas__(image, areas, fill, outline):
         if len(areas) == 0:
             return
-        draw = ImageDraw.Draw(image.data, 'RGBA')
+        draw = ImageDraw.Draw(image.data, "RGBA")
         for area in areas:
             draw.polygon(area.to_img(image.dimensions).as_list(), fill, outline)
 
@@ -163,7 +205,7 @@ class ImageHandler:
     def __draw_path__(image, path, color):
         if len(path.path) < 2:
             return
-        draw = ImageDraw.Draw(image.data, 'RGBA')
+        draw = ImageDraw.Draw(image.data, "RGBA")
         s = path.path[0].to_img(image.dimensions)
         for point in path.path[1:]:
             e = point.to_img(image.dimensions)

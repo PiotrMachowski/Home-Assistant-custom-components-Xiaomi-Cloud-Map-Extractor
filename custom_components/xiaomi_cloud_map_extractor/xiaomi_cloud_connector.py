@@ -1,12 +1,13 @@
 import base64
+import gzip
 import hashlib
 import hmac
 import json
+import random
 import secrets
 import time
+
 import requests
-import gzip
-import random
 from Crypto.Hash import MD5, SHA256
 
 from .map_data_parser import MapDataParser

@@ -1,21 +1,22 @@
-import time
-import miio
-import logging
 import io
+import logging
+import time
 from datetime import timedelta
-from .xiaomi_cloud_connector import XiaomiCloudConnector
-from .const import *
-import voluptuous as vol
 
+import miio
+import voluptuous as vol
+from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
 from homeassistant.const import (
     CONF_HOST,
     CONF_NAME,
+    CONF_PASSWORD,
     CONF_TOKEN,
     CONF_USERNAME,
-    CONF_PASSWORD,
 )
 from homeassistant.helpers import config_validation as cv
-from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
+
+from .const import *
+from .xiaomi_cloud_connector import XiaomiCloudConnector
 
 _LOGGER = logging.getLogger(__name__)
 

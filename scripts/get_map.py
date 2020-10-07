@@ -4,6 +4,8 @@ import io
 from .xiaomi_cloud_connector import XiaomiCloudConnector
 from .const import *
 
+# ********* CONFIGURATION *********
+
 vacuum_ip = ""
 token = ""
 username = ""
@@ -44,6 +46,8 @@ trim_left = 5
 trim_right = 10.5
 trim_bottom = 0
 trim_top = 15
+
+# ********* CONFIGURATION END *********
 
 processed_colors = {**colors}
 for room_number, color in room_colors.items():

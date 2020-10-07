@@ -1,9 +1,14 @@
 from .xiaomi_cloud_connector import XiaomiCloudConnector
 from .const import *
 
+# ********* CONFIGURATION *********
+
 username = ""
 password = ""
 country = ""
+
+# ********* CONFIGURATION END *********
+
 connector = XiaomiCloudConnector(username, password, country)
 logged = connector.login()
 if logged:

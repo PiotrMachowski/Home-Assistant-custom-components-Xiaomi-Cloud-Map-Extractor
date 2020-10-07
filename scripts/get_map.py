@@ -65,7 +65,7 @@ if not logged:
 if map_name != "retry":
     print("Retrieved map name: " + map_name)
     raw_map = connector.get_raw_map_data(map_name)
-    map_data = connector.get_map(map_name, {}, CONF_AVAILABLE_DRAWABLES, {
+    map_data = connector.get_map(map_name, processed_colors, draw, {
         CONF_SCALE: scale,
         CONF_ROTATE: rotate,
         CONF_TRIM: {

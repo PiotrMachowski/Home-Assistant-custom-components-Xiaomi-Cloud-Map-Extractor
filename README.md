@@ -15,11 +15,11 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `username` | string | true | `xiaomi.account@gmail.com` | Username (email or user ID) used to connect to Xiaomi cloud. |
 | `password` | string | true | `aVerySecretPassword` | Password used to connect to Xiaomi cloud |
 | `country` | string | true | One of: `ru`, `us`, `tw`, `sg`, `cn`, `de` | Server used in Xiaomi cloud |
-| `colors` | map | false |  | Colors configuration (see below) |
-| `room_colors` | map | false |  | Room colors configuration (see below) |
-| `draw` | list | false |  | List of elements to draw on a map (see below) |
-| `map_transformation` | map | false |  | Parameters of map transformation (see below) |
-| `attributes` | list | false |  | List of desired entity attributes (see below) |
+| `colors` | map | false |  | Colors configuration ([see below](#colors-configuration)) |
+| `room_colors` | map | false |  | Room colors configuration ([see below](#room-colors-configuration)) |
+| `draw` | list | false |  | List of elements to draw on a map ([see below](#draw-configuration)) |
+| `map_transformation` | map | false |  | Parameters of map transformation ([see below](#map-transformation-configuration)) |
+| `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 
 #### Colors configuration
 

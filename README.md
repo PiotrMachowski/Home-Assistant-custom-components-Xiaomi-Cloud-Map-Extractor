@@ -196,6 +196,7 @@ camera:
 
 This integration was tested on following vacuums:
  - Xiaomi Vacuum Gen 1 (Mi Robot Vacuum/SDJQR02RR)
+ - Roborock S4 (software with rooms support)
  - Roborock S5 (software without rooms support)
  - Roborock S5 (software with rooms support)
  - Roborock S5 Max

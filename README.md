@@ -20,6 +20,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `draw` | list | false |  | List of elements to draw on a map ([see below](#draw-configuration)) |
 | `map_transformation` | map | false |  | Parameters of map transformation ([see below](#map-transformation-configuration)) |
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
+| `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 
 #### Colors configuration
 
@@ -195,6 +196,8 @@ camera:
       - vacuum_position
       - walls
       - zones
+    scan_interval:
+      seconds: 10
 ```
 
 ## Supported devices

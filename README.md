@@ -94,6 +94,7 @@ This custom integration provides a way to present a live view of a map for a Xia
   - `obstacles`
   - `path`
   - `room_numbers`
+  - `rooms`
   - `vacuum_position`
   - `walls`
   - `zones`
@@ -190,6 +191,7 @@ camera:
       - obstacles
       - path
       - room_numbers
+      - rooms
       - vacuum_position
       - walls
       - zones

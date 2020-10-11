@@ -121,7 +121,8 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_NO_MOPPING_AREAS: self._map_data.no_mopping_areas,
                 ATTRIBUTE_OBSTACLES: self._map_data.obstacles,
                 ATTRIBUTE_PATH: self._map_data.path,
-                ATTRIBUTE_ROOM_NUMBERS: self._map_data.room_numbers,
+                ATTRIBUTE_ROOM_NUMBERS: list(self._map_data.rooms.keys()),
+                ATTRIBUTE_ROOMS: self._map_data.rooms,
                 ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
                 ATTRIBUTE_WALLS: self._map_data.walls,
                 ATTRIBUTE_ZONES: self._map_data.zones

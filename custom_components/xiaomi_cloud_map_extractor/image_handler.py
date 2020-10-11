@@ -50,6 +50,7 @@ class ImageHandler:
 
     @staticmethod
     def parse(raw_data: bytes, width, height, colors, image_config):
+        room_numbers = []
         scale = image_config[CONF_SCALE]
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
         trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * width / 100)
@@ -79,13 +80,16 @@ class ImageHandler:
                         pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_WALL_V2, colors)
                     elif obstacle == 7:
                         room_number = (pixel_type & 0xFF) >> 3
+                        if not room_number in room_numbers:
+                            room_numbers.append(room_number)
                         default = ImageHandler.ROOM_COLORS[room_number >> 1]
                         pixels[x, y] = ImageHandler.__get_color__(f"{COLOR_ROOM_PREFIX}{room_number}", colors, default)
                     else:
                         pixels[x, y] = ImageHandler.__get_color__(COLOR_UNKNOWN, colors)
         if image_config["scale"] != 1:
             image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
-        return image
+        room_numbers.sort()
+        return image, room_numbers
 
     @staticmethod
     def draw_path(image, path, colors):

@@ -93,6 +93,7 @@ This custom integration provides a way to present a live view of a map for a Xia
   - `no_mopping_areas`
   - `obstacles`
   - `path`
+  - `room_numbers`
   - `vacuum_position`
   - `walls`
   - `zones`
@@ -178,6 +179,7 @@ camera:
         left: 30
         right: 40
     attributes:
+      - calibration_points
       - charger
       - goto
       - goto_path
@@ -187,6 +189,7 @@ camera:
       - no_mopping_areas
       - obstacles
       - path
+      - room_numbers
       - vacuum_position
       - walls
       - zones

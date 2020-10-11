@@ -42,8 +42,10 @@ class MapDataParser:
             if block_type == MapDataParser.CHARGER:
                 map_data.charger = MapDataParser.parse_charger(block_start_position, raw)
             elif block_type == MapDataParser.IMAGE:
-                map_data.image = MapDataParser.parse_image(block_data_length, block_header_length, data, header, colors,
-                                                           image_config)
+                image, room_numbers = MapDataParser.parse_image(block_data_length, block_header_length, data, header,
+                                                                colors, image_config)
+                map_data.image = image
+                map_data.room_numbers = room_numbers
             elif block_type == MapDataParser.ROBOT_POSITION:
                 map_data.vacuum_position = MapDataParser.parse_vacuum_position(block_data_length, data)
             elif block_type == MapDataParser.PATH:
@@ -91,14 +93,14 @@ class MapDataParser:
                 < MINIMAL_IMAGE_HEIGHT:
             image_config[CONF_TRIM][CONF_TOP] = 0
             image_config[CONF_TRIM][CONF_BOTTOM] = 0
-        image = ImageHandler.parse(data, image_width, image_height, colors, image_config)
+        image, room_numbers = ImageHandler.parse(data, image_width, image_height, colors, image_config)
         return ImageData(image_size,
                          image_top,
                          image_left,
                          image_height,
                          image_width,
                          image_config,
-                         image)
+                         image), room_numbers
 
     @staticmethod
     def parse_goto_target(data):
@@ -234,27 +236,28 @@ class MapDataParser:
 
 class MapData:
     def __init__(self):
+        self.blocks = None
         self.charger: Optional[Point] = None
-        self.image: Optional[ImageData] = None
-        self.vacuum_position: Optional[Point] = None
-        self.path: Optional[List[Point]] = None
-        self.goto_path: Optional[List[Point]] = None
-        self.predicted_path: Optional[List[Point]] = None
-        self.zones: Optional[List[Area]] = None
         self.goto: Optional[List[Point]] = None
-        self.walls: Optional[List[Wall]] = None
+        self.goto_path: Optional[List[Point]] = None
+        self.image: Optional[ImageData] = None
         self.no_go_areas: Optional[List[Area]] = None
         self.no_mopping_areas: Optional[List[Area]] = None
         self.obstacles = None
-        self.blocks = None
+        self.path: Optional[List[Point]] = None
+        self.predicted_path: Optional[List[Point]] = None
+        self.room_numbers: Optional[List[int]] = None
+        self.vacuum_position: Optional[Point] = None
+        self.walls: Optional[List[Wall]] = None
+        self.zones: Optional[List[Area]] = None
 
     def calibration(self):
         calibration_points = []
         for point in [Point(25500, 25500), Point(26500, 25500), Point(26500, 26500)]:
             img_point = point.to_img(self.image.dimensions)
             calibration_points.append({
-                ATTR_VACUUM: {ATTR_X: point.x, ATTR_Y: point.y},
-                ATTR_MAP: {ATTR_X: int(img_point.x), ATTR_Y: int(img_point.y)}
+                "vacuum": {"x": point.x, "y": point.y},
+                "map": {"x": int(img_point.x), "y": int(img_point.y)}
             })
         return calibration_points
 

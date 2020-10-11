@@ -113,17 +113,18 @@ class VacuumCamera(Camera):
             for name, value in {
                 ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
                 ATTRIBUTE_CHARGER: self._map_data.charger,
-                ATTRIBUTE_IMAGE: self._map_data.image,
-                ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
-                ATTRIBUTE_PATH: self._map_data.path,
+                ATTRIBUTE_GOTO: self._map_data.goto,
                 ATTRIBUTE_GOTO_PATH: self._map_data.goto_path,
                 ATTRIBUTE_GOTO_PREDICTED_PATH: self._map_data.predicted_path,
-                ATTRIBUTE_ZONES: self._map_data.zones,
-                ATTRIBUTE_GOTO: self._map_data.goto,
-                ATTRIBUTE_WALLS: self._map_data.walls,
+                ATTRIBUTE_IMAGE: self._map_data.image,
                 ATTRIBUTE_NO_GO_AREAS: self._map_data.no_go_areas,
                 ATTRIBUTE_NO_MOPPING_AREAS: self._map_data.no_mopping_areas,
-                ATTRIBUTE_OBSTACLES: self._map_data.obstacles
+                ATTRIBUTE_OBSTACLES: self._map_data.obstacles,
+                ATTRIBUTE_PATH: self._map_data.path,
+                ATTRIBUTE_ROOM_NUMBERS: self._map_data.room_numbers,
+                ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
+                ATTRIBUTE_WALLS: self._map_data.walls,
+                ATTRIBUTE_ZONES: self._map_data.zones
             }.items():
                 if name in self._attributes:
                     attributes[name] = value

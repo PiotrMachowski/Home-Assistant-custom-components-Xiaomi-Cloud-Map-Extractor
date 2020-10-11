@@ -3,13 +3,13 @@ import miio
 import logging
 import io
 from datetime import timedelta
+import voluptuous as vol
 from .xiaomi_cloud_connector import XiaomiCloudConnector
 from .const import *
-import voluptuous as vol
 
+from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TOKEN, CONF_USERNAME, CONF_PASSWORD
 from homeassistant.helpers import config_validation as cv
-from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +37,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Required(CONF_COUNTRY): vol.In(CONF_AVAILABLE_COUNTRIES),
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+        vol.Optional(CONF_AUTO_UPDATE, default=True): cv.boolean,
         vol.Optional(CONF_COLORS, default={}): vol.Schema({
             vol.In(CONF_AVAILABLE_COLORS): COLOR_SCHEMA
         }),
@@ -66,6 +67,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     password = config[CONF_PASSWORD]
     country = config[CONF_COUNTRY]
     name = config[CONF_NAME]
+    should_poll = config[CONF_AUTO_UPDATE]
     image_config = config[CONF_MAP_TRANSFORM]
     colors = config[CONF_COLORS]
     room_colors = config[CONF_ROOM_COLORS]
@@ -75,18 +77,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if "all" in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
-    async_add_entities([VacuumCamera(hass, host, token, username, password, country, name, image_config, colors,
-                                     drawables, attributes)])
+    async_add_entities([VacuumCamera(hass, host, token, username, password, country, name, should_poll, image_config,
+                                     colors, drawables, attributes)])
 
 
 class VacuumCamera(Camera):
-    def __init__(self, hass, host, token, username, password, country, name, image_config, colors, drawables,
-                 attributes):
+    def __init__(self, hass, host, token, username, password, country, name, should_poll, image_config, colors,
+                 drawables, attributes):
         super().__init__()
         self.hass = hass
         self._vacuum = miio.Vacuum(host, token)
         self._connector = XiaomiCloudConnector(username, password, country)
         self._name = name
+        self._should_poll = should_poll
         self._image_config = image_config
         self._colors = colors
         self._drawables = drawables
@@ -133,7 +136,7 @@ class VacuumCamera(Camera):
 
     @property
     def should_poll(self):
-        return True
+        return self._should_poll
 
     def update(self):
         counter = 10

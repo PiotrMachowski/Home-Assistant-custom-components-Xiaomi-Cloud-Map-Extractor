@@ -1,4 +1,5 @@
 CONF_ATTRIBUTES = "attributes"
+CONF_AUTO_UPDATE = "auto_update"
 CONF_AVAILABLE_COUNTRIES = ["ru", "us", "tw", "sg", "cn", "de"]
 CONF_BOTTOM = "bottom"
 CONF_COLORS = "colors"

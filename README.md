@@ -92,6 +92,7 @@ This custom integration provides a way to present a live view of a map for a Xia
   - `goto_path`
   - `goto_predicted_path`
   - `image`
+  - `map_name`
   - `no_go_areas`
   - `no_mopping_areas`
   - `obstacles`
@@ -189,6 +190,7 @@ camera:
       - goto_path
       - goto_predicted_path
       - image
+      - map_name
       - no_go_areas
       - no_mopping_areas
       - obstacles

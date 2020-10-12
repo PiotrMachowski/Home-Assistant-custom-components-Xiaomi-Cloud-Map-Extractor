@@ -221,5 +221,10 @@ This integration was tested on following vacuums:
  - Roborock S5 (software with rooms support)
  - Roborock S5 Max
  - Roborock S6
+ 
+## Unsupported devices
+
+At this moment this integration is know to not work with following vacuums:
+ - Roborock E50
 
 <a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>

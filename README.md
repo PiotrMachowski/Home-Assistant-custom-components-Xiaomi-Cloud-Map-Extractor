@@ -5,6 +5,7 @@
 # Xiaomi Cloud Map Extractor
 
 This custom integration provides a way to present a live view of a map for a Xiaomi vacuum.
+<img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_no_rooms.png" width=48%>  <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_rooms.png" width=48%>
 
 ## Configuration
 
@@ -28,6 +29,8 @@ This custom integration provides a way to present a live view of a map for a Xia
 
   Each color is represented by a list of 3 or 4 parameters: `[red, green, blue]` or `[red, green, blue, alpha]`.
   Each parameter is a number from a range 0-255 and can be also provided as a HEX value: [0x12, 0xAF, 0xC5] matches #12AFC5. 
+  
+  <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_no_rooms_custom_colors.png" width=50%>
   
   | Color name | Description |
   | --- | --- |

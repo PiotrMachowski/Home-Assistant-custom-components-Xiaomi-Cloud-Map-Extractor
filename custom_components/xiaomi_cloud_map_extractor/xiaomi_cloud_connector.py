@@ -87,28 +87,29 @@ class XiaomiCloudConnector:
         self._session.cookies.set("deviceId", self._device_id, domain="xiaomi.com")
         return self.login_step_1() and self.login_step_2() and self.login_step_3()
 
-    def get_map_url(self, vacuum_map):
+    def get_map_url(self, map_name):
         url = self.get_api_url() + "/home/getmapfileurl"
         params = {
-            "data": '{"obj_name":"' + vacuum_map + '"}'
+            "data": '{"obj_name":"' + map_name + '"}'
         }
         api_response = self.execute_api_call(url, params)
         if api_response is None:
             return None
         return api_response["result"]["url"]
 
-    def get_map(self, vacuum_map, colors, drawables, image_config):
-        response = self.get_raw_map_data(vacuum_map)
+    def get_map(self, map_name, colors, drawables, image_config):
+        response = self.get_raw_map_data(map_name)
         if response is None:
             return None
         unzipped = gzip.decompress(response)
         map_data = MapDataParser.parse(unzipped, colors, drawables, image_config)
+        map_data.map_name = map_name
         return map_data
 
-    def get_raw_map_data(self, vacuum_map):
-        if vacuum_map is None:
+    def get_raw_map_data(self, map_name):
+        if map_name is None:
             return None
-        map_url = self.get_map_url(vacuum_map)
+        map_url = self.get_map_url(map_name)
         if map_url is not None:
             response = self._session.get(map_url)
             if response.status_code == 200:

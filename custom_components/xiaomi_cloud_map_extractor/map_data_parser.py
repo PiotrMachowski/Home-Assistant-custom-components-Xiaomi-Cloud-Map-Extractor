@@ -255,6 +255,7 @@ class MapData:
         self.vacuum_position: Optional[Point] = None
         self.walls: Optional[List[Wall]] = None
         self.zones: Optional[List[Zone]] = None
+        self.map_name: Optional[str] = None
 
     def calibration(self):
         calibration_points = []

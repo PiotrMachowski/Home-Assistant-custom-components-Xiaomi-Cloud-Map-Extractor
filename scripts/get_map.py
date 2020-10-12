@@ -69,7 +69,10 @@ if not logged:
 if map_name != "retry":
     print("Retrieved map name: " + map_name)
     raw_map = connector.get_raw_map_data(map_name)
-    map_data = connector.get_map(map_name, processed_colors, draw, {
+    raw_file = open("map_data.gz", "wb")
+    raw_file.write(raw_map)
+    raw_file.close()
+    map_data = connector.get_map(map_name, {}, CONF_AVAILABLE_DRAWABLES, {
         CONF_SCALE: scale,
         CONF_ROTATE: rotate,
         CONF_TRIM: {
@@ -79,9 +82,6 @@ if map_name != "retry":
             CONF_BOTTOM: trim_bottom
         }})
     map_data.image.data.save("map_data.png")
-    raw_file = open("map_data.gz", "wb")
-    raw_file.write(raw_map)
-    raw_file.close()
     img_byte_arr = io.BytesIO()
     map_data.image.data.save(img_byte_arr, format='PNG')
     img_byte_arr = img_byte_arr.getvalue()

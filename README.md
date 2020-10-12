@@ -5,6 +5,7 @@
 # Xiaomi Cloud Map Extractor
 
 This custom integration provides a way to present a live view of a map for a Xiaomi vacuum.
+
 <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_no_rooms.png" width=48%>  <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_rooms.png" width=48%>
 
 ## Configuration

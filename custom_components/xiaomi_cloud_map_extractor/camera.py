@@ -4,6 +4,7 @@ import logging
 import io
 from datetime import timedelta
 import voluptuous as vol
+
 from .xiaomi_cloud_connector import XiaomiCloudConnector
 from .const import *
 
@@ -98,6 +99,9 @@ class VacuumCamera(Camera):
         self._map_data = None
         self._logged = False
 
+    async def async_added_to_hass(self) -> None:
+        self.async_schedule_update_ha_state(True)
+
     @property
     def frame_interval(self):
         return 0.5
@@ -147,6 +151,10 @@ class VacuumCamera(Camera):
             time.sleep(0.1)
             try:
                 map_name = self._vacuum.map()[0]
+            except OSError as exc:
+                _LOGGER.error("Got OSError while fetching the state: %s", exc)
+            except miio.DeviceException as exc:
+                _LOGGER.warning("Got exception while fetching the state: %s", exc)
             finally:
                 counter = counter - 1
         if self._logged and map_name != "retry":

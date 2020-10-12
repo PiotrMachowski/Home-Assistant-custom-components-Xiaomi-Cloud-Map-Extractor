@@ -32,7 +32,7 @@ This custom integration provides a way to present a live view of a map for a Xia
   Each parameter is a number from a range 0-255 and can be also provided as a HEX value: [0x12, 0xAF, 0xC5] matches #12AFC5. 
   
   <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_no_rooms_custom_colors.png" width=50%>
-  
+   
   | Color name | Description |
   | --- | --- |
   | `color_map_inside` | Map inside (for software without rooms support) |
@@ -91,6 +91,9 @@ This custom integration provides a way to present a live view of a map for a Xia
   A list of attributes that an entity should have.
   Available values:
   - `calibration_points` - Calculated calibration points for [Lovelace Xiaomi Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card). **WARNING:** this attribute doesn't support map rotation.
+
+     <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_card.gif" width=50%>
+  
   - `charger`
   - `goto`
   - `goto_path`

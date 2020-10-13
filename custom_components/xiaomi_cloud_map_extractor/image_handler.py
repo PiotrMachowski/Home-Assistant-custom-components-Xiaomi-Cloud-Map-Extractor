@@ -97,6 +97,15 @@ class ImageHandler:
         return image, rooms
 
     @staticmethod
+    def get_room_at_pixel(raw_data: bytes, width, x, y):
+        room_number = None
+        pixel_type = raw_data[x + width * y]
+        if pixel_type not in [ImageHandler.MAP_INSIDE, ImageHandler.MAP_SCAN]:
+            if pixel_type & 0x07 == 7:
+                room_number = (pixel_type & 0xFF) >> 3
+        return room_number
+
+    @staticmethod
     def draw_path(image, path, colors):
         ImageHandler.__draw_path__(image, path, ImageHandler.__get_color__(COLOR_PATH, colors))
 

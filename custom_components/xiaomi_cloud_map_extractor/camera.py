@@ -132,6 +132,7 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_ROOM_NUMBERS: list(self._map_data.rooms.keys()),
                 ATTRIBUTE_ROOMS: self._map_data.rooms,
                 ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
+                ATTRIBUTE_VACUUM_ROOM: self._map_data.vacuum_room,
                 ATTRIBUTE_WALLS: self._map_data.walls,
                 ATTRIBUTE_ZONES: self._map_data.zones
             }.items():

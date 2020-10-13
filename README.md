@@ -84,7 +84,7 @@ This custom integration provides a way to present a live view of a map for a Xia
   |---|---|---|---|---|
   | `scale` | float | false | 1 | Scaling factor for a map. |
   | `rotate` | integer | false | 0 | Angle of map rotation. Available values: [`0`, `90`, `180`, `270`] |
-  | `trim` | map | false | 0 | Map trimming configuration. Each trimming direction is percents: 25 means trimming of quater in a given dimension. Available keys: [`left`, `right`, `top`, `bottom`] |
+  | `trim` | map | false | 0 | Map trimming configuration. Each trimming direction is in percents: value `25` means trimming of quarter in a given dimension. Available keys: [`left`, `right`, `top`, `bottom`] |
 
 #### Attributes configuration
 
@@ -107,6 +107,7 @@ This custom integration provides a way to present a live view of a map for a Xia
   - `room_numbers`
   - `rooms`
   - `vacuum_position`
+  - `vacuum_room`
   - `walls`
   - `zones`
   
@@ -205,6 +206,7 @@ camera:
       - room_numbers
       - rooms
       - vacuum_position
+      - vacuum_room
       - walls
       - zones
     scan_interval:
@@ -226,5 +228,6 @@ This integration was tested on following vacuums:
 
 At this moment this integration is know to not work with following vacuums:
  - Roborock E50
+ - Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM)
 
 <a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>

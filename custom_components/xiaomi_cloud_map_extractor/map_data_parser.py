@@ -32,6 +32,7 @@ class MapDataParser:
         map_data.map_sequence = MapDataParser.get_int32(raw, 0x10)
 
         block_start_position = map_header_length
+        img_start = None
         while block_start_position < len(raw):
             block_header_length = MapDataParser.get_int16(raw, block_start_position + 0x02)
             header = MapDataParser.get_bytes(raw, block_start_position, block_header_length)
@@ -42,6 +43,7 @@ class MapDataParser:
             if block_type == MapDataParser.CHARGER:
                 map_data.charger = MapDataParser.parse_charger(block_start_position, raw)
             elif block_type == MapDataParser.IMAGE:
+                img_start = block_start_position
                 image, rooms = MapDataParser.parse_image(block_data_length, block_header_length, data, header, colors,
                                                          image_config)
                 map_data.image = image
@@ -73,8 +75,25 @@ class MapDataParser:
                 map_data.blocks = MapDataParser.get_bytes(data, 0, block_pairs)
             block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
         MapDataParser.draw_elements(colors, drawables, map_data)
+        if len(map_data.rooms) > 0:
+            map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
         ImageHandler.rotate(map_data.image)
         return map_data
+
+    @staticmethod
+    def get_current_vacuum_room(block_start_position, raw, vacuum_position):
+        block_header_length = MapDataParser.get_int16(raw, block_start_position + 0x02)
+        header = MapDataParser.get_bytes(raw, block_start_position, block_header_length)
+        block_data_length = MapDataParser.get_int32(header, 0x04)
+        block_data_start = block_start_position + block_header_length
+        data = MapDataParser.get_bytes(raw, block_data_start, block_data_length)
+        image_top = MapDataParser.get_int32(header, block_header_length - 16)
+        image_left = MapDataParser.get_int32(header, block_header_length - 12)
+        image_width = MapDataParser.get_int32(header, block_header_length - 4)
+        x = round(vacuum_position.x / MapDataParser.MM - image_left)
+        y = round(vacuum_position.y / MapDataParser.MM - image_top)
+        room = ImageHandler.get_room_at_pixel(data, image_width, x, y)
+        return room
 
     @staticmethod
     def parse_image(block_data_length, block_header_length, data, header, colors, image_config):
@@ -253,6 +272,7 @@ class MapData:
         self.predicted_path: Optional[List[Point]] = None
         self.rooms: Optional[Dict[int, Zone]] = None
         self.vacuum_position: Optional[Point] = None
+        self.vacuum_room: Optional[int] = None
         self.walls: Optional[List[Wall]] = None
         self.zones: Optional[List[Zone]] = None
         self.map_name: Optional[str] = None

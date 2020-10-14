@@ -93,7 +93,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   | `text` | string | true |   | Text to draw on a map |
   | `x` | float | true |   | X position of a text (in percents) |
   | `y` | float | true |   | Y position of a text (in percents) |
-  | `color` | list | false | black | Desired color of a text, formatted like [here](#draw-configuration) |
+  | `color` | list | false | black | Desired color of a text, formatted like [here](#colors-configuration) |
   | `font` | string | false |   | Name of a font to use |
   | `font_size` | int | false |   | Size of a font |
 

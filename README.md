@@ -213,11 +213,11 @@ camera:
       - text: "Room 1"
         x: 25
         y: 25
-        color: (125, 20, 213)
+        color: [125, 20, 213]
       - text: "Room 2"
         x: 25
         y: 75
-        color: (125, 20, 213, 127)
+        color: [125, 20, 213, 127]
         font: "FreeSans.ttf"
         font_size: 25
     attributes:

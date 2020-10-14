@@ -263,6 +263,7 @@ This integration was tested on following vacuums:
  - Roborock S5 (software with rooms support)
  - Roborock S5 Max
  - Roborock S6
+ - Roborock S6 MaxV
  
 ## Unsupported devices
 

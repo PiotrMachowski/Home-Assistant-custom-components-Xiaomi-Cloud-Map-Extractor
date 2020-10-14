@@ -107,7 +107,7 @@ class VacuumCamera(Camera):
                  drawables, sizes, texts, attributes):
         super().__init__()
         self.hass = hass
-        self.content_type = "image/png"
+        self.content_type = CONTENT_TYPE
         self._vacuum = miio.Vacuum(host, token)
         self._connector = XiaomiCloudConnector(username, password, country)
         self._name = name

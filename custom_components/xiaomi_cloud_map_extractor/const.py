@@ -26,7 +26,7 @@ CONF_Y = "y"
 
 MINIMAL_IMAGE_WIDTH = 20
 MINIMAL_IMAGE_HEIGHT = 20
-
+CONTENT_TYPE = "image/png"
 DEFAULT_NAME = "Xiaomi Cloud Map Extractor"
 
 ATTRIBUTE_CALIBRATION = "calibration_points"

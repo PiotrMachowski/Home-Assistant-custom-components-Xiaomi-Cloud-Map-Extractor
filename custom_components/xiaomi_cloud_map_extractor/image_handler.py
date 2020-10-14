@@ -58,7 +58,7 @@ class ImageHandler:
         trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * height / 100)
         trimmed_height = height - trim_top - trim_bottom
         trimmed_width = width - trim_left - trim_right
-        image = Image.new('RGB', (trimmed_width, trimmed_height))
+        image = Image.new('RGBA', (trimmed_width, trimmed_height))
         pixels = image.load()
         for img_y in range(trimmed_height):
             for img_x in range(trimmed_width):

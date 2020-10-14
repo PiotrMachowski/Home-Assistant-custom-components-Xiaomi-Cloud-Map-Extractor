@@ -57,7 +57,17 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                     vol.Optional(CONF_BOTTOM, default=0): PERCENT_SCHEMA
                 }),
             }),
-        vol.Optional(CONF_ATTRIBUTES, default=[]): vol.All(cv.ensure_list, [vol.In(CONF_AVAILABLE_ATTRIBUTES)])
+        vol.Optional(CONF_ATTRIBUTES, default=[]): vol.All(cv.ensure_list, [vol.In(CONF_AVAILABLE_ATTRIBUTES)]),
+        vol.Optional(CONF_TEXTS, default=[]): vol.All(cv.ensure_list, [
+            vol.Schema({
+                vol.Required(CONF_TEXT): cv.string,
+                vol.Required(CONF_X): vol.Coerce(float),
+                vol.Required(CONF_Y): vol.Coerce(float),
+                vol.Optional(CONF_COLOR, default=(0, 0, 0)): COLOR_SCHEMA,
+                vol.Optional(CONF_FONT, default=""): cv.string,
+                vol.Optional(CONF_FONT_SIZE, default=0): cv.positive_int
+            })
+        ])
     })
 
 
@@ -78,13 +88,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if "all" in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
+    texts = config[CONF_TEXTS]
     async_add_entities([VacuumCamera(hass, host, token, username, password, country, name, should_poll, image_config,
-                                     colors, drawables, attributes)])
+                                     colors, drawables, texts, attributes)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, hass, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, attributes):
+                 drawables, texts, attributes):
         super().__init__()
         self.hass = hass
         self._vacuum = miio.Vacuum(host, token)
@@ -94,6 +105,7 @@ class VacuumCamera(Camera):
         self._image_config = image_config
         self._colors = colors
         self._drawables = drawables
+        self._texts = texts
         self._attributes = attributes
         self._image = None
         self._map_data = None
@@ -160,7 +172,8 @@ class VacuumCamera(Camera):
             finally:
                 counter = counter - 1
         if self._logged and map_name != "retry":
-            self._map_data = self._connector.get_map(map_name, self._colors, self._drawables, self._image_config)
+            self._map_data = self._connector.get_map(map_name, self._colors, self._drawables, self._texts,
+                                                     self._image_config)
             if self._map_data is not None:
                 img_byte_arr = io.BytesIO()
                 self._map_data.image.data.save(img_byte_arr, format='PNG')

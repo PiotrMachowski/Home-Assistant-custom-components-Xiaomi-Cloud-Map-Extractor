@@ -21,6 +21,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `colors` | map | false |  | Colors configuration ([see below](#colors-configuration)) |
 | `room_colors` | map | false |  | Room colors configuration ([see below](#room-colors-configuration)) |
 | `draw` | list | false |  | List of elements to draw on a map ([see below](#draw-configuration)) |
+| `texts` | list | false |  | List of texts to draw on a map ([see below](#texts-configuration)) |
 | `map_transformation` | map | false |  | Parameters of map transformation ([see below](#map-transformation-configuration)) |
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
@@ -77,6 +78,23 @@ This custom integration provides a way to present a live view of a map for a Xia
   - `vacuum_position`
   - `virtual_walls`
   - `zones`
+
+#### Texts configuration
+
+Each list entry must obey a following schema.
+You can get a list of available fonts by executing this command:
+```bash
+fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
+```
+
+  | Parameter | Type | Required | Default value | Description |
+  |---|---|---|---|---|
+  | `text` | string | true |   | Text to draw on a map |
+  | `x` | float | true |   | X position of a text (in percents) |
+  | `y` | float | true |   | Y position of a text (in percents) |
+  | `color` | list | false | black | Desired color of a text, formatted like [here](#draw-configuration) |
+  | `font` | string | false |   | Name of a font to use |
+  | `font_size` | int | false |   | Size of a font |
 
 #### Map transformation configuration
 
@@ -191,6 +209,17 @@ camera:
         bottom: 20
         left: 30
         right: 40
+    texts:
+      - text: "Room 1"
+        x: 25
+        y: 25
+        color: (125, 20, 213)
+      - text: "Room 2"
+        x: 25
+        y: 75
+        color: (125, 20, 213, 127)
+        font: "FreeSans.ttf"
+        font_size: 25
     attributes:
       - calibration_points
       - charger

@@ -40,6 +40,21 @@ room_colors = {
     5: (255, 0, 255)
 }
 
+texts = [
+    {
+        "text": "Room1",
+        "x": 25,
+        "y": 25,
+        "color": (255, 0, 0, 127)
+    },
+    {
+        "text": "Room2",
+        "x": 75,
+        "y": 75,
+        "color": (0, 255, 0)
+    }
+]
+
 scale = 1
 rotate = 0
 trim_left = 5
@@ -72,15 +87,16 @@ if map_name != "retry":
     raw_file = open("map_data.gz", "wb")
     raw_file.write(raw_map)
     raw_file.close()
-    map_data = connector.get_map(map_name, {}, CONF_AVAILABLE_DRAWABLES, {
-        CONF_SCALE: scale,
-        CONF_ROTATE: rotate,
-        CONF_TRIM: {
-            CONF_LEFT: trim_left,
-            CONF_RIGHT: trim_right,
-            CONF_TOP: trim_top,
-            CONF_BOTTOM: trim_bottom
-        }})
+    map_data = connector.get_map(map_name, {}, CONF_AVAILABLE_DRAWABLES, texts,
+                                 {
+                                     CONF_SCALE: scale,
+                                     CONF_ROTATE: rotate,
+                                     CONF_TRIM: {
+                                         CONF_LEFT: trim_left,
+                                         CONF_RIGHT: trim_right,
+                                         CONF_TOP: trim_top,
+                                         CONF_BOTTOM: trim_bottom
+                                     }})
     map_data.image.data.save("map_data.png")
     img_byte_arr = io.BytesIO()
     map_data.image.data.save(img_byte_arr, format='PNG')

@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from .const import *
 
 
@@ -163,6 +163,14 @@ class ImageHandler:
             image.data = image.data.transpose(Image.ROTATE_270)
 
     @staticmethod
+    def draw_texts(image, texts):
+        for text_config in texts:
+            x = text_config[CONF_X] * image.dimensions.width / 100 * image.dimensions.scale
+            y = text_config[CONF_Y] * image.dimensions.height / 100 * image.dimensions.scale
+            ImageHandler.__draw_text__(image, text_config[CONF_TEXT], x, y, text_config[CONF_COLOR],
+                                       text_config[CONF_FONT], text_config[CONF_FONT_SIZE])
+
+    @staticmethod
     def __draw_circle__(image, center, r, outline, fill):
         point = center.to_img(image.dimensions)
         draw = ImageDraw.Draw(image.data, 'RGBA')
@@ -187,6 +195,17 @@ class ImageHandler:
             e = point.to_img(image.dimensions)
             draw.line([s.x, s.y, e.x, e.y], fill=color)
             s = e
+
+    @staticmethod
+    def __draw_text__(image, text, x, y, color, font_file=None, font_size=None):
+        txt_layer = Image.new("RGBA", image.data.size, (255, 255, 255, 0))
+        draw = ImageDraw.Draw(txt_layer, 'RGBA')
+        font = ImageFont.load_default()
+        if font_file != "" and font_size > 0:
+            font = ImageFont.truetype(font_file, font_size)
+        w, h = draw.textsize(text, font)
+        draw.text((x - w / 2, y - h / 2), text, font=font, fill=color)
+        image.data = Image.alpha_composite(image.data.convert("RGBA"), txt_layer)
 
     @staticmethod
     def __get_color__(name, colors, default_name=None):

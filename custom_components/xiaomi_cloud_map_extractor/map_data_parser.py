@@ -23,14 +23,13 @@ class MapDataParser:
     SIZE = 1024
 
     @staticmethod
-    def parse(raw: bytes, colors, drawables, image_config):
+    def parse(raw: bytes, colors, drawables, texts, image_config):
         map_data = MapData()
         map_header_length = MapDataParser.get_int16(raw, 0x02)
         map_data.major_version = MapDataParser.get_int16(raw, 0x08)
         map_data.minor_version = MapDataParser.get_int16(raw, 0x0A)
         map_data.map_index = MapDataParser.get_int32(raw, 0x0C)
         map_data.map_sequence = MapDataParser.get_int32(raw, 0x10)
-
         block_start_position = map_header_length
         img_start = None
         while block_start_position < len(raw):
@@ -74,7 +73,7 @@ class MapDataParser:
                 block_pairs = MapDataParser.get_int16(header, 0x08)
                 map_data.blocks = MapDataParser.get_bytes(data, 0, block_pairs)
             block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
-        MapDataParser.draw_elements(colors, drawables, map_data)
+        MapDataParser.draw_elements(colors, drawables, texts, map_data)
         if len(map_data.rooms) > 0:
             map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
         ImageHandler.rotate(map_data.image)
@@ -213,7 +212,7 @@ class MapDataParser:
         return areas
 
     @staticmethod
-    def draw_elements(colors, drawables, map_data):
+    def draw_elements(colors, drawables, texts, map_data):
         if DRAWABLE_CHARGER in drawables and map_data.charger is not None:
             ImageHandler.draw_charger(map_data.image, map_data.charger, colors)
         if DRAWABLE_VACUUM_POSITION in drawables and map_data.vacuum_position is not None:
@@ -234,6 +233,7 @@ class MapDataParser:
             ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
         if DRAWABLE_ZONES in drawables and map_data.zones is not None:
             ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
+        ImageHandler.draw_texts(map_data.image, texts)
 
     @staticmethod
     def get_bytes(data: bytes, start_index: int, size: int):

@@ -55,6 +55,11 @@ texts = [
     }
 ]
 
+sizes = {
+    "charger_radius": 4,
+    "vacuum_radius": 4
+}
+
 scale = 1
 rotate = 0
 trim_left = 5
@@ -87,7 +92,7 @@ if map_name != "retry":
     raw_file = open("map_data.gz", "wb")
     raw_file.write(raw_map)
     raw_file.close()
-    map_data = connector.get_map(map_name, {}, CONF_AVAILABLE_DRAWABLES, texts,
+    map_data = connector.get_map(map_name, {}, CONF_AVAILABLE_DRAWABLES, texts, sizes,
                                  {
                                      CONF_SCALE: scale,
                                      CONF_ROTATE: rotate,

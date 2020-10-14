@@ -144,14 +144,14 @@ class ImageHandler:
                                     ImageHandler.__get_color__(COLOR_ZONES_OUTLINE, colors))
 
     @staticmethod
-    def draw_charger(image, charger, colors):
+    def draw_charger(image, charger, radius, colors):
         color = ImageHandler.__get_color__(COLOR_CHARGER, colors)
-        ImageHandler.__draw_circle__(image, charger, 4, color, color)
+        ImageHandler.__draw_circle__(image, charger, radius, color, color)
 
     @staticmethod
-    def draw_vacuum_position(image, vacuum_position, colors):
+    def draw_vacuum_position(image, vacuum_position, radius, colors):
         color = ImageHandler.__get_color__(COLOR_ROBO, colors)
-        ImageHandler.__draw_circle__(image, vacuum_position, 4, color, color)
+        ImageHandler.__draw_circle__(image, vacuum_position, radius, color, color)
 
     @staticmethod
     def rotate(image):

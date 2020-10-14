@@ -23,7 +23,7 @@ class MapDataParser:
     SIZE = 1024
 
     @staticmethod
-    def parse(raw: bytes, colors, drawables, texts, image_config):
+    def parse(raw: bytes, colors, drawables, texts, sizes, image_config):
         map_data = MapData()
         map_header_length = MapDataParser.get_int16(raw, 0x02)
         map_data.major_version = MapDataParser.get_int16(raw, 0x08)
@@ -73,7 +73,7 @@ class MapDataParser:
                 block_pairs = MapDataParser.get_int16(header, 0x08)
                 map_data.blocks = MapDataParser.get_bytes(data, 0, block_pairs)
             block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
-        MapDataParser.draw_elements(colors, drawables, texts, map_data)
+        MapDataParser.draw_elements(colors, drawables, texts, sizes, map_data)
         if len(map_data.rooms) > 0:
             map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
         ImageHandler.rotate(map_data.image)
@@ -212,11 +212,12 @@ class MapDataParser:
         return areas
 
     @staticmethod
-    def draw_elements(colors, drawables, texts, map_data):
+    def draw_elements(colors, drawables, texts, sizes, map_data):
         if DRAWABLE_CHARGER in drawables and map_data.charger is not None:
-            ImageHandler.draw_charger(map_data.image, map_data.charger, colors)
+            ImageHandler.draw_charger(map_data.image, map_data.charger, sizes[CONF_SIZE_CHARGER_RADIUS], colors)
         if DRAWABLE_VACUUM_POSITION in drawables and map_data.vacuum_position is not None:
-            ImageHandler.draw_vacuum_position(map_data.image, map_data.vacuum_position, colors)
+            ImageHandler.draw_vacuum_position(map_data.image, map_data.vacuum_position, sizes[CONF_SIZE_VACUUM_RADIUS],
+                                              colors)
         if DRAWABLE_PATH in drawables and map_data.path is not None:
             ImageHandler.draw_path(map_data.image, map_data.path, colors)
         if DRAWABLE_GOTO_PATH in drawables and map_data.goto_path is not None:

@@ -23,6 +23,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `draw` | list | false |  | List of elements to draw on a map ([see below](#draw-configuration)) |
 | `texts` | list | false |  | List of texts to draw on a map ([see below](#texts-configuration)) |
 | `map_transformation` | map | false |  | Parameters of map transformation ([see below](#map-transformation-configuration)) |
+| `sizes` | map | false |  | Sizes of map's elements ([see below](#sizes-configuration)) |
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 | `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. If disabled use service `homeassistant.update_entity` to update map manually. |
@@ -103,6 +104,13 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   | `scale` | float | false | 1 | Scaling factor for a map. |
   | `rotate` | integer | false | 0 | Angle of map rotation. Available values: [`0`, `90`, `180`, `270`] |
   | `trim` | map | false | 0 | Map trimming configuration. Each trimming direction is in percents: value `25` means trimming of quarter in a given dimension. Available keys: [`left`, `right`, `top`, `bottom`] |
+
+#### Sizes configuration
+
+  | Parameter | Type | Required | Default value | Description |
+  |---|---|---|---|---|
+  | `charger_radius` | float | false | 4 | Radius of a charger circle. |
+  | `vacuum_radius` | float | false | 4 | Radius of a vacuum circle. |
 
 #### Attributes configuration
 
@@ -201,14 +209,6 @@ camera:
       - vacuum_position
       - virtual_walls
       - zones
-    map_transformation:
-      scale: 2
-      rotate: 180
-      trim:
-        top: 10
-        bottom: 20
-        left: 30
-        right: 40
     texts:
       - text: "Room 1"
         x: 25
@@ -220,6 +220,17 @@ camera:
         color: (125, 20, 213, 127)
         font: "FreeSans.ttf"
         font_size: 25
+    map_transformation:
+      scale: 2
+      rotate: 180
+      trim:
+        top: 10
+        bottom: 20
+        left: 30
+        right: 40
+    sizes:
+      charger_radius: 4
+      vacuum_radius: 6.5
     attributes:
       - calibration_points
       - charger

@@ -58,7 +58,7 @@ class ImageHandler:
         trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * height / 100)
         trimmed_height = height - trim_top - trim_bottom
         trimmed_width = width - trim_left - trim_right
-        image = Image.new('RGB', (trimmed_width, trimmed_height))
+        image = Image.new('RGBA', (trimmed_width, trimmed_height))
         pixels = image.load()
         for img_y in range(trimmed_height):
             for img_x in range(trimmed_width):
@@ -119,9 +119,12 @@ class ImageHandler:
 
     @staticmethod
     def draw_no_go_areas(image, areas, colors):
+        base_image = image.data
+        image.data = Image.new('RGBA', image.data.size)
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_NO_GO_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_NO_GO_ZONES_OUTLINE, colors))
+        image.data = Image.alpha_composite(base_image, image.data)
 
     @staticmethod
     def draw_no_mopping_areas(image, areas, colors):

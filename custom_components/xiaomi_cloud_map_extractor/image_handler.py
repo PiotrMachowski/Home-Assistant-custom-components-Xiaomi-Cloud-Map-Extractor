@@ -119,9 +119,12 @@ class ImageHandler:
 
     @staticmethod
     def draw_no_go_areas(image, areas, colors):
+        base_image = image.data
+        image.data = Image.new('RGBA', image.data.size)
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_NO_GO_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_NO_GO_ZONES_OUTLINE, colors))
+        image.data = Image.alpha_composite(base_image, image.data)
 
     @staticmethod
     def draw_no_mopping_areas(image, areas, colors):

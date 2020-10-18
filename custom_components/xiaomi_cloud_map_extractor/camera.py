@@ -183,11 +183,17 @@ class VacuumCamera(Camera):
             finally:
                 counter = counter - 1
         if self._logged and map_name != "retry":
-            self._map_data = self._connector.get_map(map_name, self._colors, self._drawables, self._texts, self._sizes,
-                                                     self._image_config)
-            if self._map_data is not None:
-                img_byte_arr = io.BytesIO()
-                self._map_data.image.data.save(img_byte_arr, format='PNG')
-                self._image = img_byte_arr.getvalue()
-                return
+            map_data = self._connector.get_map(map_name, self._colors, self._drawables, self._texts, self._sizes,
+                                               self._image_config)
+            if map_data is not None:
+                # noinspection PyBroadException
+                try:
+                    img_byte_arr = io.BytesIO()
+                    map_data.image.data.save(img_byte_arr, format='PNG')
+                    self._image = img_byte_arr.getvalue()
+                    self._map_data = map_data
+                except:
+                    _LOGGER.warning("Unable to retrieve map data")
+                finally:
+                    return
         _LOGGER.warning("Unable to retrieve map data")

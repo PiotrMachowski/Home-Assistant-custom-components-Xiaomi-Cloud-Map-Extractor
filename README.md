@@ -17,6 +17,7 @@ This custom integration provides a way to present a live view of a map for a Xia
 | `token` | string | true | `ghjhca3ykg8o2zyyj7xb5adamhgsypel` | Token of a vacuum |
 | `username` | string | true | `xiaomi.account@gmail.com` | Username (email or user ID) used to connect to Xiaomi cloud. |
 | `password` | string | true | `aVerySecretPassword` | Password used to connect to Xiaomi cloud |
+| `name` | string | false |   | Desired name of camera entity |
 | `country` | string | true | One of: `ru`, `us`, `tw`, `sg`, `cn`, `de` | Server used in Xiaomi cloud |
 | `colors` | map | false |  | Colors configuration ([see below](#colors-configuration)) |
 | `room_colors` | map | false |  | Room colors configuration ([see below](#room-colors-configuration)) |

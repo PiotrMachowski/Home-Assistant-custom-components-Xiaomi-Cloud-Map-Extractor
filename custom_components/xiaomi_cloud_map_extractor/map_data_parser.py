@@ -75,9 +75,9 @@ class MapDataParser:
             block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
         if not map_data.image.is_empty:
             MapDataParser.draw_elements(colors, drawables, texts, sizes, map_data)
-        if len(map_data.rooms) > 0:
-            map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
-        ImageHandler.rotate(map_data.image)
+            if len(map_data.rooms) > 0:
+                map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
+            ImageHandler.rotate(map_data.image)
         return map_data
 
     @staticmethod

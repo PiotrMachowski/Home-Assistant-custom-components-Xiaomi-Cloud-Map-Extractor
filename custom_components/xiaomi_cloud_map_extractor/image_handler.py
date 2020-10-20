@@ -182,8 +182,8 @@ class ImageHandler:
     @staticmethod
     def draw_texts(image, texts):
         for text_config in texts:
-            x = text_config[CONF_X] * image.dimensions.width / 100 * image.dimensions.scale
-            y = text_config[CONF_Y] * image.dimensions.height / 100 * image.dimensions.scale
+            x = text_config[CONF_X] * image.data.size[0] / 100
+            y = text_config[CONF_Y] * image.data.size[1] / 100
             ImageHandler.__draw_text__(image, text_config[CONF_TEXT], x, y, text_config[CONF_COLOR],
                                        text_config[CONF_FONT], text_config[CONF_FONT_SIZE])
 

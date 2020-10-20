@@ -78,6 +78,7 @@ class MapDataParser:
             if len(map_data.rooms) > 0:
                 map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
             ImageHandler.rotate(map_data.image)
+            ImageHandler.draw_texts(map_data.image, texts)
         return map_data
 
     @staticmethod
@@ -235,7 +236,6 @@ class MapDataParser:
             ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
         if DRAWABLE_ZONES in drawables and map_data.zones is not None:
             ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
-        ImageHandler.draw_texts(map_data.image, texts)
 
     @staticmethod
     def get_bytes(data: bytes, start_index: int, size: int):

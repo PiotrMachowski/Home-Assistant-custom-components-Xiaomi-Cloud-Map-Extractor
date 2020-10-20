@@ -126,6 +126,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `goto_path`
   - `goto_predicted_path`
   - `image`
+  - `is_empty`
   - `map_name`
   - `no_go_areas`
   - `no_mopping_areas`
@@ -239,6 +240,7 @@ camera:
       - goto_path
       - goto_predicted_path
       - image
+      - is_empty
       - map_name
       - no_go_areas
       - no_mopping_areas

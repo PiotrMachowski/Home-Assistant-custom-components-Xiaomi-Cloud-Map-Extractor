@@ -60,6 +60,8 @@ class ImageHandler:
         trimmed_height = height - trim_top - trim_bottom
         trimmed_width = width - trim_left - trim_right
         image = Image.new('RGBA', (trimmed_width, trimmed_height))
+        if width == 0 or height == 0:
+            return ImageHandler.create_empty_map(colors)
         pixels = image.load()
         for img_y in range(trimmed_height):
             for img_x in range(trimmed_width):
@@ -93,9 +95,23 @@ class ImageHandler:
                         pixels[x, y] = ImageHandler.__get_color__(f"{COLOR_ROOM_PREFIX}{room_number}", colors, default)
                     else:
                         pixels[x, y] = ImageHandler.__get_color__(COLOR_UNKNOWN, colors)
-        if image_config["scale"] != 1:
+        if image_config["scale"] != 1 and width != 0 and height != 0:
             image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
         return image, rooms
+
+    @staticmethod
+    def create_empty_map(colors):
+        color = ImageHandler.__get_color__(COLOR_MAP_OUTSIDE, colors)
+        image = Image.new('RGBA', (100, 100), color=color)
+        if sum(color[0:3]) > 382:
+            text_color = (0, 0, 0)
+        else:
+            text_color = (255, 255, 255)
+        draw = ImageDraw.Draw(image, "RGBA")
+        text = "NO MAP"
+        w, h = draw.textsize(text)
+        draw.text((50 - w / 2, 50 - h / 2), text, fill=text_color)
+        return image, {}
 
     @staticmethod
     def get_room_at_pixel(raw_data: bytes, width, x, y):

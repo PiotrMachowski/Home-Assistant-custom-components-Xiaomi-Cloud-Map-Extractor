@@ -73,7 +73,8 @@ class MapDataParser:
                 block_pairs = MapDataParser.get_int16(header, 0x08)
                 map_data.blocks = MapDataParser.get_bytes(data, 0, block_pairs)
             block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
-        MapDataParser.draw_elements(colors, drawables, texts, sizes, map_data)
+        if not map_data.image.is_empty:
+            MapDataParser.draw_elements(colors, drawables, texts, sizes, map_data)
         if len(map_data.rooms) > 0:
             map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
         ImageHandler.rotate(map_data.image)
@@ -344,6 +345,7 @@ class ImageData:
                                           width - trim_left - trim_right,
                                           scale,
                                           rotation)
+        self.is_empty = height == 0 or width == 0
         self.data = data
 
     def as_dict(self):

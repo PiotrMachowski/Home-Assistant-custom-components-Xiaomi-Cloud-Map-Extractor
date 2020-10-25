@@ -99,7 +99,6 @@ class ImageHandler:
                         pixels[x, y] = ImageHandler.__get_color__(COLOR_UNKNOWN, colors)
         if image_config["scale"] != 1 and width != 0 and height != 0:
             image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
-        print(rooms)
         return image, rooms
 
     @staticmethod

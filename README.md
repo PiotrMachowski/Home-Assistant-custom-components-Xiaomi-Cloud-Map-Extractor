@@ -51,7 +51,7 @@ wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-C
 | `username` | string | true | `xiaomi.account@gmail.com` | Username (email or user ID) used to connect to Xiaomi cloud. |
 | `password` | string | true | `aVerySecretPassword` | Password used to connect to Xiaomi cloud |
 | `name` | string | false |   | Desired name of camera entity |
-| `country` | string | true | One of: `ru`, `us`, `tw`, `sg`, `cn`, `de` | Server used in Xiaomi cloud |
+| `country` | string | false | One of: `ru`, `us`, `tw`, `sg`, `cn`, `de` | Server used in Xiaomi cloud. Leave empty if you are not sure. |
 | `colors` | map | false |  | Colors configuration ([see below](#colors-configuration)) |
 | `room_colors` | map | false |  | Room colors configuration ([see below](#room-colors-configuration)) |
 | `draw` | list | false |  | List of elements to draw on a map ([see below](#draw-configuration)) |
@@ -183,8 +183,22 @@ camera:
     token: !secret xiaomi_vacuum_token
     username: !secret xiaomi_cloud_username
     password: !secret xiaomi_cloud_password
-    country: "de"
 ```
+
+#### Recommended
+
+```yaml
+camera:
+  - platform: xiaomi_cloud_map_extractor
+    host: !secret xiaomi_vacuum_host
+    token: !secret xiaomi_vacuum_token
+    username: !secret xiaomi_cloud_username
+    password: !secret xiaomi_cloud_password
+    draw: ['all']
+    attributes:
+      - calibration_points    
+```
+
 
 #### Full
 

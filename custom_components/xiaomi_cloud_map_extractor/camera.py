@@ -1,16 +1,16 @@
-import time
-import miio
-import logging
 import io
-from datetime import timedelta
+import logging
+import miio
+import time
 import voluptuous as vol
+from datetime import timedelta
 
-from .xiaomi_cloud_connector import XiaomiCloudConnector
-from .const import *
-
+from homeassistant.helpers import config_validation as cv
 from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TOKEN, CONF_USERNAME, CONF_PASSWORD
-from homeassistant.helpers import config_validation as cv
+
+from .const import *
+from .xiaomi_cloud_connector import XiaomiCloudConnector
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_TOKEN): vol.All(str, vol.Length(min=32, max=32)),
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONF_COUNTRY): vol.In(CONF_AVAILABLE_COUNTRIES),
+        vol.Optional(CONF_COUNTRY, default=None): vol.Or(vol.In(CONF_AVAILABLE_COUNTRIES), vol.Equal(None)),
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_AUTO_UPDATE, default=True): cv.boolean,
         vol.Optional(CONF_COLORS, default={}): vol.Schema({
@@ -69,7 +69,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                 vol.Required(CONF_X): vol.Coerce(float),
                 vol.Required(CONF_Y): vol.Coerce(float),
                 vol.Optional(CONF_COLOR, default=(0, 0, 0)): COLOR_SCHEMA,
-                vol.Optional(CONF_FONT, default=""): cv.string,
+                vol.Optional(CONF_FONT, default=None): vol.Or(cv.string, vol.Equal(None)),
                 vol.Optional(CONF_FONT_SIZE, default=0): cv.positive_int
             })]),
         vol.Optional(CONF_SIZES, default=DEFAULT_SIZES): vol.Schema({
@@ -109,7 +109,7 @@ class VacuumCamera(Camera):
         self.hass = hass
         self.content_type = CONTENT_TYPE
         self._vacuum = miio.Vacuum(host, token)
-        self._connector = XiaomiCloudConnector(username, password, country)
+        self._connector = XiaomiCloudConnector(username, password)
         self._name = name
         self._should_poll = should_poll
         self._image_config = image_config
@@ -121,6 +121,7 @@ class VacuumCamera(Camera):
         self._image = None
         self._map_data = None
         self._logged = False
+        self._country = country
 
     async def async_added_to_hass(self) -> None:
         self.async_schedule_update_ha_state(True)
@@ -172,6 +173,8 @@ class VacuumCamera(Camera):
         counter = 10
         if not self._logged:
             self._logged = self._connector.login()
+        if self._country is None:
+            self._country = self._connector.get_country_for_device(self._vacuum.ip, self._vacuum.token)
         map_name = "retry"
         while map_name == "retry" and counter > 0:
             time.sleep(0.1)
@@ -184,8 +187,8 @@ class VacuumCamera(Camera):
             finally:
                 counter = counter - 1
         if self._logged and map_name != "retry":
-            map_data = self._connector.get_map(map_name, self._colors, self._drawables, self._texts, self._sizes,
-                                               self._image_config)
+            map_data = self._connector.get_map(self._country, map_name, self._colors, self._drawables, self._texts,
+                                               self._sizes, self._image_config)
             if map_data is not None:
                 # noinspection PyBroadException
                 try:

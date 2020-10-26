@@ -1,23 +1,23 @@
 import base64
+import gzip
 import hashlib
 import hmac
 import json
+import random
+import requests
 import secrets
 import time
-import requests
-import gzip
-import random
 from Crypto.Hash import MD5, SHA256
 
+from .const import *
 from .map_data_parser import MapDataParser
 
 
 class XiaomiCloudConnector:
 
-    def __init__(self, username, password, country):
+    def __init__(self, username, password):
         self._username = username
         self._password = password
-        self._country = country
         self._agent = self.generate_agent()
         self._device_id = self.generate_device_id()
         self._session = requests.session()
@@ -87,8 +87,20 @@ class XiaomiCloudConnector:
         self._session.cookies.set("deviceId", self._device_id, domain="xiaomi.com")
         return self.login_step_1() and self.login_step_2() and self.login_step_3()
 
-    def get_map_url(self, map_name):
-        url = self.get_api_url() + "/home/getmapfileurl"
+    def get_country_for_device(self, ip_address, token):
+        for country in CONF_AVAILABLE_COUNTRIES:
+            devices = self.get_devices(country)
+            if devices is None:
+                continue
+            found = list(filter(
+                lambda d: d["localip"] == ip_address and d["token"] == token,
+                devices["result"]["list"]))
+            if len(found) > 0:
+                return country
+        return None
+
+    def get_map_url(self, country, map_name):
+        url = self.get_api_url(country) + "/home/getmapfileurl"
         params = {
             "data": '{"obj_name":"' + map_name + '"}'
         }
@@ -97,8 +109,8 @@ class XiaomiCloudConnector:
             return None
         return api_response["result"]["url"]
 
-    def get_map(self, map_name, colors, drawables, texts, sizes, image_config):
-        response = self.get_raw_map_data(map_name)
+    def get_map(self, country, map_name, colors, drawables, texts, sizes, image_config):
+        response = self.get_raw_map_data(country, map_name)
         if response is None:
             return None
         unzipped = gzip.decompress(response)
@@ -106,18 +118,18 @@ class XiaomiCloudConnector:
         map_data.map_name = map_name
         return map_data
 
-    def get_raw_map_data(self, map_name):
+    def get_raw_map_data(self, country, map_name):
         if map_name is None:
             return None
-        map_url = self.get_map_url(map_name)
+        map_url = self.get_map_url(country, map_name)
         if map_url is not None:
             response = self._session.get(map_url)
             if response.status_code == 200:
                 return response.content
         return None
 
-    def get_devices(self):
-        url = self.get_api_url() + "/home/device_list"
+    def get_devices(self, country):
+        url = self.get_api_url(country) + "/home/device_list"
         params = {
             "data": '{"getVirtualModel":false,"getHuamiDevices":0}'
         }
@@ -154,8 +166,8 @@ class XiaomiCloudConnector:
             return response.json()
         return None
 
-    def get_api_url(self):
-        return "https://" + ("" if self._country == "cn" else (self._country + ".")) + "api.io.mi.com/app"
+    def get_api_url(self, country):
+        return "https://" + ("" if country == "cn" else (country + ".")) + "api.io.mi.com/app"
 
     def signed_nonce(self, nonce):
         hash_object = SHA256.new()

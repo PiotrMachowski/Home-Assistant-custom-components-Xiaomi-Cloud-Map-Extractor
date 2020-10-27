@@ -150,7 +150,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
 
   A list of attributes that an entity should have.
   Available values:
-  - `calibration_points` - Calculated calibration points for [Lovelace Xiaomi Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card). **WARNING:** this attribute doesn't support map rotation.
+  - `calibration_points` - Calculated calibration points for [Lovelace Xiaomi Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card).
 
      <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_card.gif" width=50%>
   

@@ -282,7 +282,7 @@ class MapData:
     def calibration(self):
         calibration_points = []
         for point in [Point(25500, 25500), Point(26500, 25500), Point(26500, 26500)]:
-            img_point = point.to_img(self.image.dimensions)
+            img_point = point.to_img(self.image.dimensions).rotated(self.image.dimensions)
             calibration_points.append({
                 "vacuum": {"x": point.x, "y": point.y},
                 "map": {"x": int(img_point.x), "y": int(img_point.y)}
@@ -318,6 +318,22 @@ class Point:
         y = self.y / MapDataParser.MM - image_dimensions.top
         y = image_dimensions.height - y - 1
         return Point(x * image_dimensions.scale, y * image_dimensions.scale)
+
+    def rotated(self, image_dimensions):
+        alpha = image_dimensions.rotation
+        w = int(image_dimensions.width * image_dimensions.scale)
+        h = int(image_dimensions.height * image_dimensions.scale)
+        x = self.x
+        y = self.y
+        while alpha > 0:
+            tmp = y
+            y = w - x
+            x = tmp
+            tmp = h
+            h = w
+            w = tmp
+            alpha = alpha - 90
+        return Point(x, y)
 
 
 class ImageDimensions:

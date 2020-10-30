@@ -74,8 +74,8 @@ class MapDataParser:
                 map_data.blocks = MapDataParser.get_bytes(data, 0, block_pairs)
             block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
         if not map_data.image.is_empty:
-            MapDataParser.draw_elements(colors, drawables, texts, sizes, map_data)
-            if len(map_data.rooms) > 0:
+            MapDataParser.draw_elements(colors, drawables, sizes, map_data)
+            if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
                 map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
             ImageHandler.rotate(map_data.image)
             ImageHandler.draw_texts(map_data.image, texts)
@@ -214,7 +214,7 @@ class MapDataParser:
         return areas
 
     @staticmethod
-    def draw_elements(colors, drawables, texts, sizes, map_data):
+    def draw_elements(colors, drawables, sizes, map_data):
         if DRAWABLE_CHARGER in drawables and map_data.charger is not None:
             ImageHandler.draw_charger(map_data.image, map_data.charger, sizes[CONF_SIZE_CHARGER_RADIUS], colors)
         if DRAWABLE_VACUUM_POSITION in drawables and map_data.vacuum_position is not None:

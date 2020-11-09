@@ -318,7 +318,7 @@ This integration was tested on following vacuums:
  
 ## Unsupported devices
 
-At this moment this integration is know to not work with following vacuums:
+At this moment this integration is known to not work with following vacuums:
  - Roborock E50
  - Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM)
 

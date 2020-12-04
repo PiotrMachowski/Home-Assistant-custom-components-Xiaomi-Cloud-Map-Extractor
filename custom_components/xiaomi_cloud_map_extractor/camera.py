@@ -1,13 +1,15 @@
 import io
 import logging
-import miio
 import time
-import voluptuous as vol
 from datetime import timedelta
+from pathlib import Path
 
-from homeassistant.helpers import config_validation as cv
+import miio
+import voluptuous as vol
 from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TOKEN, CONF_USERNAME, CONF_PASSWORD
+from homeassistant.const import (CONF_HOST, CONF_NAME, CONF_PASSWORD,
+                                 CONF_TOKEN, CONF_USERNAME)
+from homeassistant.helpers import config_validation as cv
 
 from .const import *
 from .xiaomi_cloud_connector import XiaomiCloudConnector
@@ -44,6 +46,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_COUNTRY, default=None): vol.Or(vol.In(CONF_AVAILABLE_COUNTRIES), vol.Equal(None)),
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_AUTO_UPDATE, default=True): cv.boolean,
+        vol.Optional(CONF_SNAPSHOT_PATH, default=None): vol.Or(cv.string, vol.Equal(None)),
         vol.Optional(CONF_COLORS, default={}): vol.Schema({
             vol.In(CONF_AVAILABLE_COLORS): COLOR_SCHEMA
         }),
@@ -75,7 +78,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_SIZES, default=DEFAULT_SIZES): vol.Schema({
             vol.Optional(CONF_SIZE_VACUUM_RADIUS, default=4): vol.All(vol.Coerce(float), vol.Range(min=0)),
             vol.Optional(CONF_SIZE_CHARGER_RADIUS, default=4): vol.All(vol.Coerce(float), vol.Range(min=0))
-        })
+        }),
     })
 
 
@@ -98,13 +101,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if "all" in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
+    snapshot_path = config[CONF_SNAPSHOT_PATH]
     async_add_entities([VacuumCamera(hass, host, token, username, password, country, name, should_poll, image_config,
-                                     colors, drawables, sizes, texts, attributes)])
+                                     colors, drawables, sizes, texts, attributes, snapshot_path)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, hass, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes):
+                 drawables, sizes, texts, attributes, snapshot_path):
         super().__init__()
         self.hass = hass
         self.content_type = CONTENT_TYPE
@@ -122,6 +126,7 @@ class VacuumCamera(Camera):
         self._map_data = None
         self._logged = False
         self._country = country
+        self._snapshot_path = snapshot_path
 
     async def async_added_to_hass(self) -> None:
         self.async_schedule_update_ha_state(True)
@@ -169,6 +174,10 @@ class VacuumCamera(Camera):
     def should_poll(self):
         return self._should_poll
 
+    @property
+    def snapshot_path(self):
+        return self._snapshot_path
+
     def update(self):
         counter = 10
         if not self._logged:
@@ -196,8 +205,22 @@ class VacuumCamera(Camera):
                     map_data.image.data.save(img_byte_arr, format='PNG')
                     self._image = img_byte_arr.getvalue()
                     self._map_data = map_data
+                    self.save_snapshot_image_to_file(img_byte_arr)
+
                 except:
                     _LOGGER.warning("Unable to retrieve map data")
                 finally:
                     return
         _LOGGER.warning("Unable to retrieve map data")
+
+    def save_snapshot_image_to_file(self, img_byte_arr):
+        if self.snapshot_path is not None:
+            try:
+                folder_path = Path(self.snapshot_path)
+                folder_path.mkdir(parents=True, exist_ok=True)
+                file_path = Path(folder_path, self.name).with_suffix(".png")
+
+                with open(file_path, "wb") as file_:
+                    file_.write(img_byte_arr.getbuffer())
+            except:
+                _LOGGER.warning("Unable to save snapshot")

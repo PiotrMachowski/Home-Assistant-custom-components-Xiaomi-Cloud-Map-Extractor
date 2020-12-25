@@ -234,8 +234,6 @@ class MapDataParser:
             ImageHandler.draw_walls(map_data.image, map_data.walls, colors)
         if DRAWABLE_ZONES in drawables and map_data.zones is not None:
             ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
-        if DRAWABLE_ZONES in drawables and map_data.zones is not None:
-            ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
 
     @staticmethod
     def get_bytes(data: bytes, start_index: int, size: int):

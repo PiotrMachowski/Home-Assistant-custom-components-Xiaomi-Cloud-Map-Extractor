@@ -92,7 +92,7 @@ if map_name != "retry":
     raw_file = open("map_data.gz", "wb")
     raw_file.write(raw_map)
     raw_file.close()
-    map_data = connector.get_map(country, map_name, {}, CONF_AVAILABLE_DRAWABLES, texts, sizes,
+    map_data = connector.get_map(country, map_name, {}, CONF_AVAILABLE_DRAWABLES, [], sizes,
                                  {
                                      CONF_SCALE: scale,
                                      CONF_ROTATE: rotate,

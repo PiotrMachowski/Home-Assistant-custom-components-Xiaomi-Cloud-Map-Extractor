@@ -43,13 +43,25 @@ wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-C
 
 ## Configuration
 
+After installation of the custom component, it needs to be configured through configuration.yaml. To do so, add a camera entry to your configuration with at least the basic entries seen below (make sure you have followed the [basic guide](https://www.home-assistant.io/integrations/xiaomi_miio#xiaomi-mi-robot-vacuum) first), as you need the vacuum token. You also need to enter your Xiaomi Cloud username and password. These are the credentials also used for the Mi Home app.
+
+```yaml
+camera:
+  - platform: xiaomi_cloud_map_extractor
+    host: !secret xiaomi_vacuum_host
+    token: !secret xiaomi_vacuum_token
+    username: !secret xiaomi_cloud_username
+    password: !secret xiaomi_cloud_password
+```
+After installation and a reboot of your Home Assistant instance, you should get a `camera.xiaomi_cloud_map_extractor` entity which shows the vacuum map. This might take a few minutes after a first restart.
+
 | Key | Type | Required | Value | Description |
 |---|---|---|---|---|
 | `platform` | string | true | `xiaomi_cloud_map_extractor` | Name of a platform |
 | `host` | string | true | `192.168.0.123` | IP address of a vacuum |
 | `token` | string | true | `ghjhca3ykg8o2zyyj7xb5adamhgsypel` | Token of a vacuum |
-| `username` | string | true | `xiaomi.account@gmail.com` | Username (email or user ID) used to connect to Xiaomi cloud. |
-| `password` | string | true | `aVerySecretPassword` | Password used to connect to Xiaomi cloud |
+| `username` | string | true | `xiaomi.account@gmail.com` | Username (email or user ID) used to connect to Xiaomi cloud (the account used in the Mi Home app) |
+| `password` | string | true | `aVerySecretPassword` | Password used to connect to Xiaomi cloud (the account used in the Mi Home app) |
 | `name` | string | false |   | Desired name of camera entity |
 | `country` | string | false | One of: `ru`, `us`, `tw`, `sg`, `cn`, `de` | Server used in Xiaomi cloud. Leave empty if you are not sure. |
 | `colors` | map | false |  | Colors configuration ([see below](#colors-configuration)) |

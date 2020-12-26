@@ -14,11 +14,11 @@ country = ""
 
 draw = [
     "charger",
-    "path",
     "goto_path",
-    "predicted_path",
     "no_go_zones",
     "no_mopping_zones",
+    "path",
+    "predicted_path",
     "vacuum_position",
     "virtual_walls",
     "zones"
@@ -45,13 +45,17 @@ texts = [
         "text": "Room1",
         "x": 25,
         "y": 25,
-        "color": (255, 0, 0, 127)
+        "color": (255, 0, 0, 127),
+        "font": "FreeSans.ttf",
+        "font_size": 25
     },
     {
         "text": "Room2",
         "x": 75,
         "y": 75,
-        "color": (0, 255, 0)
+        "color": (0, 255, 0),
+        "font": None,  # use default one
+        "font_size": 0
     }
 ]
 
@@ -82,17 +86,17 @@ if not (vacuum_ip == "" or token == ""):
         map_name = vacuum.map()[0]
         counter = counter - 1
 
-connector = XiaomiCloudConnector(username, password, country)
+connector = XiaomiCloudConnector(username, password)
 logged = connector.login()
 if not logged:
     print("Failed to log in")
 if map_name != "retry":
     print("Retrieved map name: " + map_name)
-    raw_map = connector.get_raw_map_data(map_name)
+    raw_map = connector.get_raw_map_data(country, map_name)
     raw_file = open("map_data.gz", "wb")
     raw_file.write(raw_map)
     raw_file.close()
-    map_data = connector.get_map(map_name, {}, CONF_AVAILABLE_DRAWABLES, texts, sizes,
+    map_data = connector.get_map(country, map_name, processed_colors, draw, texts, sizes,
                                  {
                                      CONF_SCALE: scale,
                                      CONF_ROTATE: rotate,

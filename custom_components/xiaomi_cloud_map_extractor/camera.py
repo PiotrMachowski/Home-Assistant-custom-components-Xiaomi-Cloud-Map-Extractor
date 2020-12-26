@@ -6,8 +6,9 @@ import voluptuous as vol
 from datetime import timedelta
 
 from homeassistant.helpers import config_validation as cv
-from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
+from homeassistant.components.camera import PLATFORM_SCHEMA, ENTITY_ID_FORMAT, Camera
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TOKEN, CONF_USERNAME, CONF_PASSWORD
+from homeassistant.helpers.entity import generate_entity_id
 
 from .const import *
 from .xiaomi_cloud_connector import XiaomiCloudConnector
@@ -98,15 +99,16 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if "all" in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
-    async_add_entities([VacuumCamera(hass, host, token, username, password, country, name, should_poll, image_config,
-                                     colors, drawables, sizes, texts, attributes)])
+    entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
+    async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
+                                     image_config, colors, drawables, sizes, texts, attributes)])
 
 
 class VacuumCamera(Camera):
-    def __init__(self, hass, host, token, username, password, country, name, should_poll, image_config, colors,
+    def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
                  drawables, sizes, texts, attributes):
         super().__init__()
-        self.hass = hass
+        self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
         self._vacuum = miio.Vacuum(host, token)
         self._connector = XiaomiCloudConnector(username, password)

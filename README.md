@@ -63,7 +63,7 @@ After installation and a reboot of your Home Assistant instance, you should get 
 | `username` | string | true | `xiaomi.account@gmail.com` | Username (email or user ID) used to connect to Xiaomi cloud (the account used in the Mi Home app) |
 | `password` | string | true | `aVerySecretPassword` | Password used to connect to Xiaomi cloud (the account used in the Mi Home app) |
 | `name` | string | false |   | Desired name of camera entity |
-| `country` | string | false | One of: `ru`, `us`, `tw`, `sg`, `cn`, `de` | Server used in Xiaomi cloud. Leave empty if you are not sure. |
+| `country` | string | false | One of: `cn`, `de`, `us`, `ru`, `tw`, `sg`, `in`, `i2` | Server used in Xiaomi cloud. Leave empty if you are not sure. |
 | `colors` | map | false |  | Colors configuration ([see below](#colors-configuration)) |
 | `room_colors` | map | false |  | Room colors configuration ([see below](#room-colors-configuration)) |
 | `draw` | list | false |  | List of elements to draw on a map ([see below](#draw-configuration)) |

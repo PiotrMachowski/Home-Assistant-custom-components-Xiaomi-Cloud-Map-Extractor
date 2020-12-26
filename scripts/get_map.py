@@ -82,17 +82,17 @@ if not (vacuum_ip == "" or token == ""):
         map_name = vacuum.map()[0]
         counter = counter - 1
 
-connector = XiaomiCloudConnector(username, password, country)
+connector = XiaomiCloudConnector(username, password)
 logged = connector.login()
 if not logged:
     print("Failed to log in")
 if map_name != "retry":
     print("Retrieved map name: " + map_name)
-    raw_map = connector.get_raw_map_data(map_name)
+    raw_map = connector.get_raw_map_data(country, map_name)
     raw_file = open("map_data.gz", "wb")
     raw_file.write(raw_map)
     raw_file.close()
-    map_data = connector.get_map(map_name, {}, CONF_AVAILABLE_DRAWABLES, texts, sizes,
+    map_data = connector.get_map(country, map_name, {}, CONF_AVAILABLE_DRAWABLES, texts, sizes,
                                  {
                                      CONF_SCALE: scale,
                                      CONF_ROTATE: rotate,

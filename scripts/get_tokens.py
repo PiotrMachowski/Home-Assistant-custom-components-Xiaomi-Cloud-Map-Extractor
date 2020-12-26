@@ -9,10 +9,10 @@ country = ""
 
 # ********* CONFIGURATION END *********
 
-connector = XiaomiCloudConnector(username, password, country)
+connector = XiaomiCloudConnector(username, password)
 logged = connector.login()
 if logged:
-    devices = connector.get_devices()
+    devices = connector.get_devices(country)
     print("Found devices:")
     for device in devices["result"]["list"]:
         print("-----")

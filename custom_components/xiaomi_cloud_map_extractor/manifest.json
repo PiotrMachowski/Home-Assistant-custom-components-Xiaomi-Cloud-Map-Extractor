@@ -11,7 +11,6 @@
     "pybase64",
     "pycryptodome",
     "python-miio",
-    "python-secrets",
     "requests"
   ]
 }

@@ -10,7 +10,7 @@ First step is configuration: you have to adjust lines marked with tags:
 
 Dependencies installation:
 ```bash
-pip3 install pycryptodome python-miio pillow pybase64 python-secrets requests
+pip3 install pycryptodome python-miio pillow pybase64 requests
 ```
 
 Retrieving map

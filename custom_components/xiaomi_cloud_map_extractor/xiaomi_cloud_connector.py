@@ -3,9 +3,9 @@ import gzip
 import hashlib
 import hmac
 import json
+import os
 import random
 import requests
-import secrets
 import time
 from Crypto.Hash import MD5, SHA256
 
@@ -176,7 +176,7 @@ class XiaomiCloudConnector:
 
     @staticmethod
     def generate_nonce(millis):
-        nonce_bytes = secrets.token_bytes(8) + (int(millis / 60000)).to_bytes(4, byteorder='big')
+        nonce_bytes = os.urandom(8) + (int(millis / 60000)).to_bytes(4, byteorder='big')
         return base64.b64encode(nonce_bytes).decode()
 
     @staticmethod

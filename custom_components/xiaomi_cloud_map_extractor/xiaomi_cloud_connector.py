@@ -105,7 +105,7 @@ class XiaomiCloudConnector:
             "data": '{"obj_name":"' + map_name + '"}'
         }
         api_response = self.execute_api_call(url, params)
-        if api_response is None:
+        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
             return None
         return api_response["result"]["url"]
 

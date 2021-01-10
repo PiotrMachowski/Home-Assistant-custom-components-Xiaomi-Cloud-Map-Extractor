@@ -40,9 +40,10 @@ class XiaomiCloudConnector:
             "userId": self._username
         }
         response = self._session.get(url, headers=headers, cookies=cookies, timeout=10)
-        if response.status_code == 200:
+        successful = response.status_code == 200 and "_sign" in self.to_json(response.text)
+        if successful:
             self._sign = self.to_json(response.text)["_sign"]
-        return response.status_code == 200
+        return successful
 
     def login_step_2(self):
         url = "https://account.xiaomi.com/pass/serviceLoginAuth2"
@@ -60,7 +61,8 @@ class XiaomiCloudConnector:
             "_json": "true"
         }
         response = self._session.post(url, headers=headers, params=fields, timeout=10)
-        if response.status_code == 200:
+        successful = response.status_code == 200 and "ssecurity" in self.to_json(response.text)
+        if successful:
             json_resp = self.to_json(response.text)
             self._ssecurity = json_resp["ssecurity"]
             self._userId = json_resp["userId"]
@@ -68,7 +70,7 @@ class XiaomiCloudConnector:
             self._passToken = json_resp["passToken"]
             self._location = json_resp["location"]
             self._code = json_resp["code"]
-        return response.status_code == 200
+        return successful
 
     def login_step_3(self):
         headers = {

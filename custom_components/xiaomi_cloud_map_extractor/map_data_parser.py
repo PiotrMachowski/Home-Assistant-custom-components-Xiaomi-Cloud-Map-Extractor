@@ -215,25 +215,26 @@ class MapDataParser:
 
     @staticmethod
     def draw_elements(colors, drawables, sizes, map_data):
-        if DRAWABLE_CHARGER in drawables and map_data.charger is not None:
-            ImageHandler.draw_charger(map_data.image, map_data.charger, sizes[CONF_SIZE_CHARGER_RADIUS], colors)
-        if DRAWABLE_VACUUM_POSITION in drawables and map_data.vacuum_position is not None:
-            ImageHandler.draw_vacuum_position(map_data.image, map_data.vacuum_position, sizes[CONF_SIZE_VACUUM_RADIUS],
-                                              colors)
-        if DRAWABLE_PATH in drawables and map_data.path is not None:
-            ImageHandler.draw_path(map_data.image, map_data.path, colors)
-        if DRAWABLE_GOTO_PATH in drawables and map_data.goto_path is not None:
-            ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, colors)
-        if DRAWABLE_PREDICTED_PATH in drawables and map_data.predicted_path is not None:
-            ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, colors)
-        if DRAWABLE_NO_GO_AREAS in drawables and map_data.no_go_areas is not None:
-            ImageHandler.draw_no_go_areas(map_data.image, map_data.no_go_areas, colors)
-        if DRAWABLE_NO_MOPPING_AREAS in drawables and map_data.no_mopping_areas is not None:
-            ImageHandler.draw_no_mopping_areas(map_data.image, map_data.no_mopping_areas, colors)
-        if DRAWABLE_VIRTUAL_WALLS in drawables and map_data.walls is not None:
-            ImageHandler.draw_walls(map_data.image, map_data.walls, colors)
-        if DRAWABLE_ZONES in drawables and map_data.zones is not None:
-            ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
+        for drawable in drawables:
+            if DRAWABLE_CHARGER == drawable and map_data.charger is not None:
+                ImageHandler.draw_charger(map_data.image, map_data.charger, sizes[CONF_SIZE_CHARGER_RADIUS], colors)
+            if DRAWABLE_VACUUM_POSITION == drawable and map_data.vacuum_position is not None:
+                ImageHandler.draw_vacuum_position(map_data.image, map_data.vacuum_position,
+                                                  sizes[CONF_SIZE_VACUUM_RADIUS], colors)
+            if DRAWABLE_PATH == drawable and map_data.path is not None:
+                ImageHandler.draw_path(map_data.image, map_data.path, colors)
+            if DRAWABLE_GOTO_PATH == drawable and map_data.goto_path is not None:
+                ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, colors)
+            if DRAWABLE_PREDICTED_PATH == drawable and map_data.predicted_path is not None:
+                ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, colors)
+            if DRAWABLE_NO_GO_AREAS == drawable and map_data.no_go_areas is not None:
+                ImageHandler.draw_no_go_areas(map_data.image, map_data.no_go_areas, colors)
+            if DRAWABLE_NO_MOPPING_AREAS == drawable and map_data.no_mopping_areas is not None:
+                ImageHandler.draw_no_mopping_areas(map_data.image, map_data.no_mopping_areas, colors)
+            if DRAWABLE_VIRTUAL_WALLS == drawable and map_data.walls is not None:
+                ImageHandler.draw_walls(map_data.image, map_data.walls, colors)
+            if DRAWABLE_ZONES == drawable and map_data.zones is not None:
+                ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
 
     @staticmethod
     def get_bytes(data: bytes, start_index: int, size: int):

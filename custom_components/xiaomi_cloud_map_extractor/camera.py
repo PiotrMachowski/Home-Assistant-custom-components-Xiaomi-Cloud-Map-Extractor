@@ -96,7 +96,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     drawables = config[CONF_DRAW]
     sizes = config[CONF_SIZES]
     texts = config[CONF_TEXTS]
-    if "all" in drawables:
+    if DRAWABLE_ALL in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)

@@ -13,6 +13,7 @@ from .const import *
 from .map_data_parser import MapDataParser
 
 
+# noinspection PyBroadException
 class XiaomiCloudConnector:
 
     def __init__(self, username, password):
@@ -39,8 +40,11 @@ class XiaomiCloudConnector:
         cookies = {
             "userId": self._username
         }
-        response = self._session.get(url, headers=headers, cookies=cookies, timeout=10)
-        successful = response.status_code == 200 and "_sign" in self.to_json(response.text)
+        try:
+            response = self._session.get(url, headers=headers, cookies=cookies, timeout=10)
+        except:
+            response = None
+        successful = response is not None and response.status_code == 200 and "_sign" in self.to_json(response.text)
         if successful:
             self._sign = self.to_json(response.text)["_sign"]
         return successful
@@ -60,8 +64,11 @@ class XiaomiCloudConnector:
             "_sign": self._sign,
             "_json": "true"
         }
-        response = self._session.post(url, headers=headers, params=fields, timeout=10)
-        successful = response.status_code == 200 and "ssecurity" in self.to_json(response.text)
+        try:
+            response = self._session.post(url, headers=headers, params=fields, timeout=10)
+        except:
+            response = None
+        successful = response is not None and response.status_code == 200 and "ssecurity" in self.to_json(response.text)
         if successful:
             json_resp = self.to_json(response.text)
             self._ssecurity = json_resp["ssecurity"]
@@ -77,8 +84,11 @@ class XiaomiCloudConnector:
             "User-Agent": self._agent,
             "Content-Type": "application/x-www-form-urlencoded"
         }
-        response = self._session.get(self._location, headers=headers, timeout=10)
-        if response.status_code == 200:
+        try:
+            response = self._session.get(self._location, headers=headers, timeout=10)
+        except:
+            response = None
+        if response is not None and response.status_code == 200:
             self._serviceToken = response.cookies.get("serviceToken")
         return response.status_code == 200
 
@@ -125,8 +135,11 @@ class XiaomiCloudConnector:
             return None
         map_url = self.get_map_url(country, map_name)
         if map_url is not None:
-            response = self._session.get(map_url, timeout=10)
-            if response.status_code == 200:
+            try:
+                response = self._session.get(map_url, timeout=10)
+            except:
+                response = None
+            if response is not None and response.status_code == 200:
                 return response.content
         return None
 
@@ -163,8 +176,11 @@ class XiaomiCloudConnector:
             "_nonce": nonce,
             "data": params["data"]
         }
-        response = self._session.post(url, headers=headers, cookies=cookies, params=fields, timeout=10)
-        if response.status_code == 200:
+        try:
+            response = self._session.post(url, headers=headers, cookies=cookies, params=fields, timeout=10)
+        except:
+            response = None
+        if response is not None and response.status_code == 200:
             return response.json()
         return None
 

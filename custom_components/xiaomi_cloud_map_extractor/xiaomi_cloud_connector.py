@@ -68,7 +68,8 @@ class XiaomiCloudConnector:
             response = self._session.post(url, headers=headers, params=fields, timeout=10)
         except:
             response = None
-        successful = response is not None and response.status_code == 200 and "ssecurity" in self.to_json(response.text)
+        successful = response is not None and response.status_code == 200 and "ssecurity" in self.to_json(
+            response.text) and len(str(self.to_json(response.text)["ssecurity"])) > 4
         if successful:
             json_resp = self.to_json(response.text)
             self._ssecurity = json_resp["ssecurity"]

@@ -167,6 +167,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
      <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_card.gif" width=50%>
   
   - `charger`
+  - `country`
   - `goto`
   - `goto_path`
   - `goto_predicted_path`
@@ -295,6 +296,7 @@ camera:
     attributes:
       - calibration_points
       - charger
+      - country
       - goto
       - goto_path
       - goto_predicted_path

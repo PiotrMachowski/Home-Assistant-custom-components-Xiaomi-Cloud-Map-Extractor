@@ -94,6 +94,10 @@ class XiaomiCloudConnector:
         return response.status_code == 200
 
     def login(self):
+        self._session.close()
+        self._session = requests.session()
+        self._agent = self.generate_agent()
+        self._device_id = self.generate_device_id()
         self._session.cookies.set("sdkVersion", "accountsdk-18.8.15", domain="mi.com")
         self._session.cookies.set("sdkVersion", "accountsdk-18.8.15", domain="xiaomi.com")
         self._session.cookies.set("deviceId", self._device_id, domain="mi.com")

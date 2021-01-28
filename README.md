@@ -21,24 +21,24 @@ After adding a custom repository you can use HACS to install this integration us
 ### Manual
 
 To install this integration manually you have to download following files:
- * [*camera.py*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/camera.py)
- * [*const.py*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/const.py)
- * [*image_handler.py*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/image_handler.py)
- * [*manifest.json*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/manifest.json)
- * [*map_data_parser.py*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/map_data_parser.py)
- * [*xiaomi_cloud_connector.py*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/xiaomi_cloud_connector.py)
+ * [*camera.py*](https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/camera.py)
+ * [*const.py*](https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/const.py)
+ * [*image_handler.py*](https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/image_handler.py)
+ * [*manifest.json*](https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/manifest.json)
+ * [*map_data_parser.py*](https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/map_data_parser.py)
+ * [*xiaomi_cloud_connector.py*](https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/xiaomi_cloud_connector.py)
 
 to `config/custom_components/xiaomi_cloud_map_extractor` directory:
 
 ```bash
 mkdir -p custom_components/xiaomi_cloud_map_extractor
 cd custom_components/xiaomi_cloud_map_extractor
-wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/camera.py
-wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/const.py
-wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/image_handler.py
-wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/manifest.json
-wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/map_data_parser.py
-wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/raw/master/custom_components/xiaomi_cloud_map_extractor/xiaomi_cloud_connector.py
+wget https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/camera.py
+wget https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/const.py
+wget https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/image_handler.py
+wget https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/manifest.json
+wget https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/map_data_parser.py
+wget https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/custom_components/xiaomi_cloud_map_extractor/xiaomi_cloud_connector.py
 ```
 
 ## Configuration

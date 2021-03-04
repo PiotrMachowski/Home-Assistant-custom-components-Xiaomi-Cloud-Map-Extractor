@@ -12,5 +12,6 @@
     "pycryptodome",
     "python-miio",
     "requests"
-  ]
+  ],
+  "version": "v1.0.6"
 }

@@ -331,6 +331,7 @@ This integration was tested on following vacuums:
  - Roborock S6
  - Roborock S6 MaxV
  - Roborock S6 Pure
+ - Roborock S7
  
 ## Unsupported devices
 

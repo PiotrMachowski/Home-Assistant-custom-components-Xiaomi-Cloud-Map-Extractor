@@ -3,5 +3,7 @@
   "render_readme": true,
   "domain": "xiaomi_cloud_map_extractor",
   "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor",
-  "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues"
+  "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues",
+  "zip_release": true,
+  "filename": "xiaomi_cloud_map_extractor.zip"
 }

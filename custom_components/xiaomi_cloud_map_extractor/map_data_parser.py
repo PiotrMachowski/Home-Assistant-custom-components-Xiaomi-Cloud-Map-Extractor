@@ -74,7 +74,7 @@ class MapDataParser:
                 map_data.blocks = MapDataParser.get_bytes(data, 0, block_pairs)
             block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
         if not map_data.image.is_empty:
-            MapDataParser.draw_elements(colors, drawables, sizes, map_data)
+            MapDataParser.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
                 map_data.vacuum_room = MapDataParser.get_current_vacuum_room(img_start, raw, map_data.vacuum_position)
             ImageHandler.rotate(map_data.image)
@@ -214,7 +214,8 @@ class MapDataParser:
         return areas
 
     @staticmethod
-    def draw_elements(colors, drawables, sizes, map_data):
+    def draw_elements(colors, drawables, sizes, map_data, image_config):
+        scale = float(image_config[CONF_SCALE])
         for drawable in drawables:
             if DRAWABLE_CHARGER == drawable and map_data.charger is not None:
                 ImageHandler.draw_charger(map_data.image, map_data.charger, sizes[CONF_SIZE_CHARGER_RADIUS], colors)
@@ -222,11 +223,11 @@ class MapDataParser:
                 ImageHandler.draw_vacuum_position(map_data.image, map_data.vacuum_position,
                                                   sizes[CONF_SIZE_VACUUM_RADIUS], colors)
             if DRAWABLE_PATH == drawable and map_data.path is not None:
-                ImageHandler.draw_path(map_data.image, map_data.path, colors)
+                ImageHandler.draw_path(map_data.image, map_data.path, colors, scale)
             if DRAWABLE_GOTO_PATH == drawable and map_data.goto_path is not None:
-                ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, colors)
+                ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, colors, scale)
             if DRAWABLE_PREDICTED_PATH == drawable and map_data.predicted_path is not None:
-                ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, colors)
+                ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, colors, scale)
             if DRAWABLE_NO_GO_AREAS == drawable and map_data.no_go_areas is not None:
                 ImageHandler.draw_no_go_areas(map_data.image, map_data.no_go_areas, colors)
             if DRAWABLE_NO_MOPPING_AREAS == drawable and map_data.no_mopping_areas is not None:

@@ -205,7 +205,7 @@ camera:
 
 #### Full
 
-> This configuration purpose is to show all available options, do not use it unless you know what you are doing.
+> This configuration's purpose is to show all available options, do not use it unless you know what you are doing.
 
 ```yaml
 camera:

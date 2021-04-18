@@ -30,6 +30,10 @@ class ImageHandler:
         COLOR_NO_MOPPING_ZONES_OUTLINE: (163, 130, 211),
         COLOR_CHARGER: (0x66, 0xfe, 0xda, 0x7f),
         COLOR_ROBO: (75, 235, 149),
+        COLOR_OBSTACLE: (0, 0, 0, 128),
+        COLOR_IGNORED_OBSTACLE: (0, 0, 0, 128),
+        COLOR_OBSTACLE_WITH_PHOTO: (0, 0, 0, 128),
+        COLOR_IGNORED_OBSTACLE_WITH_PHOTO: (0, 0, 0, 128),
         COLOR_UNKNOWN: (0, 0, 0),
         COLOR_SCAN: (0xDF, 0xDF, 0xDF),
         COLOR_ROOM_1: (240, 178, 122),
@@ -167,13 +171,44 @@ class ImageHandler:
                                     ImageHandler.__get_color__(COLOR_ZONES_OUTLINE, colors))
 
     @staticmethod
-    def draw_charger(image, charger, radius, colors):
+    def draw_charger(image, charger, sizes, colors):
         color = ImageHandler.__get_color__(COLOR_CHARGER, colors)
+        radius = sizes[CONF_SIZE_CHARGER_RADIUS]
         ImageHandler.__draw_circle__(image, charger, radius, color, color)
 
     @staticmethod
-    def draw_vacuum_position(image, vacuum_position, radius, colors):
+    def draw_obstacles(image, obstacles, sizes, colors):
+        color = ImageHandler.__get_color__(COLOR_OBSTACLE, colors)
+        radius = sizes[CONF_SIZE_OBSTACLE_RADIUS]
+        ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
+
+    @staticmethod
+    def draw_ignored_obstacles(image, obstacles, sizes, colors):
+        color = ImageHandler.__get_color__(COLOR_IGNORED_OBSTACLE, colors)
+        radius = sizes[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]
+        ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
+
+    @staticmethod
+    def draw_obstacles_with_photo(image, obstacles, sizes, colors):
+        color = ImageHandler.__get_color__(COLOR_OBSTACLE_WITH_PHOTO, colors)
+        radius = sizes[CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS]
+        ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
+
+    @staticmethod
+    def draw_ignored_obstacles_with_photo(image, obstacles, sizes, colors):
+        color = ImageHandler.__get_color__(COLOR_IGNORED_OBSTACLE_WITH_PHOTO, colors)
+        radius = sizes[CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS]
+        ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
+
+    @staticmethod
+    def draw_all_obstacles(image, obstacles, radius, color):
+        for obstacle in obstacles:
+            ImageHandler.__draw_circle__(image, obstacle, radius, color, color)
+
+    @staticmethod
+    def draw_vacuum_position(image, vacuum_position, sizes, colors):
         color = ImageHandler.__get_color__(COLOR_ROBO, colors)
+        radius = sizes[CONF_SIZE_VACUUM_RADIUS]
         ImageHandler.__draw_circle__(image, vacuum_position, radius, color, color)
 
     @staticmethod

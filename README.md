@@ -88,6 +88,10 @@ If you have a problem with configuration validation you have to remove camera fr
   | `color_no_go_zones_outline` | Outline of no-go zones |
   | `color_no_mop_zones` | Fill of no-mopping zones |
   | `color_no_mop_zones_outline` | Outline of no-mopping zones |
+  | `color_obstacle` | Obstacle mark on a map |
+  | `color_ignored_obstacle` | Ignored obstacle mark on a map |
+  | `color_obstacle_with_photo` | Obstacle with photo mark on a map |
+  | `color_ignored_obstacle_with_photo` | Ignored obstacle with photo mark on a map |
   | `color_charger` | Charger position |
   | `color_robo` | Vacuum position |
   | `color_scan` | Areas not assigned to any room (for software with rooms support) |
@@ -112,6 +116,10 @@ If you have a problem with configuration validation you have to remove camera fr
   - `predicted_path`
   - `no_go_zones`
   - `no_mopping_zones`
+  - `obstacles`
+  - `ignored_obstacles`
+  - `obstacles_with_photo`
+  - `ignored_obstacles_with_photo`
   - `vacuum_position`
   - `virtual_walls`
   - `zones`
@@ -147,6 +155,10 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   |---|---|---|---|---|
   | `charger_radius` | float | false | 4 | Radius of a charger circle. |
   | `vacuum_radius` | float | false | 4 | Radius of a vacuum circle. |
+  | `obstacle_radius` | float | false | 3 | Radius of an obstacle circle. |
+  | `ignored_obstacle_radius` | float | false | 3 | Radius of an ignored obstacle circle circle. |
+  | `obstacle_with_photo_radius` | float | false | 3 | Radius of an obstacle with photo circle. |
+  | `ignored_obstacle_with_photo_radius` | float | false | 3 | Radius of an ignored obstacle with photo circle. |
 
 #### Attributes configuration
 
@@ -167,6 +179,9 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `no_go_areas`
   - `no_mopping_areas`
   - `obstacles`
+  - `ignored_obstacles`
+  - `obstacles_with_photo`
+  - `ignored_obstacles_with_photo`
   - `path`
   - `room_numbers`
   - `rooms`
@@ -222,6 +237,10 @@ camera:
       color_map_wall: [100, 196, 254]
       color_map_wall_v2: [93, 109, 126]
       color_grey_wall: [93, 109, 126]
+      color_ignored_obstacle: [0, 0, 0, 127]
+      color_ignored_obstacle_with_photo: [0, 0, 0, 127]
+      color_obstacle: [0, 0, 0, 127]
+      color_obstacle_with_photo: [0, 0, 0, 127]
       color_path: [147, 194, 238]
       color_goto_path: [0, 255, 0]
       color_predicted_path: [255, 255, 0, 0]
@@ -257,6 +276,10 @@ camera:
       - charger
       - path
       - goto_path
+      - obstacles
+      - ignored_obstacles
+      - obstacles_with_photo
+      - ignored_obstacles_with_photo
       - predicted_path
       - no_go_zones
       - no_mopping_zones
@@ -285,6 +308,10 @@ camera:
     sizes:
       charger_radius: 4
       vacuum_radius: 6.5
+      obstacle_radius: 3
+      ignored_obstacle_radius: 3
+      obstacle_with_photo_radius: 3
+      ignored_obstacle_with_photo_radius: 3
     attributes:
       - calibration_points
       - charger
@@ -298,6 +325,9 @@ camera:
       - no_go_areas
       - no_mopping_areas
       - obstacles
+      - ignored_obstacles
+      - obstacles_with_photo
+      - ignored_obstacles_with_photo
       - path
       - room_numbers
       - rooms

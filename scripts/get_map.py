@@ -105,7 +105,7 @@ if map_name != "retry":
                                          CONF_RIGHT: trim_right,
                                          CONF_TOP: trim_top,
                                          CONF_BOTTOM: trim_bottom
-                                     }})
+                                     }})[0]
     map_data.image.data.save("map_data.png")
     img_byte_arr = io.BytesIO()
     map_data.image.data.save(img_byte_arr, format='PNG')

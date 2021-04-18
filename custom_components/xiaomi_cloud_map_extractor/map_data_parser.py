@@ -18,9 +18,21 @@ class MapDataParser:
     BLOCKS = 11
     NO_MOPPING_AREAS = 12
     OBSTACLES = 13
+    IGNORED_OBSTACLES = 14
+    OBSTACLES_WITH_PHOTO = 15
+    IGNORED_OBSTACLES_WITH_PHOTO = 16
+    CARPET_MAP = 17
     DIGEST = 1024
     MM = 50
     SIZE = 1024
+    KNOWN_OBSTACLE_TYPES = {
+        0: 'cable',
+        2: 'shoes',
+        3: 'poop',
+        5: 'extension cord',
+        9: 'weighting scale',
+        10: 'clothes'
+    }
 
     @staticmethod
     def parse(raw: bytes, colors, drawables, texts, sizes, image_config):
@@ -69,10 +81,16 @@ class MapDataParser:
                 map_data.no_mopping_areas = MapDataParser.parse_area(header, data)
             elif block_type == MapDataParser.OBSTACLES:
                 map_data.obstacles = MapDataParser.parse_obstacles(data, header)
+            elif block_type == MapDataParser.IGNORED_OBSTACLES:
+                map_data.ignored_obstacles = MapDataParser.parse_obstacles(data, header)
+            elif block_type == MapDataParser.OBSTACLES_WITH_PHOTO:
+                map_data.obstacles_with_photo = MapDataParser.parse_obstacles(data, header)
+            elif block_type == MapDataParser.IGNORED_OBSTACLES_WITH_PHOTO:
+                map_data.ignored_obstacles_with_photo = MapDataParser.parse_obstacles(data, header)
             elif block_type == MapDataParser.BLOCKS:
                 block_pairs = MapDataParser.get_int16(header, 0x08)
                 map_data.blocks = MapDataParser.get_bytes(data, 0, block_pairs)
-            block_start_position = block_start_position + block_data_length + (header[2] & 0xFF)
+            block_start_position = block_start_position + block_data_length + MapDataParser.get_int8(header, 2)
         if not map_data.image.is_empty:
             MapDataParser.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
@@ -164,11 +182,25 @@ class MapDataParser:
     def parse_obstacles(data, header):
         obstacle_pairs = MapDataParser.get_int16(header, 0x08)
         obstacles = []
-        for obstacle_start in range(0, obstacle_pairs * 5, 5):
-            x0 = MapDataParser.get_int16(data, obstacle_start + 0)
-            y0 = MapDataParser.get_int16(data, obstacle_start + 2)
-            u = data[obstacle_start + 0] & 0xFF
-            obstacles.append({x0: x0, y0: y0, u: u})
+        if obstacle_pairs == 0:
+            return obstacles
+        obstacle_size = int(len(data) / obstacle_pairs)
+        for obstacle_start in range(0, obstacle_pairs * obstacle_size, obstacle_size):
+            x = MapDataParser.get_int16(data, obstacle_start + 0)
+            y = MapDataParser.get_int16(data, obstacle_start + 2)
+            details = {}
+            if obstacle_size >= 6:
+                details[ATTR_TYPE] = MapDataParser.get_int16(data, obstacle_start + 4)
+                if details[ATTR_TYPE] in MapDataParser.KNOWN_OBSTACLE_TYPES:
+                    details[ATTR_DESCRIPTION] = MapDataParser.KNOWN_OBSTACLE_TYPES[details[ATTR_TYPE]]
+                if obstacle_size >= 10:
+                    u1 = MapDataParser.get_int16(data, obstacle_start + 6)
+                    u2 = MapDataParser.get_int16(data, obstacle_start + 8)
+                    details[ATTR_CONFIDENCE_LEVEL] = u1 * 10.0 / u2
+                    if obstacle_size == 28 and (data[obstacle_start + 12] & 0xFF) > 0:
+                        txt = MapDataParser.get_bytes(data, obstacle_start + 12, 16)
+                        details[ATTR_PHOTO_NAME] = txt.decode('ascii')
+            obstacles.append(Obstacle(x, y, details))
         return obstacles
 
     @staticmethod
@@ -218,10 +250,18 @@ class MapDataParser:
         scale = float(image_config[CONF_SCALE])
         for drawable in drawables:
             if DRAWABLE_CHARGER == drawable and map_data.charger is not None:
-                ImageHandler.draw_charger(map_data.image, map_data.charger, sizes[CONF_SIZE_CHARGER_RADIUS], colors)
+                ImageHandler.draw_charger(map_data.image, map_data.charger, sizes, colors)
             if DRAWABLE_VACUUM_POSITION == drawable and map_data.vacuum_position is not None:
-                ImageHandler.draw_vacuum_position(map_data.image, map_data.vacuum_position,
-                                                  sizes[CONF_SIZE_VACUUM_RADIUS], colors)
+                ImageHandler.draw_vacuum_position(map_data.image, map_data.vacuum_position, sizes, colors)
+            if DRAWABLE_OBSTACLES == drawable and map_data.obstacles is not None:
+                ImageHandler.draw_obstacles(map_data.image, map_data.obstacles, sizes, colors)
+            if DRAWABLE_IGNORED_OBSTACLES == drawable and map_data.ignored_obstacles is not None:
+                ImageHandler.draw_ignored_obstacles(map_data.image, map_data.ignored_obstacles, sizes, colors)
+            if DRAWABLE_OBSTACLES_WITH_PHOTO == drawable and map_data.obstacles_with_photo is not None:
+                ImageHandler.draw_obstacles_with_photo(map_data.image, map_data.obstacles_with_photo, sizes, colors)
+            if DRAWABLE_IGNORED_OBSTACLES_WITH_PHOTO == drawable and map_data.ignored_obstacles_with_photo is not None:
+                ImageHandler.draw_ignored_obstacles_with_photo(map_data.image, map_data.ignored_obstacles_with_photo,
+                                                               sizes, colors)
             if DRAWABLE_PATH == drawable and map_data.path is not None:
                 ImageHandler.draw_path(map_data.image, map_data.path, colors, scale)
             if DRAWABLE_GOTO_PATH == drawable and map_data.goto_path is not None:
@@ -242,8 +282,8 @@ class MapDataParser:
         return data[start_index:  start_index + size]
 
     @staticmethod
-    def get_first_int16(data: bytes):
-        return MapDataParser.get_int16(data, 0)
+    def get_int8(data: bytes, address: int):
+        return data[address] & 0xFF
 
     @staticmethod
     def get_int16(data: bytes, address: int):
@@ -269,7 +309,10 @@ class MapData:
         self.image: Optional[ImageData] = None
         self.no_go_areas: Optional[List[Area]] = None
         self.no_mopping_areas: Optional[List[Area]] = None
-        self.obstacles = None
+        self.obstacles: Optional[List[Obstacle]] = None
+        self.ignored_obstacles: Optional[List[Obstacle]] = None
+        self.obstacles_with_photo: Optional[List[Obstacle]] = None
+        self.ignored_obstacles_with_photo: Optional[List[Obstacle]] = None
         self.path: Optional[List[Point]] = None
         self.predicted_path: Optional[List[Point]] = None
         self.rooms: Optional[Dict[int, Zone]] = None
@@ -334,6 +377,18 @@ class Point:
             w = tmp
             alpha = alpha - 90
         return Point(x, y)
+
+
+class Obstacle(Point):
+    def __init__(self, x, y, details):
+        super().__init__(x, y)
+        self.details = details
+
+    def as_dict(self):
+        return {**super(Obstacle, self).as_dict(), **self.details}
+
+    def __str__(self):
+        return f"({self.x}, {self.y}, details = {self.details})"
 
 
 class ImageDimensions:

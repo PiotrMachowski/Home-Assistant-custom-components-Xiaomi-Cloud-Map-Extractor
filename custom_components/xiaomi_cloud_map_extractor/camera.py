@@ -26,6 +26,10 @@ DEFAULT_TRIMS = {
 
 DEFAULT_SIZES = {
     CONF_SIZE_VACUUM_RADIUS: 4,
+    CONF_SIZE_IGNORED_OBSTACLE_RADIUS: 3,
+    CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS: 3,
+    CONF_SIZE_OBSTACLE_RADIUS: 3,
+    CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS: 3,
     CONF_SIZE_CHARGER_RADIUS: 4
 }
 
@@ -74,8 +78,20 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                 vol.Optional(CONF_FONT_SIZE, default=0): cv.positive_int
             })]),
         vol.Optional(CONF_SIZES, default=DEFAULT_SIZES): vol.Schema({
-            vol.Optional(CONF_SIZE_VACUUM_RADIUS, default=4): vol.All(vol.Coerce(float), vol.Range(min=0)),
-            vol.Optional(CONF_SIZE_CHARGER_RADIUS, default=4): vol.All(vol.Coerce(float), vol.Range(min=0))
+            vol.Optional(CONF_SIZE_VACUUM_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_VACUUM_RADIUS]):
+                vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]):
+                vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS]):
+                vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Optional(CONF_SIZE_OBSTACLE_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_RADIUS]):
+                vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Optional(CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS]):
+                vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Optional(CONF_SIZE_CHARGER_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]):
+                vol.All(vol.Coerce(float), vol.Range(min=0))
         })
     })
 
@@ -106,7 +122,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes):
+                 drawables, sizes, texts, attributes, store_map):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -152,12 +168,15 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_GOTO: self._map_data.goto,
                 ATTRIBUTE_GOTO_PATH: self._map_data.goto_path,
                 ATTRIBUTE_GOTO_PREDICTED_PATH: self._map_data.predicted_path,
+                ATTRIBUTE_IGNORED_OBSTACLES: self._map_data.ignored_obstacles,
+                ATTRIBUTE_IGNORED_OBSTACLES_WITH_PHOTO: self._map_data.ignored_obstacles_with_photo,
                 ATTRIBUTE_IMAGE: self._map_data.image,
                 ATTRIBUTE_IS_EMPTY: self._map_data.image.is_empty,
                 ATTRIBUTE_MAP_NAME: self._map_data.map_name,
                 ATTRIBUTE_NO_GO_AREAS: self._map_data.no_go_areas,
                 ATTRIBUTE_NO_MOPPING_AREAS: self._map_data.no_mopping_areas,
                 ATTRIBUTE_OBSTACLES: self._map_data.obstacles,
+                ATTRIBUTE_OBSTACLES_WITH_PHOTO: self._map_data.obstacles_with_photo,
                 ATTRIBUTE_PATH: self._map_data.path,
                 ATTRIBUTE_ROOM_NUMBERS: list(self._map_data.rooms.keys()),
                 ATTRIBUTE_ROOMS: self._map_data.rooms,

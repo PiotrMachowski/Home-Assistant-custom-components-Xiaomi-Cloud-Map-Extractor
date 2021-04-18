@@ -63,6 +63,7 @@ If you have a problem with configuration validation you have to remove camera fr
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 | `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. If disabled use service `homeassistant.update_entity` to update map manually. |
+| `store_map` | boolean | false | default: `false` | Enables storing raw map data in `/tmp/map_data.gz`. It can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
 
 #### Colors configuration
 
@@ -338,6 +339,7 @@ camera:
     scan_interval:
       seconds: 10
     auto_update: true
+    store_map: false
 ```
 
 ## Supported devices

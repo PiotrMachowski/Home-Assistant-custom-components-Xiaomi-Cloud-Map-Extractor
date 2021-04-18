@@ -125,14 +125,20 @@ class XiaomiCloudConnector:
             return None
         return api_response["result"]["url"]
 
-    def get_map(self, country, map_name, colors, drawables, texts, sizes, image_config):
+    def get_map(self, country, map_name, colors, drawables, texts, sizes, image_config, store_response=False):
         response = self.get_raw_map_data(country, map_name)
         if response is None:
-            return None
+            return None, False
+        map_stored = False
+        if store_response:
+            file1 = open("/tmp/map_data.gz", "wb")
+            file1.write(response)
+            file1.close()
+            map_stored = True
         unzipped = gzip.decompress(response)
         map_data = MapDataParser.parse(unzipped, colors, drawables, texts, sizes, image_config)
         map_data.map_name = map_name
-        return map_data
+        return map_data, map_stored
 
     def get_raw_map_data(self, country, map_name):
         if map_name is None:

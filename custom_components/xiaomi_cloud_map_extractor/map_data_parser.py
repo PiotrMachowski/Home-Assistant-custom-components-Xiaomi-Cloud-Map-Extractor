@@ -196,7 +196,7 @@ class MapDataParser:
                 if obstacle_size >= 10:
                     u1 = MapDataParser.get_int16(data, obstacle_start + 6)
                     u2 = MapDataParser.get_int16(data, obstacle_start + 8)
-                    details[ATTR_CONFIDENCE_LEVEL] = u1 * 10.0 / u2
+                    details[ATTR_CONFIDENCE_LEVEL] = 0 if u2 == 0 else u1 * 10.0 / u2
                     if obstacle_size == 28 and (data[obstacle_start + 12] & 0xFF) > 0:
                         txt = MapDataParser.get_bytes(data, obstacle_start + 12, 16)
                         details[ATTR_PHOTO_NAME] = txt.decode('ascii')

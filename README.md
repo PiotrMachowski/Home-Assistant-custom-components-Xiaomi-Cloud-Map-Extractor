@@ -1,4 +1,4 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz/docs/faq/custom_repositories)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://hacs.xyz/)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg?style=popout)](https://community.home-assistant.io/t/xiaomi-cloud-vacuum-map-extractor/231292)
 [![buymeacoffee_badge](https://img.shields.io/badge/Donate-Buy%20Me%20a%20Coffee-ff813f?style=flat)](https://www.buymeacoffee.com/PiotrMachowski)
 [![paypalme_badge](https://img.shields.io/badge/Donate-PayPal-0070ba?style=flat)](https://paypal.me/PiMachowski)
@@ -14,11 +14,8 @@ This custom integration provides a way to present a live view of a map for a Xia
 
 ### Using [HACS](https://hacs.xyz/) (recommended)
 
-This integration can be added to HACS as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories):
-* URL: `https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor`
-* Category: `Integration`
-
-After adding a custom repository you can use HACS to install this integration using user interface.
+This integration can be installed using HACS.
+To do it search for `Xiaomi Cloud Map Extractor` in *Integrations* section.
 
 ### Manual
 

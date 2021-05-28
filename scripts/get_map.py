@@ -11,6 +11,7 @@ token = ""
 username = ""
 password = ""
 country = ""
+map_name = "0"                          # if the vacuum_ip is empty, the map name query will be skipped (userful for Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM) / Viomi V2 Pro / etc.) and this value will be used
 
 draw = [
     "charger",
@@ -77,9 +78,9 @@ processed_colors = {**colors}
 for room_number, color in room_colors.items():
     processed_colors[f"{COLOR_ROOM_PREFIX}{room_number}"] = color
 
-map_name = "retry"
 if not (vacuum_ip == "" or token == ""):
     vacuum = miio.Vacuum(vacuum_ip, token)
+    map_name = "retry"
     counter = 10
     while map_name == "retry" and counter > 0:
         time.sleep(0.1)
@@ -90,13 +91,18 @@ connector = XiaomiCloudConnector(username, password)
 logged = connector.login()
 if not logged:
     print("Failed to log in")
+    exit(1)
 if map_name != "retry":
+    device = connector.get_device(ip_address=vacuum_ip, token=token, country=country)
+    if device is None:
+        print("Device not found")
+        exit(1)
     print("Retrieved map name: " + map_name)
-    raw_map = connector.get_raw_map_data(country, map_name)
+    raw_map = device.get_raw_map_data(map_name)
     raw_file = open("map_data.gz", "wb")
     raw_file.write(raw_map)
     raw_file.close()
-    map_data = connector.get_map(country, map_name, processed_colors, draw, texts, sizes,
+    map_data = device.get_map(map_name, processed_colors, draw, texts, sizes,
                                  {
                                      CONF_SCALE: scale,
                                      CONF_ROTATE: rotate,

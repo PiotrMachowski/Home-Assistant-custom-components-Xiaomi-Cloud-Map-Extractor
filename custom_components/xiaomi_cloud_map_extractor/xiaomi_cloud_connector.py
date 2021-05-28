@@ -1,5 +1,6 @@
 import base64
 import gzip
+import zlib
 import hashlib
 import hmac
 import json
@@ -12,8 +13,85 @@ from .const import *
 from .map_data_parser import MapDataParser
 
 
+class XiaomiCloudDevice:
+
+    def __init__(self, connector, country):
+        self._connector = connector
+        self._country = country
+
+    def get_map(self, map_name, colors, drawables, texts, sizes, image_config, store_response=False):
+        response = self.get_raw_map_data(map_name)
+        if response is None:
+            return None, False
+        map_stored = False
+        if store_response:
+            file1 = open("/tmp/map_data.gz", "wb")
+            file1.write(response)
+            file1.close()
+            map_stored = True
+        map_data = self.decode_map(response, colors, drawables, texts, sizes, image_config)
+        map_data.map_name = map_name
+        return map_data, map_stored
+
+    def get_raw_map_data(self, map_name):
+        if map_name is None:
+            return None
+        map_url = self.get_map_url(map_name)
+        if map_url is not None:
+            try:
+                response = self._connector._session.get(map_url, timeout=10)
+            except:
+                response = None
+            if response is not None and response.status_code == 200:
+                return response.content
+        return None
+
+
+class XiaomiCloudDeviceV1(XiaomiCloudDevice):
+
+    def __init__(self, connector, country):
+        super(XiaomiCloudDeviceV1, self).__init__(connector, country)
+
+    def get_map_url(self, map_name):
+        url = self._connector.get_api_url(self._country) + "/home/getmapfileurl"
+        params = {
+            "data": '{"obj_name":"' + map_name + '"}'
+        }
+        api_response = self._connector.execute_api_call(url, params)
+        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
+            return None
+        return api_response["result"]["url"]
+
+    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config):
+        unzipped = gzip.decompress(raw_map)
+        return MapDataParser.parse(unzipped, colors, drawables, texts, sizes, image_config)
+
+
+class XiaomiCloudDeviceV2(XiaomiCloudDevice):
+
+    def __init__(self, connector, country, user_id, device_id):
+        super(XiaomiCloudDeviceV2, self).__init__(connector, country)
+        self._user_id = int(user_id)
+        self._device_id = int(device_id)
+
+    def get_map_url(self, map_name):
+        url = self._connector.get_api_url(self._country) + '/v2/home/get_interim_file_url'
+        params = {
+            "data": '{"obj_name":"%d/%d/%s"}' % (self._user_id, self._device_id, map_name)
+        }
+        api_response = self._connector.execute_api_call(url, params)
+        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
+            return None
+        return api_response["result"]["url"]
+
+    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config):
+        unzipped = zlib.decompress(raw_map)
+        return MapDataParser.parse(unzipped, colors, drawables, texts, sizes, image_config)
+
+
 # noinspection PyBroadException
 class XiaomiCloudConnector:
+    V2_MODELS = ['viomi.vacuum.v6']
 
     def __init__(self, username, password):
         self._username = username
@@ -115,50 +193,43 @@ class XiaomiCloudConnector:
                 return country
         return None
 
-    def get_map_url(self, country, map_name):
-        url = self.get_api_url(country) + "/home/getmapfileurl"
-        params = {
-            "data": '{"obj_name":"' + map_name + '"}'
-        }
-        api_response = self.execute_api_call(url, params)
-        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
-            return None
-        return api_response["result"]["url"]
-
-    def get_map(self, country, map_name, colors, drawables, texts, sizes, image_config, store_response=False):
-        response = self.get_raw_map_data(country, map_name)
-        if response is None:
-            return None, False
-        map_stored = False
-        if store_response:
-            file1 = open("/tmp/map_data.gz", "wb")
-            file1.write(response)
-            file1.close()
-            map_stored = True
-        unzipped = gzip.decompress(response)
-        map_data = MapDataParser.parse(unzipped, colors, drawables, texts, sizes, image_config)
-        map_data.map_name = map_name
-        return map_data, map_stored
-
-    def get_raw_map_data(self, country, map_name):
-        if map_name is None:
-            return None
-        map_url = self.get_map_url(country, map_name)
-        if map_url is not None:
-            try:
-                response = self._session.get(map_url, timeout=10)
-            except:
-                response = None
-            if response is not None and response.status_code == 200:
-                return response.content
-        return None
-
     def get_devices(self, country):
         url = self.get_api_url(country) + "/home/device_list"
         params = {
             "data": '{"getVirtualModel":false,"getHuamiDevices":0}'
         }
         return self.execute_api_call(url, params)
+
+    def get_device(self, **kwargs):
+        for k in list(kwargs.keys()):
+            if kwargs[k] is None or kwargs[k] == '':
+                del kwargs[k]
+        if 'country' in kwargs:
+            if kwargs.get('new_proto', False):
+                return XiaomiCloudDeviceV1(self, kwargs['country'])
+            if 'user_id' in kwargs and 'device_id' in kwargs:
+                return XiaomiCloudDeviceV2(self, kwargs['country'], kwargs['user_id'], kwargs['device_id'])
+            available_countries = [kwargs['country']]
+        else:
+            available_countries = CONF_AVAILABLE_COUNTRIES
+        for country in available_countries:
+            devices = self.get_devices(country)
+            if devices is None or 'result' not in devices or 'list' not in devices['result']:
+                continue
+            for device in devices['result']['list']:
+                if 'user_id' in kwargs and device['uid'] != kwargs['user_id']:
+                    continue
+                if 'device_id' in kwargs and device['did'] != kwargs['device_id']:
+                    continue
+                if 'ip_address' in kwargs and device['localip'] != kwargs['ip_address']:
+                    continue
+                if 'token' in kwargs and device['token'] != kwargs['token']:
+                    continue
+                if kwargs.get('new_proto', device['model'] in XiaomiCloudConnector.V2_MODELS):
+                    return XiaomiCloudDeviceV2(self, country, device['uid'], device['did'])
+                else:
+                    return XiaomiCloudDeviceV1(self, country)
+        return None
 
     def execute_api_call(self, url, params):
         headers = {

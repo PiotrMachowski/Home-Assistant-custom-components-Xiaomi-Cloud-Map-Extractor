@@ -222,9 +222,10 @@ class VacuumCamera(Camera):
                 counter = counter - 1
         self._received_map_name_previously = map_name != "retry"
         if self._logged_in and map_name != "retry" and self._country is not None:
-            map_data, map_stored = self._connector.get_map(self._country, map_name, self._colors, self._drawables,
-                                                           self._texts, self._sizes, self._image_config,
-                                                           self._store_map)
+            device = self._connector.get_device(country=self._country, ip_address=self._vacuum.ip, token=self._vacuum.token)
+            map_data, map_stored = device.get_map(map_name, self._colors, self._drawables,
+                                                  self._texts, self._sizes, self._image_config,
+                                                  self._store_map)
             if map_data is not None:
                 # noinspection PyBroadException
                 try:

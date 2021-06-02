@@ -12,6 +12,7 @@ from homeassistant.helpers.entity import generate_entity_id
 
 from .const import *
 from .xiaomi_cloud_connector import XiaomiCloudConnector
+from .xiaomi_cloud_vacuum import XiaomiCloudVacuum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -130,6 +131,7 @@ class VacuumCamera(Camera):
         self.content_type = CONTENT_TYPE
         self._vacuum = miio.Vacuum(host, token)
         self._connector = XiaomiCloudConnector(username, password)
+        self._device = None
         self._name = name
         self._should_poll = should_poll
         self._image_config = image_config
@@ -193,6 +195,10 @@ class VacuumCamera(Camera):
                     attributes[name] = value
         if self._store_map:
             attributes[ATTRIBUTE_MAP_SAVED] = self._map_saved
+        if self._device is not None:
+            attributes["user_id"] = self._device._user_id
+            attributes["device_id"] = self._device._device_id
+            attributes["device_model"] = self._device._model
         return attributes
 
     @property
@@ -205,9 +211,15 @@ class VacuumCamera(Camera):
             self._logged_in = self._connector.login()
             if not self._logged_in and self._logged_in_previously:
                 _LOGGER.error("Unable to log in, check credentials")
-        if self._country is None and self._logged_in:
-            self._country = self._connector.get_country_for_device(self._vacuum.ip, self._vacuum.token)
+        if self._device is None and self._logged_in:
+            self._country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.ip,
+                                                                                          self._vacuum.token,
+                                                                                          self._country)
+            if self._country is not None:
+                self._device = XiaomiCloudVacuum.create(self._connector, self._country, user_id, device_id, model)
         map_name = "retry"
+        if self._device is not None and not self._device.should_get_map_from_vacuum():
+            map_name = "0"
         while map_name == "retry" and counter > 0:
             time.sleep(0.1)
             try:
@@ -222,10 +234,8 @@ class VacuumCamera(Camera):
                 counter = counter - 1
         self._received_map_name_previously = map_name != "retry"
         if self._logged_in and map_name != "retry" and self._country is not None:
-            device = self._connector.get_device(country=self._country, ip_address=self._vacuum.ip, token=self._vacuum.token)
-            map_data, map_stored = device.get_map(map_name, self._colors, self._drawables,
-                                                  self._texts, self._sizes, self._image_config,
-                                                  self._store_map)
+            map_data, map_stored = self._device.get_map(map_name, self._colors, self._drawables, self._texts,
+                                                        self._sizes, self._image_config, self._store_map)
             if map_data is not None:
                 # noinspection PyBroadException
                 try:

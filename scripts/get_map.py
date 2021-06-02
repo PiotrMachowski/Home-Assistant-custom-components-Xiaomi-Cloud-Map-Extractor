@@ -2,6 +2,7 @@ import miio
 import time
 import io
 from .xiaomi_cloud_connector import XiaomiCloudConnector
+from .xiaomi_cloud_vacuum import XiaomiCloudVacuum
 from .const import *
 
 # ********* CONFIGURATION *********
@@ -11,7 +12,7 @@ token = ""
 username = ""
 password = ""
 country = ""
-map_name = "0"                          # if the vacuum_ip is empty, the map name query will be skipped (userful for Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM) / Viomi V2 Pro / etc.) and this value will be used
+map_name = "0"  # if the vacuum_ip is empty, the map name query will be skipped (userful for Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM) / Viomi V2 Pro / etc.) and this value will be used
 
 draw = [
     "charger",
@@ -93,7 +94,8 @@ if not logged:
     print("Failed to log in")
     exit(1)
 if map_name != "retry":
-    device = connector.get_device(ip_address=vacuum_ip, token=token, country=country)
+    country, user_id, device_id, model = connector.get_device_details(vacuum_ip, token, country)
+    device = XiaomiCloudVacuum.create(connector, country, user_id, device_id, model)
     if device is None:
         print("Device not found")
         exit(1)
@@ -103,15 +105,15 @@ if map_name != "retry":
     raw_file.write(raw_map)
     raw_file.close()
     map_data = device.get_map(map_name, processed_colors, draw, texts, sizes,
-                                 {
-                                     CONF_SCALE: scale,
-                                     CONF_ROTATE: rotate,
-                                     CONF_TRIM: {
-                                         CONF_LEFT: trim_left,
-                                         CONF_RIGHT: trim_right,
-                                         CONF_TOP: trim_top,
-                                         CONF_BOTTOM: trim_bottom
-                                     }})[0]
+                              {
+                                  CONF_SCALE: scale,
+                                  CONF_ROTATE: rotate,
+                                  CONF_TRIM: {
+                                      CONF_LEFT: trim_left,
+                                      CONF_RIGHT: trim_right,
+                                      CONF_TOP: trim_top,
+                                      CONF_BOTTOM: trim_bottom
+                                  }})[0]
     map_data.image.data.save("map_data.png")
     img_byte_arr = io.BytesIO()
     map_data.image.data.save(img_byte_arr, format='PNG')

@@ -1,7 +1,10 @@
+import logging
 from typing import List, Dict, Optional
 
 from .const import *
 from .image_handler import ImageHandler
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class MapDataParser:

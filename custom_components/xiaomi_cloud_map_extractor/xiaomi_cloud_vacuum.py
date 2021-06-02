@@ -2,7 +2,7 @@ from abc import abstractmethod
 import gzip
 import zlib
 
-from .map_data_parser import MapDataParser
+from .map_data_parser import MapDataParser, ViomiMapDataParser
 from .const import V2_MODELS
 
 
@@ -94,7 +94,7 @@ class XiaomiCloudVacuumV2(XiaomiCloudVacuum):
 
     def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config):
         unzipped = zlib.decompress(raw_map)
-        return MapDataParser.parse(unzipped, colors, drawables, texts, sizes, image_config)  # TODO
+        return ViomiMapDataParser.parse(unzipped, colors, drawables, texts, sizes, image_config)
 
     def should_get_map_from_vacuum(self):
         return False

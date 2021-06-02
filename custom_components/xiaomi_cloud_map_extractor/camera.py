@@ -40,6 +40,8 @@ COLOR_SCHEMA = vol.Or(
 
 PERCENT_SCHEMA = vol.All(vol.Coerce(float), vol.Range(min=0, max=100))
 
+POSITIVE_FLOAT_SCHEMA = vol.All(vol.Coerce(float), vol.Range(min=0))
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HOST): cv.string,
@@ -58,7 +60,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_DRAW, default=[]): vol.All(cv.ensure_list, [vol.In(CONF_AVAILABLE_DRAWABLES)]),
         vol.Optional(CONF_MAP_TRANSFORM, default={CONF_SCALE: 1, CONF_ROTATE: 0, CONF_TRIM: DEFAULT_TRIMS}):
             vol.Schema({
-                vol.Optional(CONF_SCALE, default=1): vol.All(vol.Coerce(float), vol.Range(min=0)),
+                vol.Optional(CONF_SCALE, default=1): POSITIVE_FLOAT_SCHEMA,
                 vol.Optional(CONF_ROTATE, default=0): vol.In([0, 90, 180, 270]),
                 vol.Optional(CONF_TRIM, default=DEFAULT_TRIMS): vol.Schema({
                     vol.Optional(CONF_LEFT, default=0): PERCENT_SCHEMA,
@@ -78,20 +80,18 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                 vol.Optional(CONF_FONT_SIZE, default=0): cv.positive_int
             })]),
         vol.Optional(CONF_SIZES, default=DEFAULT_SIZES): vol.Schema({
-            vol.Optional(CONF_SIZE_VACUUM_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_VACUUM_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
-            vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Optional(CONF_SIZE_VACUUM_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_VACUUM_RADIUS]): POSITIVE_FLOAT_SCHEMA,
+            vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS,
-                         default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
-            vol.Optional(CONF_SIZE_OBSTACLE_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
+                         default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS]): POSITIVE_FLOAT_SCHEMA,
+            vol.Optional(CONF_SIZE_OBSTACLE_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_RADIUS]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS,
-                         default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
-            vol.Optional(CONF_SIZE_CHARGER_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0))
+                         default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS]): POSITIVE_FLOAT_SCHEMA,
+            vol.Optional(CONF_SIZE_CHARGER_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]): POSITIVE_FLOAT_SCHEMA
         }),
         vol.Optional(CONF_STORE_MAP, default=False): cv.boolean
     })

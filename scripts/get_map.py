@@ -1,3 +1,4 @@
+import logging
 import miio
 import time
 import io
@@ -75,6 +76,11 @@ trim_top = 15
 
 # ********* CONFIGURATION END *********
 
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
+logging.getLogger('PIL.PngImagePlugin').setLevel(logging.WARNING)
+
 processed_colors = {**colors}
 for room_number, color in room_colors.items():
     processed_colors[f"{COLOR_ROOM_PREFIX}{room_number}"] = color
@@ -117,7 +123,7 @@ if map_name != "retry":
     map_data.image.data.save("map_data.png")
     img_byte_arr = io.BytesIO()
     map_data.image.data.save(img_byte_arr, format='PNG')
-    img_byte_arr = img_byte_arr.getvalue()
-    print(img_byte_arr)
+    #img_byte_arr = img_byte_arr.getvalue()
+    #print(img_byte_arr)
 else:
     print("Failed to get map name")

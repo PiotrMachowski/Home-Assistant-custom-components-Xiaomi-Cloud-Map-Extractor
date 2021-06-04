@@ -1,13 +1,13 @@
 import io
 import logging
-import miio
 import time
-import voluptuous as vol
 from datetime import timedelta
 
+import miio
+import voluptuous as vol
+from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
-from homeassistant.components.camera import PLATFORM_SCHEMA, ENTITY_ID_FORMAT, Camera
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TOKEN, CONF_USERNAME, CONF_PASSWORD
 from homeassistant.helpers.entity import generate_entity_id
 
 from .const import *
@@ -166,6 +166,9 @@ class VacuumCamera(Camera):
     @property
     def device_state_attributes(self):
         attributes = {}
+        rooms = dict(filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), self._map_data.rooms.items())))
+        if len(rooms) == 0:
+            rooms = list(self._map_data.rooms.keys())
         if self._map_data is not None:
             for name, value in {
                 ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
@@ -184,7 +187,7 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_OBSTACLES: self._map_data.obstacles,
                 ATTRIBUTE_OBSTACLES_WITH_PHOTO: self._map_data.obstacles_with_photo,
                 ATTRIBUTE_PATH: self._map_data.path,
-                ATTRIBUTE_ROOM_NUMBERS: list(self._map_data.rooms.keys()),
+                ATTRIBUTE_ROOM_NUMBERS: rooms,
                 ATTRIBUTE_ROOMS: self._map_data.rooms,
                 ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
                 ATTRIBUTE_VACUUM_ROOM: self._map_data.vacuum_room,
@@ -199,6 +202,7 @@ class VacuumCamera(Camera):
             attributes["user_id"] = self._device._user_id
             attributes["device_id"] = self._device._device_id
             attributes["device_model"] = self._device._model
+            attributes["device_is_api_v2"] = not self._device.should_get_map_from_vacuum()
         return attributes
 
     @property

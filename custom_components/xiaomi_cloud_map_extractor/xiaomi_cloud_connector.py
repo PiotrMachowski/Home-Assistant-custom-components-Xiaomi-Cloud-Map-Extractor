@@ -4,8 +4,10 @@ import hmac
 import json
 import os
 import random
-import requests
 import time
+from typing import Optional
+
+import requests
 
 from .const import *
 
@@ -101,7 +103,7 @@ class XiaomiCloudConnector:
         self._session.cookies.set("deviceId", self._device_id, domain="xiaomi.com")
         return self.login_step_1() and self.login_step_2() and self.login_step_3()
 
-    def get_raw_map_data(self, map_url):
+    def get_raw_map_data(self, map_url) -> Optional[bytes]:
         if map_url is not None:
             try:
                 response = self._session.get(map_url, timeout=10)

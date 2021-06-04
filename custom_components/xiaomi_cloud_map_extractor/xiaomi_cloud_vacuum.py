@@ -1,9 +1,10 @@
 from abc import abstractmethod
-import gzip
-import zlib
+from typing import Optional, Tuple
 
-from .map_data_parser import MapDataParser, ViomiMapDataParser
+import xiaomi_cloud_vacuum_v1
+import xiaomi_cloud_vacuum_v2
 from .const import V2_MODELS
+from .map_data import MapData
 
 
 class XiaomiCloudVacuum:
@@ -15,7 +16,8 @@ class XiaomiCloudVacuum:
         self._device_id = device_id
         self._model = model
 
-    def get_map(self, map_name, colors, drawables, texts, sizes, image_config, store_response=False):
+    def get_map(self, map_name, colors, drawables, texts, sizes, image_config, store_response=False) \
+            -> Tuple[Optional[MapData], bool]:
         response = self.get_raw_map_data(map_name)
         if response is None:
             return None, False
@@ -29,7 +31,7 @@ class XiaomiCloudVacuum:
         map_data.map_name = map_name
         return map_data, map_stored
 
-    def get_raw_map_data(self, map_name):
+    def get_raw_map_data(self, map_name) -> Optional[bytes]:
         if map_name is None:
             return None
         map_url = self.get_map_url(map_name)
@@ -40,7 +42,7 @@ class XiaomiCloudVacuum:
         pass
 
     @abstractmethod
-    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config):
+    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config) -> MapData:
         pass
 
     @abstractmethod
@@ -50,51 +52,5 @@ class XiaomiCloudVacuum:
     @staticmethod
     def create(connector, country, user_id, device_id, model):
         if model in V2_MODELS:
-            return XiaomiCloudVacuumV2(connector, country, user_id, device_id, model)
-        return XiaomiCloudVacuumV1(connector, country, user_id, device_id, model)
-
-
-class XiaomiCloudVacuumV1(XiaomiCloudVacuum):
-
-    def __init__(self, connector, country, user_id, device_id, model):
-        super().__init__(connector, country, user_id, device_id, model)
-
-    def get_map_url(self, map_name):
-        url = self._connector.get_api_url(self._country) + "/home/getmapfileurl"
-        params = {
-            "data": '{"obj_name":"' + map_name + '"}'
-        }
-        api_response = self._connector.execute_api_call(url, params)
-        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
-            return None
-        return api_response["result"]["url"]
-
-    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config):
-        unzipped = gzip.decompress(raw_map)
-        return MapDataParser.parse(unzipped, colors, drawables, texts, sizes, image_config)
-
-    def should_get_map_from_vacuum(self):
-        return True
-
-
-class XiaomiCloudVacuumV2(XiaomiCloudVacuum):
-
-    def __init__(self, connector, country, user_id, device_id, model):
-        super().__init__(connector, country, user_id, device_id, model)
-
-    def get_map_url(self, map_name):
-        url = self._connector.get_api_url(self._country) + '/v2/home/get_interim_file_url'
-        params = {
-            "data": f'{{"obj_name":"{self._user_id}/{self._device_id}/{map_name}"}}'
-        }
-        api_response = self._connector.execute_api_call(url, params)
-        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
-            return None
-        return api_response["result"]["url"]
-
-    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config):
-        unzipped = zlib.decompress(raw_map)
-        return ViomiMapDataParser.parse(unzipped, colors, drawables, texts, sizes, image_config)
-
-    def should_get_map_from_vacuum(self):
-        return False
+            return xiaomi_cloud_vacuum_v2.XiaomiCloudVacuumV2(connector, country, user_id, device_id, model)
+        return xiaomi_cloud_vacuum_v1.XiaomiCloudVacuumV1(connector, country, user_id, device_id, model)

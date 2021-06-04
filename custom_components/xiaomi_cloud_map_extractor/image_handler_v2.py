@@ -26,7 +26,7 @@ class ImageHandlerV2(ImageHandler):
         if trimmed_width == 0 or trimmed_height == 0:
             return ImageHandler.create_empty_map(colors)
         pixels = image.load()
-        buf.skip('trim_top', trim_top * width)
+        buf.skip('trim_top', trim_bottom * width)
         u = set()
         for img_y in range(trimmed_height):
             buf.skip('trim_left', trim_left)
@@ -56,7 +56,7 @@ class ImageHandlerV2(ImageHandler):
                 else:
                     u.add(pixel_type)
             buf.skip('trim_right', trim_right)
-        buf.skip('trim_bottom', trim_bottom * width)
+        buf.skip('trim_bottom', trim_top * width)
         if image_config["scale"] != 1 and trimmed_width != 0 and trimmed_height != 0:
             image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
         if len(u) > 0:

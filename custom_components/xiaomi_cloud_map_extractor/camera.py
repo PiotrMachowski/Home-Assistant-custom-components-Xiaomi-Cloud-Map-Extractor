@@ -12,7 +12,8 @@ from homeassistant.helpers.entity import generate_entity_id
 
 from .const import *
 from .xiaomi_cloud_connector import XiaomiCloudConnector
-from .xiaomi_cloud_vacuum import XiaomiCloudVacuum
+from .xiaomi_cloud_vacuum_v1 import XiaomiCloudVacuumV1
+from .xiaomi_cloud_vacuum_v2 import XiaomiCloudVacuumV2
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -166,10 +167,11 @@ class VacuumCamera(Camera):
     @property
     def device_state_attributes(self):
         attributes = {}
-        rooms = dict(filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), self._map_data.rooms.items())))
-        if len(rooms) == 0:
-            rooms = list(self._map_data.rooms.keys())
         if self._map_data is not None:
+            rooms = dict(
+                filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), self._map_data.rooms.items())))
+            if len(rooms) == 0:
+                rooms = list(self._map_data.rooms.keys())
             for name, value in {
                 ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
                 ATTRIBUTE_CHARGER: self._map_data.charger,
@@ -220,7 +222,7 @@ class VacuumCamera(Camera):
                                                                                           self._vacuum.token,
                                                                                           self._country)
             if self._country is not None:
-                self._device = XiaomiCloudVacuum.create(self._connector, self._country, user_id, device_id, model)
+                self._device = self._create_camera(user_id, device_id, model)
         map_name = "retry"
         if self._device is not None and not self._device.should_get_map_from_vacuum():
             map_name = "0"
@@ -254,3 +256,8 @@ class VacuumCamera(Camera):
                 self._logged_in = False
                 _LOGGER.warning("Unable to retrieve map data")
         self._logged_in_previously = self._logged_in
+
+    def _create_camera(self, user_id, device_id, model):
+        if model in V2_MODELS:
+            return XiaomiCloudVacuumV2(self._connector, self._country, user_id, device_id, model)
+        return XiaomiCloudVacuumV1(self._connector, self._country, user_id, device_id, model)

@@ -1,9 +1,6 @@
 from abc import abstractmethod
 from typing import Optional, Tuple
 
-import xiaomi_cloud_vacuum_v1
-import xiaomi_cloud_vacuum_v2
-from .const import V2_MODELS
 from .map_data import MapData
 
 
@@ -48,9 +45,3 @@ class XiaomiCloudVacuum:
     @abstractmethod
     def should_get_map_from_vacuum(self):
         pass
-
-    @staticmethod
-    def create(connector, country, user_id, device_id, model):
-        if model in V2_MODELS:
-            return xiaomi_cloud_vacuum_v2.XiaomiCloudVacuumV2(connector, country, user_id, device_id, model)
-        return xiaomi_cloud_vacuum_v1.XiaomiCloudVacuumV1(connector, country, user_id, device_id, model)

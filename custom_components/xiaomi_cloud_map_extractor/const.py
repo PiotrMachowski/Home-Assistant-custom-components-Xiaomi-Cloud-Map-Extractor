@@ -170,6 +170,6 @@ CONF_DEFAULT_ROOM_COLORS = [COLOR_ROOM_1, COLOR_ROOM_2, COLOR_ROOM_3, COLOR_ROOM
                             COLOR_ROOM_7, COLOR_ROOM_8, COLOR_ROOM_9, COLOR_ROOM_10, COLOR_ROOM_11, COLOR_ROOM_12,
                             COLOR_ROOM_13, COLOR_ROOM_14, COLOR_ROOM_15, COLOR_ROOM_16]
 
-V2_MODELS = ['viomi.vacuum.v6', 'viomi.vacuum.v7']
+V2_MODELS = ['viomi.vacuum.v6', 'viomi.vacuum.v7', 'viomi.vacuum.v8']
 
 MM = 50

@@ -274,9 +274,9 @@ class MapDataParserV2(MapDataParser):
     def parse_section(buf, name, map_id):
         buf.set_name(name)
         magic = buf.get_uint32('magic')
-        if magic != map_id:
-            raise ValueError(
-                f"error parsing section {name} at offset {buf._offs - 4:#x}: magic check failed {magic:#x}")  # FIXME
+        # if magic != map_id:
+        #     raise ValueError(
+        #         f"error parsing section {name} at offset {buf._offs - 4:#x}: magic check failed {magic:#x}")  # FIXME
 
     @staticmethod
     def parse_position(buf, name):

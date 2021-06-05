@@ -101,7 +101,7 @@ class MapDataParserV2(MapDataParser):
 
         if feature_flags & MapDataParserV2.FEATURE_IMAGE != 0:
             MapDataParserV2.parse_section(buf, 'image', map_id)
-            map_data.image, map_data.rooms = MapDataParserV2.parse_image(buf, colors, image_config)
+            map_data.image, map_data.rooms, map_data.zones = MapDataParserV2.parse_image(buf, colors, image_config)
 
         if feature_flags & MapDataParserV2.FEATURE_HISTORY != 0:
             MapDataParserV2.parse_section(buf, 'history', map_id)
@@ -119,7 +119,7 @@ class MapDataParserV2(MapDataParser):
 
         if feature_flags & MapDataParserV2.FEATURE_CLEANING_AREAS != 0:
             MapDataParserV2.parse_section(buf, 'cleaning_areas', map_id)
-            map_data.zones = MapDataParserV2.parse_cleaning_areas(buf)
+            MapDataParserV2.parse_cleaning_areas(buf, map_data.zones)
 
         if feature_flags & MapDataParserV2.FEATURE_NAVIGATE != 0:
             MapDataParserV2.parse_section(buf, 'navigate', map_id)
@@ -164,8 +164,10 @@ class MapDataParserV2(MapDataParser):
         x = int(vacuum_position.x / MM)
         y = int(vacuum_position.y / MM)
         pixel_type = buf.get_at_image(y * 800 + x)
-        if 10 <= pixel_type < 60:
+        if ImageHandlerV2.MAP_ROOM_MIN <= pixel_type <= ImageHandlerV2.MAP_ROOM_MAX:
             return pixel_type
+        elif ImageHandlerV2.MAP_SELECTED_ROOM_MIN <= pixel_type <= ImageHandlerV2.MAP_SELECTED_ROOM_MAX:
+            return pixel_type - ImageHandlerV2.MAP_SELECTED_ROOM_MIN + ImageHandlerV2.MAP_ROOM_MIN
         return None
 
     @staticmethod
@@ -189,20 +191,26 @@ class MapDataParserV2(MapDataParser):
             image_config[CONF_TRIM][CONF_TOP] = 0
             image_config[CONF_TRIM][CONF_BOTTOM] = 0
         buf.mark_as_image_beginning()
-        image, rooms = ImageHandlerV2.parse(buf, image_width, image_height, colors, image_config)
+        image, rooms, areas = ImageHandlerV2.parse(buf, image_width, image_height, colors, image_config)
         _LOGGER.debug('img: number of rooms: %d, numbers: %s', len(rooms), rooms.keys())
         for number, room in rooms.items():
             rooms[number] = Room(number, (room[0] + image_left) * MM,
                                  (room[1] + image_top) * MM,
                                  (room[2] + image_left) * MM,
                                  (room[3] + image_top) * MM)
+        zones = []
+        for number, area in areas.items():
+            zones.append(Zone((area[0] + image_left) * MM,
+                            (area[1] + image_top) * MM,
+                            (area[2] + image_left) * MM,
+                            (area[3] + image_top) * MM))
         return ImageData(image_size,
                          image_top,
                          image_left,
                          image_height,
                          image_width,
                          image_config,
-                         image), rooms
+                         image), rooms, zones
 
     @staticmethod
     def parse_history(buf):
@@ -236,8 +244,7 @@ class MapDataParserV2(MapDataParser):
         return walls, areas
 
     @staticmethod
-    def parse_cleaning_areas(buf):
-        zones = []
+    def parse_cleaning_areas(buf, zones):
         buf.skip('unknown1', 4)
         area_count = buf.get_uint32('area_count')
         for _ in range(area_count):
@@ -248,7 +255,6 @@ class MapDataParserV2(MapDataParser):
             p4 = MapDataParserV2.parse_position(buf, 'p4')
             buf.skip('area.unknown2', 48)
             zones.append(Zone(p1.x, p1.y, p3.x, p3.y))
-        return zones
 
     @staticmethod
     def parse_rooms(buf, map_data_rooms):

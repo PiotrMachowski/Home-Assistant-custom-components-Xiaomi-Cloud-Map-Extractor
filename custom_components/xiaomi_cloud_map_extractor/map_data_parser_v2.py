@@ -221,9 +221,8 @@ class MapDataParserV2(MapDataParser):
         buf.skip('unknown1', 4)
         history_count = buf.get_uint32('history_count')
         for _ in range(history_count):
-            buf.skip('path.unknown1', 1)
+            mode = buf.get_uint8('mode')    # 0: taxi, 1: working
             path_points.append(MapDataParserV2.parse_position(buf, 'path'))
-            # buf.skip('path.unknown2', 9)
         return Path(len(path_points), 1, 0, path_points)
 
     @staticmethod

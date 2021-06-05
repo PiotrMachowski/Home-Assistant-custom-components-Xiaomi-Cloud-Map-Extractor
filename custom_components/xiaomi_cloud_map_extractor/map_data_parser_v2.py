@@ -91,9 +91,9 @@ class MapDataParserV2(MapDataParser):
     def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:
         map_data = MapData()
         buf = ParsingBuffer('header', raw, 0, len(raw))
-        feature_flags = buf.get_uint32('featureFlags')
+        feature_flags = buf.get_uint32('feature_flags')
         map_id = buf.peek_uint32('map_id')
-        _LOGGER.debug('featureFlags: 0x%x, map_id: %d', feature_flags, map_id)
+        _LOGGER.debug('feature_flags: 0x%x, map_id: %d', feature_flags, map_id)
 
         if feature_flags & MapDataParserV2.FEATURE_ROBOT_STATUS != 0:
             MapDataParserV2.parse_section(buf, 'robot_status', map_id)
@@ -151,10 +151,13 @@ class MapDataParserV2(MapDataParser):
             MapDataParserV2.parse_section(buf, 'unknown3', map_id)
             MapDataParserV2.parse_unknown_section(buf)
 
+        _LOGGER.debug('rooms: %s', [str(room) for number, room in map_data.rooms.items()])
         if not map_data.image.is_empty:
             MapDataParserV2.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
                 map_data.vacuum_room = MapDataParserV2.get_current_vacuum_room(buf, map_data.vacuum_position)
+                _LOGGER.debug('current vacuum room: %s', map_data.vacuum_room)
+            #ImageHandlerV2.draw_zones(map_data.image, [room for number, room in map_data.rooms.items()], colors)
             ImageHandlerV2.rotate(map_data.image)
             ImageHandlerV2.draw_texts(map_data.image, texts)
         return map_data
@@ -272,7 +275,7 @@ class MapDataParserV2(MapDataParser):
             if map_data_rooms is not None and room_id in map_data_rooms:
                 map_data_rooms[room_id].name = room_name
             buf.skip('room.unknown1', 1)
-            room_text_pos = MapDataParserV2.parse_position(buf, 'xxx')
+            room_text_pos = MapDataParserV2.parse_position(buf, 'room.text_pos')
             _LOGGER.debug('room#%d: %s %s', room_id, room_name, room_text_pos)
         buf.skip('unknown1', 6)
 

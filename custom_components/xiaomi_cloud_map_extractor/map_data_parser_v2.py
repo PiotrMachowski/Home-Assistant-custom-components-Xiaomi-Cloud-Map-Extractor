@@ -73,6 +73,12 @@ class ParsingBuffer:
             raise ValueError(f"error parsing {self._name}.{field} at offset {self._offs:#x}: buffer underrun")
         return unpack_from('<L', self._data, self._offs)[0]
 
+    def check_empty(self):
+        if self._length == 0:
+            _LOGGER.debug('all of the data has been processed')
+        else:
+            _LOGGER.warning('%d bytes remained in the buffer', self._length)
+
 
 class MapDataParserV2(MapDataParser):
     FEATURE_ROBOT_STATUS = 0x00000001
@@ -137,7 +143,7 @@ class MapDataParserV2(MapDataParser):
 
         if feature_flags & 0x00000800 != 0:
             MapDataParserV2.parse_section(buf, 'unknown1', map_id)
-            buf.skip('unknown1', 4)
+            MapDataParserV2.parse_unknown_section(buf)
 
         if feature_flags & MapDataParserV2.FEATURE_ROOMS != 0:
             MapDataParserV2.parse_section(buf, 'rooms', map_id)
@@ -148,8 +154,10 @@ class MapDataParserV2(MapDataParser):
             MapDataParserV2.parse_unknown_section(buf)
 
         if feature_flags & 0x00004000 != 0:
-            MapDataParserV2.parse_section(buf, 'unknown3', map_id)
-            MapDataParserV2.parse_unknown_section(buf)
+            MapDataParserV2.parse_section(buf, 'room_outlines', map_id)
+            MapDataParserV2.parse_room_outlines(buf)
+
+        buf.check_empty()
 
         _LOGGER.debug('rooms: %s', [str(room) for number, room in map_data.rooms.items()])
         if not map_data.image.is_empty:
@@ -279,12 +287,23 @@ class MapDataParserV2(MapDataParser):
         buf.skip('unknown1', 6)
 
     @staticmethod
+    def parse_room_outlines(buf):
+        buf.skip('unknown1', 51)
+        room_count = buf.get_uint32('room_count')
+        for _ in range(room_count):
+            room_id = buf.get_uint32('room.id')
+            segment_count = buf.get_uint32('room.segment_count')
+            for _ in range(segment_count):
+                buf.skip('unknown2', 5)
+            _LOGGER.debug('room#%d: segment_count: %d', room_id, segment_count)
+
+    @staticmethod
     def parse_section(buf, name, map_id):
         buf.set_name(name)
         magic = buf.get_uint32('magic')
-        # if magic != map_id:
-        #     raise ValueError(
-        #         f"error parsing section {name} at offset {buf._offs - 4:#x}: magic check failed {magic:#x}")  # FIXME
+        if magic != map_id:
+            raise ValueError(
+                f"error parsing section {name} at offset {buf._offs - 4:#x}: magic check failed {magic:#x}")  # FIXME
 
     @staticmethod
     def parse_position(buf, name):
@@ -302,4 +321,6 @@ class MapDataParserV2(MapDataParser):
             buf._length -= n
             return True
         else:
+            buf._offs += buf._length
+            buf._length = 0
             return False

@@ -31,7 +31,7 @@ colors = {
     "color_path": (255, 0, 0, 127),
     "color_goto_path": (0, 255, 0),
     "color_predicted_path": (0, 0, 255),
-    "color_zones": (0x1F, 0x6A, 0xFC),
+    "color_zones": (0x1F, 0x6A, 0xFC, 128),
     "color_zones_outline": (0x25, 0x74, 0xB5, 0x60),
 }
 

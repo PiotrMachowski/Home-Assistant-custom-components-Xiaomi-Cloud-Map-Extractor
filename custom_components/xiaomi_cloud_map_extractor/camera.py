@@ -193,6 +193,7 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_ROOMS: self._map_data.rooms,
                 ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
                 ATTRIBUTE_VACUUM_ROOM: self._map_data.vacuum_room,
+                ATTRIBUTE_VACUUM_ROOM_NAME: self._map_data.vacuum_room_name,
                 ATTRIBUTE_WALLS: self._map_data.walls,
                 ATTRIBUTE_ZONES: self._map_data.zones
             }.items():
@@ -258,6 +259,6 @@ class VacuumCamera(Camera):
         self._logged_in_previously = self._logged_in
 
     def _create_camera(self, user_id, device_id, model):
-        if model.startswith("viomi.vacuum"):
+        if len(list(filter(lambda x: model.startswith(x), V2_MODEL_PREFIXES))) > 0:
             return XiaomiCloudVacuumV2(self._connector, self._country, user_id, device_id, model)
         return XiaomiCloudVacuumV1(self._connector, self._country, user_id, device_id, model)

@@ -164,8 +164,10 @@ class MapDataParserV2(MapDataParser):
             MapDataParserV2.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
                 map_data.vacuum_room = MapDataParserV2.get_current_vacuum_room(buf, map_data.vacuum_position)
+                if map_data.vacuum_room is not None:
+                    map_data.vacuum_room_name = map_data.rooms[map_data.vacuum_room].name
                 _LOGGER.debug('current vacuum room: %s', map_data.vacuum_room)
-            #ImageHandlerV2.draw_zones(map_data.image, [room for number, room in map_data.rooms.items()], colors)
+            # ImageHandlerV2.draw_zones(map_data.image, [room for number, room in map_data.rooms.items()], colors)
             ImageHandlerV2.rotate(map_data.image)
             ImageHandlerV2.draw_texts(map_data.image, texts)
         return map_data
@@ -212,9 +214,9 @@ class MapDataParserV2(MapDataParser):
         zones = []
         for number, area in areas.items():
             zones.append(Zone((area[0] + image_left) * MM,
-                            (area[1] + image_top) * MM,
-                            (area[2] + image_left) * MM,
-                            (area[3] + image_top) * MM))
+                              (area[1] + image_top) * MM,
+                              (area[2] + image_left) * MM,
+                              (area[3] + image_top) * MM))
         return ImageData(image_size,
                          image_top,
                          image_left,
@@ -229,7 +231,7 @@ class MapDataParserV2(MapDataParser):
         buf.skip('unknown1', 4)
         history_count = buf.get_uint32('history_count')
         for _ in range(history_count):
-            mode = buf.get_uint8('mode')    # 0: taxi, 1: working
+            mode = buf.get_uint8('mode')  # 0: taxi, 1: working
             path_points.append(MapDataParserV2.parse_position(buf, 'path'))
         return Path(len(path_points), 1, 0, path_points)
 

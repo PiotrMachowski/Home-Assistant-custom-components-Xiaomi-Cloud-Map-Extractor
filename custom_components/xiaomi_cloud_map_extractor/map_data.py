@@ -242,6 +242,7 @@ class MapData:
         self.rooms: Optional[Dict[int, Room]] = None
         self.vacuum_position: Optional[Point] = None
         self.vacuum_room: Optional[int] = None
+        self.vacuum_room_name: Optional[str] = None
         self.walls: Optional[List[Wall]] = None
         self.zones: Optional[List[Zone]] = None
         self.map_name: Optional[str] = None

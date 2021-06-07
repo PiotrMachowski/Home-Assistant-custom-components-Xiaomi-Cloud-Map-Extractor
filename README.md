@@ -60,7 +60,7 @@ If you have a problem with configuration validation you have to remove camera fr
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 | `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. If disabled use service `homeassistant.update_entity` to update map manually. |
-| `store_map` | boolean | false | default: `false` | Enables storing raw map data in `/tmp/map_data.gz`. It can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
+| `store_map` | boolean | false | default: `false` | Enables storing raw map data in `/tmp` directory ([more info](#retrieving-map)). It can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
 
 #### Colors configuration
 
@@ -358,6 +358,14 @@ This integration was tested on following vacuums:
 At this moment this integration is known to not work with following vacuums:
  - Roborock E50
  - Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM)
+
+## Retrieving map
+
+When `store_map: true` is added to your config this integration will store a raw map file in `/tmp` directory.
+If you don't use Core installation ([installation types](https://www.home-assistant.io/installation/#compare-installation-methods)) you can retrieve this file in the following way:
+- In [SSH & Terminal add-on](https://github.com/hassio-addons/addon-ssh) enable protected access
+- Open terminal use following command: `docker exec -it homeassistant cp /tmp/map_data.* /config/tmp`
+- Map file will appear in `tmp` in your `config` folder
 
 ## Special thanks
 

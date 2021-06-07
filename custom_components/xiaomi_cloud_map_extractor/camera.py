@@ -95,7 +95,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             vol.Optional(CONF_SIZE_CHARGER_RADIUS,
                          default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]): POSITIVE_FLOAT_SCHEMA
         }),
-        vol.Optional(CONF_STORE_MAP, default=False): cv.boolean
+        vol.Optional(CONF_STORE_MAP, default=False): cv.boolean,
+        vol.Optional(CONF_FORCE_V2, default=False): cv.boolean
     })
 
 
@@ -119,14 +120,15 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
     store_map = config[CONF_STORE_MAP]
+    force_v2 = config[CONF_FORCE_V2]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map)])
+                                     image_config, colors, drawables, sizes, texts, attributes, store_map, force_v2)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map):
+                 drawables, sizes, texts, attributes, store_map, force_v2):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -142,6 +144,7 @@ class VacuumCamera(Camera):
         self._texts = texts
         self._attributes = attributes
         self._store_map = store_map
+        self._force_v2 = force_v2
         self._map_saved = None
         self._image = None
         self._map_data = None
@@ -259,6 +262,6 @@ class VacuumCamera(Camera):
         self._logged_in_previously = self._logged_in
 
     def _create_camera(self, user_id, device_id, model):
-        if len(list(filter(lambda x: model.startswith(x), V2_MODEL_PREFIXES))) > 0:
+        if self._force_v2 or len(list(filter(lambda x: model.startswith(x), V2_MODEL_PREFIXES))) > 0:
             return XiaomiCloudVacuumV2(self._connector, self._country, user_id, device_id, model)
         return XiaomiCloudVacuumV1(self._connector, self._country, user_id, device_id, model)

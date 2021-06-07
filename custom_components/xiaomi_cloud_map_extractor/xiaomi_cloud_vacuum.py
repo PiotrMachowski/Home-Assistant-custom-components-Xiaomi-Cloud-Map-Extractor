@@ -20,7 +20,7 @@ class XiaomiCloudVacuum:
             return None, False
         map_stored = False
         if store_response:
-            file1 = open("/tmp/map_data.gz", "wb")
+            file1 = open(f"/tmp/map_data.{self.get_map_archive_extension()}", "wb")
             file1.write(response)
             file1.close()
             map_stored = True
@@ -45,3 +45,6 @@ class XiaomiCloudVacuum:
     @abstractmethod
     def should_get_map_from_vacuum(self):
         pass
+
+    def get_map_archive_extension(self):
+        return "gz"

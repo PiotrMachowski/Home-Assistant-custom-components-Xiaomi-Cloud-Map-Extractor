@@ -26,3 +26,6 @@ class XiaomiCloudVacuumV2(XiaomiCloudVacuum):
 
     def should_get_map_from_vacuum(self):
         return False
+
+    def get_map_archive_extension(self):
+        return "zlib"

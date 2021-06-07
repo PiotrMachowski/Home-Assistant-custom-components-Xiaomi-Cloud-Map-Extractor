@@ -258,6 +258,6 @@ class VacuumCamera(Camera):
         self._logged_in_previously = self._logged_in
 
     def _create_camera(self, user_id, device_id, model):
-        if model in V2_MODELS:
+        if model.startswith("viomi.vacuum"):
             return XiaomiCloudVacuumV2(self._connector, self._country, user_id, device_id, model)
         return XiaomiCloudVacuumV1(self._connector, self._country, user_id, device_id, model)

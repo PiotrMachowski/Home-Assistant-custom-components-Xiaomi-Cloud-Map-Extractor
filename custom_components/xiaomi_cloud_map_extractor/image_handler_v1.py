@@ -11,6 +11,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ImageHandlerV1(ImageHandler):
+    MAP_OUTSIDE = 0x00
+    MAP_WALL = 0x01
+    MAP_INSIDE = 0xFF
+    MAP_SCAN = 0x07
 
     @staticmethod
     def parse(raw_data: bytes, width, height, colors, image_config) -> Tuple[ImageType, dict]:
@@ -31,13 +35,13 @@ class ImageHandlerV1(ImageHandler):
                 pixel_type = raw_data[img_x + trim_left + width * (img_y + trim_bottom)]
                 x = img_x
                 y = trimmed_height - img_y - 1
-                if pixel_type == ImageHandler.MAP_OUTSIDE:
+                if pixel_type == ImageHandlerV1.MAP_OUTSIDE:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_OUTSIDE, colors)
-                elif pixel_type == ImageHandler.MAP_WALL:
+                elif pixel_type == ImageHandlerV1.MAP_WALL:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_WALL, colors)
-                elif pixel_type == ImageHandler.MAP_INSIDE:
+                elif pixel_type == ImageHandlerV1.MAP_INSIDE:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_INSIDE, colors)
-                elif pixel_type == ImageHandler.MAP_SCAN:
+                elif pixel_type == ImageHandlerV1.MAP_SCAN:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_SCAN, colors)
                 else:
                     obstacle = pixel_type & 0x07
@@ -63,3 +67,12 @@ class ImageHandlerV1(ImageHandler):
         if image_config["scale"] != 1 and width != 0 and height != 0:
             image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
         return image, rooms
+
+    @staticmethod
+    def get_room_at_pixel(raw_data: bytes, width, x, y):
+        room_number = None
+        pixel_type = raw_data[x + width * y]
+        if pixel_type not in [ImageHandlerV1.MAP_INSIDE, ImageHandlerV1.MAP_SCAN]:
+            if pixel_type & 0x07 == 7:
+                room_number = (pixel_type & 0xFF) >> 3
+        return room_number

@@ -10,10 +10,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ImageHandler:
-    MAP_OUTSIDE = 0x00
-    MAP_WALL = 0x01
-    MAP_INSIDE = 0xFF
-    MAP_SCAN = 0x07
     COLORS = {
         COLOR_MAP_INSIDE: (32, 115, 185),
         COLOR_MAP_OUTSIDE: (19, 87, 148),
@@ -76,15 +72,6 @@ class ImageHandler:
         w, h = draw.textsize(text)
         draw.text((50 - w / 2, 50 - h / 2), text, fill=text_color)
         return image, {}
-
-    @staticmethod
-    def get_room_at_pixel(raw_data: bytes, width, x, y):
-        room_number = None
-        pixel_type = raw_data[x + width * y]
-        if pixel_type not in [ImageHandler.MAP_INSIDE, ImageHandler.MAP_SCAN]:
-            if pixel_type & 0x07 == 7:
-                room_number = (pixel_type & 0xFF) >> 3
-        return room_number
 
     @staticmethod
     def draw_path(image, path, colors, scale):

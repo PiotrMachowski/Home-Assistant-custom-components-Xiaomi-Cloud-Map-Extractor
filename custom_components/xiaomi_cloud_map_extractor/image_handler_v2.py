@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple
+from typing import Dict, Set, Tuple, Optional
 
 from PIL import Image
 from PIL.Image import Image as ImageType
@@ -20,9 +20,10 @@ class ImageHandlerV2(ImageHandler):
     MAP_SELECTED_ROOM_MAX = 109
 
     @staticmethod
-    def parse(buf, width, height, colors, image_config) -> Tuple[ImageType, dict, dict]:
+    def parse(buf, width, height, colors, image_config, draw_cleaned_area) \
+            -> Tuple[ImageType, Dict[int, Tuple[int, int, int, int]], Set[int], Optional[ImageType]]:
         rooms = {}
-        areas = {}
+        cleaned_areas = set()
         scale = image_config[CONF_SCALE]
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
         trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * width / 100)
@@ -30,12 +31,17 @@ class ImageHandlerV2(ImageHandler):
         trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * height / 100)
         trimmed_height = height - trim_top - trim_bottom
         trimmed_width = width - trim_left - trim_right
-        image = Image.new('RGBA', (trimmed_width, trimmed_height))
         if trimmed_width == 0 or trimmed_height == 0:
-            return ImageHandler.create_empty_map(colors)
+            return ImageHandler.create_empty_map_image(colors), rooms, cleaned_areas, None
+        image = Image.new('RGBA', (trimmed_width, trimmed_height))
         pixels = image.load()
+        cleaned_areas_layer = None
+        cleaned_areas_pixels = None
+        if draw_cleaned_area:
+            cleaned_areas_layer = Image.new('RGBA', (trimmed_width, trimmed_height))
+            cleaned_areas_pixels = cleaned_areas_layer.load()
         buf.skip('trim_bottom', trim_bottom * width)
-        u = set()
+        unknown_pixels = set()
         for img_y in range(trimmed_height):
             buf.skip('trim_left', trim_left)
             for img_x in range(trimmed_width):
@@ -55,13 +61,9 @@ class ImageHandlerV2(ImageHandler):
                         room_number = pixel_type
                     else:
                         room_number = pixel_type - ImageHandlerV2.MAP_SELECTED_ROOM_MIN + ImageHandlerV2.MAP_ROOM_MIN
-                        if room_number not in areas:
-                            areas[room_number] = (room_x, room_y, room_x, room_y)
-                        else:
-                            areas[room_number] = (min(areas[room_number][0], room_x),
-                                                  min(areas[room_number][1], room_y),
-                                                  max(areas[room_number][2], room_x),
-                                                  max(areas[room_number][3], room_y))
+                        cleaned_areas.add(room_number)
+                        if draw_cleaned_area:
+                            cleaned_areas_pixels[x, y] = ImageHandler.__get_color__(COLOR_CLEANED_AREA, colors)
                     if room_number not in rooms:
                         rooms[room_number] = (room_x, room_y, room_x, room_y)
                     else:
@@ -73,11 +75,14 @@ class ImageHandlerV2(ImageHandler):
                     pixels[x, y] = ImageHandler.__get_color__(f"{COLOR_ROOM_PREFIX}{room_number}", colors, default)
                 else:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_UNKNOWN, colors)
-                    u.add(pixel_type)
+                    unknown_pixels.add(pixel_type)
             buf.skip('trim_right', trim_right)
         buf.skip('trim_top', trim_top * width)
         if image_config["scale"] != 1 and trimmed_width != 0 and trimmed_height != 0:
             image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
-        if len(u) > 0:
-            _LOGGER.warning('unknown pixel_types: %s', u)
-        return image, rooms, areas
+            if draw_cleaned_area:
+                cleaned_areas_layer = cleaned_areas_layer.resize(
+                    (int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
+        if len(unknown_pixels) > 0:
+            _LOGGER.warning('unknown pixel_types: %s', unknown_pixels)
+        return image, rooms, cleaned_areas, cleaned_areas_layer

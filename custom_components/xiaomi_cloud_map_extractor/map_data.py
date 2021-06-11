@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from .const import *
 
@@ -75,7 +75,7 @@ class ImageDimensions:
 
 
 class ImageData:
-    def __init__(self, size, top, left, height, width, image_config, data):
+    def __init__(self, size, top, left, height, width, image_config, data, additional_layers: Dict = None):
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
         trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * width / 100)
         trim_top = int(image_config[CONF_TRIM][CONF_TOP] * height / 100)
@@ -91,6 +91,10 @@ class ImageData:
                                           rotation)
         self.is_empty = height == 0 or width == 0
         self.data = data
+        if additional_layers is None:
+            self.additional_layers = {}
+        else:
+            self.additional_layers = dict(filter(lambda l: l[1] is not None, additional_layers.items()))
 
     def as_dict(self):
         return {
@@ -245,6 +249,7 @@ class MapData:
         self.vacuum_room_name: Optional[str] = None
         self.walls: Optional[List[Wall]] = None
         self.zones: Optional[List[Zone]] = None
+        self.cleaned_rooms: Optional[Set[int]] = None
         self.map_name: Optional[str] = None
 
     def calibration(self):

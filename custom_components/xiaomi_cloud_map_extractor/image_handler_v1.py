@@ -28,7 +28,7 @@ class ImageHandlerV1(ImageHandler):
         trimmed_width = width - trim_left - trim_right
         image = Image.new('RGBA', (trimmed_width, trimmed_height))
         if width == 0 or height == 0:
-            return ImageHandler.create_empty_map(colors)
+            return ImageHandler.create_empty_map_image(colors), {}
         pixels = image.load()
         for img_y in range(trimmed_height):
             for img_x in range(trimmed_width):

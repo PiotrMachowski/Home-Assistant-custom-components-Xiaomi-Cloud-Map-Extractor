@@ -96,7 +96,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                          default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]): POSITIVE_FLOAT_SCHEMA
         }),
         vol.Optional(CONF_STORE_MAP, default=False): cv.boolean,
-        vol.Optional(CONF_FORCE_V2, default=False): cv.boolean
+        vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
 
@@ -120,15 +120,15 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
     store_map = config[CONF_STORE_MAP]
-    force_v2 = config[CONF_FORCE_V2]
+    force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map, force_v2)])
+                                     image_config, colors, drawables, sizes, texts, attributes, store_map, force_api)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map, force_v2):
+                 drawables, sizes, texts, attributes, store_map, force_api):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -144,7 +144,7 @@ class VacuumCamera(Camera):
         self._texts = texts
         self._attributes = attributes
         self._store_map = store_map
-        self._force_v2 = force_v2
+        self._forced_api = force_api
         self._map_saved = None
         self._image = None
         self._map_data = None
@@ -178,6 +178,7 @@ class VacuumCamera(Camera):
             for name, value in {
                 ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
                 ATTRIBUTE_CHARGER: self._map_data.charger,
+                ATTRIBUTE_CLEANED_ROOMS: self._map_data.cleaned_rooms,
                 ATTRIBUTE_COUNTRY: self._country,
                 ATTRIBUTE_GOTO: self._map_data.goto,
                 ATTRIBUTE_GOTO_PATH: self._map_data.goto_path,
@@ -226,7 +227,7 @@ class VacuumCamera(Camera):
                                                                                           self._vacuum.token,
                                                                                           self._country)
             if self._country is not None:
-                self._device = self._create_camera(user_id, device_id, model)
+                self._device = self._create_device(user_id, device_id, model)
         map_name = "retry"
         if self._device is not None and not self._device.should_get_map_from_vacuum():
             map_name = "0"
@@ -261,7 +262,22 @@ class VacuumCamera(Camera):
                 _LOGGER.warning("Unable to retrieve map data")
         self._logged_in_previously = self._logged_in
 
-    def _create_camera(self, user_id, device_id, model):
-        if self._force_v2 or len(list(filter(lambda x: model.startswith(x), V2_MODEL_PREFIXES))) > 0:
+    def _create_device(self, user_id, device_id, model):
+        detected_api = self._detect_api(model)
+        if detected_api == CONF_AVAILABLE_API_XIAOMI:
+            return XiaomiCloudVacuumV1(self._connector, self._country, user_id, device_id, model)
+        if detected_api == CONF_AVAILABLE_API_VIOMI:
             return XiaomiCloudVacuumV2(self._connector, self._country, user_id, device_id, model)
         return XiaomiCloudVacuumV1(self._connector, self._country, user_id, device_id, model)
+
+    def _detect_api(self, model: str):
+        if self._forced_api is not None:
+            return self._forced_api
+
+        def list_contains_model(prefixes):
+            return len(list(filter(lambda x: model.startswith(x), prefixes))) > 0
+
+        filtered = list(filter(lambda x: list_contains_model(x[1]), AVAILABLE_APIS.items()))
+        if len(filtered) > 0:
+            return filtered[0][0]
+        return CONF_AVAILABLE_API_XIAOMI

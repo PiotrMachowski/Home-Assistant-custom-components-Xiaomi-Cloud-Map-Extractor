@@ -14,7 +14,7 @@ class MapDataParser:
         pass
 
     @staticmethod
-    def draw_elements(colors, drawables, sizes, map_data, image_config):
+    def draw_elements(colors, drawables, sizes, map_data: MapData, image_config):
         scale = float(image_config[CONF_SCALE])
         for drawable in drawables:
             if DRAWABLE_CHARGER == drawable and map_data.charger is not None:
@@ -44,3 +44,5 @@ class MapDataParser:
                 ImageHandler.draw_walls(map_data.image, map_data.walls, colors)
             if DRAWABLE_ZONES == drawable and map_data.zones is not None:
                 ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
+            if DRAWABLE_CLEANED_AREA == drawable and DRAWABLE_CLEANED_AREA in map_data.image.additional_layers:
+                ImageHandler.draw_layer(map_data.image, drawable)

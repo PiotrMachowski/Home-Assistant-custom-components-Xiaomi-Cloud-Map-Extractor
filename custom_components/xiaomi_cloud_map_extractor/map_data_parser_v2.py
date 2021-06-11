@@ -1,22 +1,24 @@
 import logging
 from struct import unpack_from
+from typing import Dict, List, Set, Tuple, Optional
 
+from .const import *
 from .image_handler_v2 import ImageHandlerV2
-from .map_data import *
+from .map_data import Area, ImageData, MapData, Path, Point, Room, Wall, Zone
 from .map_data_parser import MapDataParser
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class ParsingBuffer:
-    def __init__(self, name, data: bytes, start_offs, length):
+    def __init__(self, name: str, data: bytes, start_offs: int, length: int):
         self._name = name
         self._data = data
         self._offs = start_offs
         self._length = length
         self._image_beginning = None
 
-    def set_name(self, name):
+    def set_name(self, name: str):
         self._name = name
         _LOGGER.debug('SECTION %s: offset 0x%x', self._name, self._offs)
 
@@ -107,7 +109,8 @@ class MapDataParserV2(MapDataParser):
 
         if feature_flags & MapDataParserV2.FEATURE_IMAGE != 0:
             MapDataParserV2.parse_section(buf, 'image', map_id)
-            map_data.image, map_data.rooms, map_data.zones = MapDataParserV2.parse_image(buf, colors, image_config)
+            map_data.image, map_data.rooms, map_data.cleaned_rooms = \
+                MapDataParserV2.parse_image(buf, colors, image_config, DRAWABLE_CLEANED_AREA in drawables)
 
         if feature_flags & MapDataParserV2.FEATURE_HISTORY != 0:
             MapDataParserV2.parse_section(buf, 'history', map_id)
@@ -125,7 +128,7 @@ class MapDataParserV2(MapDataParser):
 
         if feature_flags & MapDataParserV2.FEATURE_CLEANING_AREAS != 0:
             MapDataParserV2.parse_section(buf, 'cleaning_areas', map_id)
-            MapDataParserV2.parse_cleaning_areas(buf, map_data.zones)
+            map_data.zones = MapDataParserV2.parse_cleaning_areas(buf)
 
         if feature_flags & MapDataParserV2.FEATURE_NAVIGATE != 0:
             MapDataParserV2.parse_section(buf, 'navigate', map_id)
@@ -173,7 +176,7 @@ class MapDataParserV2(MapDataParser):
         return map_data
 
     @staticmethod
-    def get_current_vacuum_room(buf, vacuum_position):
+    def get_current_vacuum_room(buf: ParsingBuffer, vacuum_position: Point) -> Optional[int]:
         x = int(vacuum_position.x / MM)
         y = int(vacuum_position.y / MM)
         pixel_type = buf.get_at_image(y * 800 + x)
@@ -184,7 +187,8 @@ class MapDataParserV2(MapDataParser):
         return None
 
     @staticmethod
-    def parse_image(buf, colors, image_config):
+    def parse_image(buf: ParsingBuffer, colors: Dict, image_config: Dict, draw_cleaned_area: bool) \
+            -> Tuple[ImageData, Dict[int, Room], Set[int]]:
         buf.skip('unknown1', 0x08)
         image_top = 0
         image_left = 0
@@ -204,29 +208,21 @@ class MapDataParserV2(MapDataParser):
             image_config[CONF_TRIM][CONF_TOP] = 0
             image_config[CONF_TRIM][CONF_BOTTOM] = 0
         buf.mark_as_image_beginning()
-        image, rooms, areas = ImageHandlerV2.parse(buf, image_width, image_height, colors, image_config)
-        _LOGGER.debug('img: number of rooms: %d, numbers: %s', len(rooms), rooms.keys())
-        for number, room in rooms.items():
+        image, rooms_raw, cleaned_areas, cleaned_areas_layer = ImageHandlerV2.parse(buf, image_width, image_height,
+                                                                                    colors, image_config,
+                                                                                    draw_cleaned_area)
+        _LOGGER.debug('img: number of rooms: %d, numbers: %s', len(rooms_raw), rooms_raw.keys())
+        rooms = {}
+        for number, room in rooms_raw.items():
             rooms[number] = Room(number, (room[0] + image_left) * MM,
                                  (room[1] + image_top) * MM,
                                  (room[2] + image_left) * MM,
                                  (room[3] + image_top) * MM)
-        zones = []
-        for number, area in areas.items():
-            zones.append(Zone((area[0] + image_left) * MM,
-                              (area[1] + image_top) * MM,
-                              (area[2] + image_left) * MM,
-                              (area[3] + image_top) * MM))
-        return ImageData(image_size,
-                         image_top,
-                         image_left,
-                         image_height,
-                         image_width,
-                         image_config,
-                         image), rooms, zones
+        return ImageData(image_size, image_top, image_left, image_height, image_width, image_config,
+                         image, {DRAWABLE_CLEANED_AREA: cleaned_areas_layer}), rooms, cleaned_areas
 
     @staticmethod
-    def parse_history(buf):
+    def parse_history(buf: ParsingBuffer) -> Path:
         path_points = []
         buf.skip('unknown1', 4)
         history_count = buf.get_uint32('history_count')
@@ -236,7 +232,7 @@ class MapDataParserV2(MapDataParser):
         return Path(len(path_points), 1, 0, path_points)
 
     @staticmethod
-    def parse_restricted_areas(buf):
+    def parse_restricted_areas(buf: ParsingBuffer) -> Tuple[List[Wall], List[Area]]:
         walls = []
         areas = []
         buf.skip('unknown1', 4)
@@ -256,9 +252,10 @@ class MapDataParserV2(MapDataParser):
         return walls, areas
 
     @staticmethod
-    def parse_cleaning_areas(buf, zones):
+    def parse_cleaning_areas(buf: ParsingBuffer) -> List[Zone]:
         buf.skip('unknown1', 4)
         area_count = buf.get_uint32('area_count')
+        zones = []
         for _ in range(area_count):
             buf.skip('area.unknown1', 12)
             p1 = MapDataParserV2.parse_position(buf, 'p1')
@@ -267,9 +264,10 @@ class MapDataParserV2(MapDataParser):
             p4 = MapDataParserV2.parse_position(buf, 'p4')
             buf.skip('area.unknown2', 48)
             zones.append(Zone(p1.x, p1.y, p3.x, p3.y))
+        return zones
 
     @staticmethod
-    def parse_rooms(buf, map_data_rooms):
+    def parse_rooms(buf: ParsingBuffer, map_data_rooms: Dict[int, Room]):
         map_name = buf.get_string_len8('map_name')
         map_arg = buf.get_uint32('map_arg')
         _LOGGER.debug('map#%d: %s', map_arg, map_name)
@@ -289,7 +287,7 @@ class MapDataParserV2(MapDataParser):
         buf.skip('unknown1', 6)
 
     @staticmethod
-    def parse_room_outlines(buf):
+    def parse_room_outlines(buf: ParsingBuffer):
         buf.skip('unknown1', 51)
         room_count = buf.get_uint32('room_count')
         for _ in range(room_count):
@@ -300,15 +298,15 @@ class MapDataParserV2(MapDataParser):
             _LOGGER.debug('room#%d: segment_count: %d', room_id, segment_count)
 
     @staticmethod
-    def parse_section(buf, name, map_id):
+    def parse_section(buf: ParsingBuffer, name: str, map_id: int):
         buf.set_name(name)
         magic = buf.get_uint32('magic')
         if magic != map_id:
             raise ValueError(
-                f"error parsing section {name} at offset {buf._offs - 4:#x}: magic check failed {magic:#x}")  # FIXME
+                f"error parsing section {name} at offset {buf._offs - 4:#x}: magic check failed {magic:#x}")
 
     @staticmethod
-    def parse_position(buf, name):
+    def parse_position(buf: ParsingBuffer, name: str) -> Optional[Point]:
         x = buf.get_float32(name + '.x')
         y = buf.get_float32(name + '.y')
         if x == MapDataParserV2.POSITION_UNKNOWN or y == MapDataParserV2.POSITION_UNKNOWN:
@@ -316,7 +314,7 @@ class MapDataParserV2(MapDataParser):
         return Point(int(1000 * x + 20000), int(1000 * y + 20000))
 
     @staticmethod
-    def parse_unknown_section(buf):
+    def parse_unknown_section(buf: ParsingBuffer) -> bool:
         n = buf._data[buf._offs:].find(buf._data[4:8])
         if n >= 0:
             buf._offs += n

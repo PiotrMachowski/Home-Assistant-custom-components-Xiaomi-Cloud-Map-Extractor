@@ -133,8 +133,9 @@ class MapDataParserV1(MapDataParser):
                 < MINIMAL_IMAGE_HEIGHT:
             image_config[CONF_TRIM][CONF_TOP] = 0
             image_config[CONF_TRIM][CONF_BOTTOM] = 0
-        image, rooms = ImageHandlerV1.parse(data, image_width, image_height, colors, image_config)
-        for number, room in rooms.items():
+        image, rooms_raw = ImageHandlerV1.parse(data, image_width, image_height, colors, image_config)
+        rooms = {}
+        for number, room in rooms_raw.items():
             rooms[number] = Room(number, (room[0] + image_left) * MM,
                                  (room[1] + image_top) * MM,
                                  (room[2] + image_left) * MM,

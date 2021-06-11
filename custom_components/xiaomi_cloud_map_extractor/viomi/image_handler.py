@@ -10,7 +10,7 @@ from custom_components.xiaomi_cloud_map_extractor.const import *
 _LOGGER = logging.getLogger(__name__)
 
 
-class ImageHandlerV2(ImageHandler):
+class ImageHandlerViomi(ImageHandler):
     MAP_OUTSIDE = 0x00
     MAP_WALL = 0xff
     MAP_SCAN = 0x01
@@ -48,19 +48,19 @@ class ImageHandlerV2(ImageHandler):
                 pixel_type = buf.get_uint8('pixel')
                 x = img_x
                 y = trimmed_height - 1 - img_y
-                if pixel_type == ImageHandlerV2.MAP_OUTSIDE:
+                if pixel_type == ImageHandlerViomi.MAP_OUTSIDE:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_OUTSIDE, colors)
-                elif pixel_type == ImageHandlerV2.MAP_WALL:
+                elif pixel_type == ImageHandlerViomi.MAP_WALL:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_WALL_V2, colors)
-                elif pixel_type == ImageHandlerV2.MAP_SCAN:
+                elif pixel_type == ImageHandlerViomi.MAP_SCAN:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_SCAN, colors)
-                elif ImageHandlerV2.MAP_ROOM_MIN <= pixel_type <= ImageHandlerV2.MAP_SELECTED_ROOM_MAX:
+                elif ImageHandlerViomi.MAP_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_SELECTED_ROOM_MAX:
                     room_x = img_x + trim_left
                     room_y = img_y + trim_bottom
-                    if pixel_type < ImageHandlerV2.MAP_SELECTED_ROOM_MIN:
+                    if pixel_type < ImageHandlerViomi.MAP_SELECTED_ROOM_MIN:
                         room_number = pixel_type
                     else:
-                        room_number = pixel_type - ImageHandlerV2.MAP_SELECTED_ROOM_MIN + ImageHandlerV2.MAP_ROOM_MIN
+                        room_number = pixel_type - ImageHandlerViomi.MAP_SELECTED_ROOM_MIN + ImageHandlerViomi.MAP_ROOM_MIN
                         cleaned_areas.add(room_number)
                         if draw_cleaned_area:
                             cleaned_areas_pixels[x, y] = ImageHandler.__get_color__(COLOR_CLEANED_AREA, colors)

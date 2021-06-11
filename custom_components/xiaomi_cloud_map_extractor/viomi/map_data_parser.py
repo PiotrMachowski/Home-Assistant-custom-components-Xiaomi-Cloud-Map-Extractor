@@ -6,7 +6,7 @@ from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, I
     Wall, Zone
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 from custom_components.xiaomi_cloud_map_extractor.const import *
-from custom_components.xiaomi_cloud_map_extractor.viomi.image_handler_v2 import ImageHandlerV2
+from custom_components.xiaomi_cloud_map_extractor.viomi.image_handler import ImageHandlerViomi
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ class ParsingBuffer:
             _LOGGER.warning('%d bytes remained in the buffer', self._length)
 
 
-class MapDataParserV2(MapDataParser):
+class MapDataParserViomi(MapDataParser):
     FEATURE_ROBOT_STATUS = 0x00000001
     FEATURE_IMAGE = 0x00000002
     FEATURE_HISTORY = 0x00000004
@@ -104,76 +104,76 @@ class MapDataParserV2(MapDataParser):
         map_id = buf.peek_uint32('map_id')
         _LOGGER.debug('feature_flags: 0x%x, map_id: %d', feature_flags, map_id)
 
-        if feature_flags & MapDataParserV2.FEATURE_ROBOT_STATUS != 0:
-            MapDataParserV2.parse_section(buf, 'robot_status', map_id)
+        if feature_flags & MapDataParserViomi.FEATURE_ROBOT_STATUS != 0:
+            MapDataParserViomi.parse_section(buf, 'robot_status', map_id)
             buf.skip('unknown1', 0x28)
 
-        if feature_flags & MapDataParserV2.FEATURE_IMAGE != 0:
-            MapDataParserV2.parse_section(buf, 'image', map_id)
+        if feature_flags & MapDataParserViomi.FEATURE_IMAGE != 0:
+            MapDataParserViomi.parse_section(buf, 'image', map_id)
             map_data.image, map_data.rooms, map_data.cleaned_rooms = \
-                MapDataParserV2.parse_image(buf, colors, image_config, DRAWABLE_CLEANED_AREA in drawables)
+                MapDataParserViomi.parse_image(buf, colors, image_config, DRAWABLE_CLEANED_AREA in drawables)
 
-        if feature_flags & MapDataParserV2.FEATURE_HISTORY != 0:
-            MapDataParserV2.parse_section(buf, 'history', map_id)
-            map_data.path = MapDataParserV2.parse_history(buf)
+        if feature_flags & MapDataParserViomi.FEATURE_HISTORY != 0:
+            MapDataParserViomi.parse_section(buf, 'history', map_id)
+            map_data.path = MapDataParserViomi.parse_history(buf)
 
-        if feature_flags & MapDataParserV2.FEATURE_CHARGE_STATION != 0:
-            MapDataParserV2.parse_section(buf, 'charge_station', map_id)
-            map_data.charger = MapDataParserV2.parse_position(buf, 'pos')
+        if feature_flags & MapDataParserViomi.FEATURE_CHARGE_STATION != 0:
+            MapDataParserViomi.parse_section(buf, 'charge_station', map_id)
+            map_data.charger = MapDataParserViomi.parse_position(buf, 'pos')
             foo = buf.get_float32('foo')
             _LOGGER.debug('pos: %s, foo: %f', map_data.charger, foo)
 
-        if feature_flags & MapDataParserV2.FEATURE_RESTRICTED_AREAS != 0:
-            MapDataParserV2.parse_section(buf, 'restricted_areas', map_id)
-            map_data.walls, map_data.no_go_areas = MapDataParserV2.parse_restricted_areas(buf)
+        if feature_flags & MapDataParserViomi.FEATURE_RESTRICTED_AREAS != 0:
+            MapDataParserViomi.parse_section(buf, 'restricted_areas', map_id)
+            map_data.walls, map_data.no_go_areas = MapDataParserViomi.parse_restricted_areas(buf)
 
-        if feature_flags & MapDataParserV2.FEATURE_CLEANING_AREAS != 0:
-            MapDataParserV2.parse_section(buf, 'cleaning_areas', map_id)
-            map_data.zones = MapDataParserV2.parse_cleaning_areas(buf)
+        if feature_flags & MapDataParserViomi.FEATURE_CLEANING_AREAS != 0:
+            MapDataParserViomi.parse_section(buf, 'cleaning_areas', map_id)
+            map_data.zones = MapDataParserViomi.parse_cleaning_areas(buf)
 
-        if feature_flags & MapDataParserV2.FEATURE_NAVIGATE != 0:
-            MapDataParserV2.parse_section(buf, 'navigate', map_id)
+        if feature_flags & MapDataParserViomi.FEATURE_NAVIGATE != 0:
+            MapDataParserViomi.parse_section(buf, 'navigate', map_id)
             buf.skip('unknown1', 4)
-            map_data.goto = MapDataParserV2.parse_position(buf, 'pos')
+            map_data.goto = MapDataParserViomi.parse_position(buf, 'pos')
             foo = buf.get_float32('foo')
             _LOGGER.debug('pos: %s, foo: %f', map_data.goto, foo)
 
-        if feature_flags & MapDataParserV2.FEATURE_REALTIME != 0:
-            MapDataParserV2.parse_section(buf, 'realtime', map_id)
+        if feature_flags & MapDataParserViomi.FEATURE_REALTIME != 0:
+            MapDataParserViomi.parse_section(buf, 'realtime', map_id)
             buf.skip('unknown1', 5)
-            map_data.vacuum_position = MapDataParserV2.parse_position(buf, 'pos')
+            map_data.vacuum_position = MapDataParserViomi.parse_position(buf, 'pos')
             foo = buf.get_float32('foo')
             _LOGGER.debug('pos: %s, foo: %f', map_data.vacuum_position, foo)
 
         if feature_flags & 0x00000800 != 0:
-            MapDataParserV2.parse_section(buf, 'unknown1', map_id)
-            MapDataParserV2.parse_unknown_section(buf)
+            MapDataParserViomi.parse_section(buf, 'unknown1', map_id)
+            MapDataParserViomi.parse_unknown_section(buf)
 
-        if feature_flags & MapDataParserV2.FEATURE_ROOMS != 0:
-            MapDataParserV2.parse_section(buf, 'rooms', map_id)
-            MapDataParserV2.parse_rooms(buf, map_data.rooms)
+        if feature_flags & MapDataParserViomi.FEATURE_ROOMS != 0:
+            MapDataParserViomi.parse_section(buf, 'rooms', map_id)
+            MapDataParserViomi.parse_rooms(buf, map_data.rooms)
 
         if feature_flags & 0x00002000 != 0:
-            MapDataParserV2.parse_section(buf, 'unknown2', map_id)
-            MapDataParserV2.parse_unknown_section(buf)
+            MapDataParserViomi.parse_section(buf, 'unknown2', map_id)
+            MapDataParserViomi.parse_unknown_section(buf)
 
         if feature_flags & 0x00004000 != 0:
-            MapDataParserV2.parse_section(buf, 'room_outlines', map_id)
-            MapDataParserV2.parse_room_outlines(buf)
+            MapDataParserViomi.parse_section(buf, 'room_outlines', map_id)
+            MapDataParserViomi.parse_room_outlines(buf)
 
         buf.check_empty()
 
         _LOGGER.debug('rooms: %s', [str(room) for number, room in map_data.rooms.items()])
         if not map_data.image.is_empty:
-            MapDataParserV2.draw_elements(colors, drawables, sizes, map_data, image_config)
+            MapDataParserViomi.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
-                map_data.vacuum_room = MapDataParserV2.get_current_vacuum_room(buf, map_data.vacuum_position)
+                map_data.vacuum_room = MapDataParserViomi.get_current_vacuum_room(buf, map_data.vacuum_position)
                 if map_data.vacuum_room is not None:
                     map_data.vacuum_room_name = map_data.rooms[map_data.vacuum_room].name
                 _LOGGER.debug('current vacuum room: %s', map_data.vacuum_room)
             # ImageHandlerV2.draw_zones(map_data.image, [room for number, room in map_data.rooms.items()], colors)
-            ImageHandlerV2.rotate(map_data.image)
-            ImageHandlerV2.draw_texts(map_data.image, texts)
+            ImageHandlerViomi.rotate(map_data.image)
+            ImageHandlerViomi.draw_texts(map_data.image, texts)
         return map_data
 
     @staticmethod
@@ -181,10 +181,10 @@ class MapDataParserV2(MapDataParser):
         x = int(vacuum_position.x / MM)
         y = int(vacuum_position.y / MM)
         pixel_type = buf.get_at_image(y * 800 + x)
-        if ImageHandlerV2.MAP_ROOM_MIN <= pixel_type <= ImageHandlerV2.MAP_ROOM_MAX:
+        if ImageHandlerViomi.MAP_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_ROOM_MAX:
             return pixel_type
-        elif ImageHandlerV2.MAP_SELECTED_ROOM_MIN <= pixel_type <= ImageHandlerV2.MAP_SELECTED_ROOM_MAX:
-            return pixel_type - ImageHandlerV2.MAP_SELECTED_ROOM_MIN + ImageHandlerV2.MAP_ROOM_MIN
+        elif ImageHandlerViomi.MAP_SELECTED_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_SELECTED_ROOM_MAX:
+            return pixel_type - ImageHandlerViomi.MAP_SELECTED_ROOM_MIN + ImageHandlerViomi.MAP_ROOM_MIN
         return None
 
     @staticmethod
@@ -209,9 +209,9 @@ class MapDataParserV2(MapDataParser):
             image_config[CONF_TRIM][CONF_TOP] = 0
             image_config[CONF_TRIM][CONF_BOTTOM] = 0
         buf.mark_as_image_beginning()
-        image, rooms_raw, cleaned_areas, cleaned_areas_layer = ImageHandlerV2.parse(buf, image_width, image_height,
-                                                                                    colors, image_config,
-                                                                                    draw_cleaned_area)
+        image, rooms_raw, cleaned_areas, cleaned_areas_layer = ImageHandlerViomi.parse(buf, image_width, image_height,
+                                                                                       colors, image_config,
+                                                                                       draw_cleaned_area)
         _LOGGER.debug('img: number of rooms: %d, numbers: %s', len(rooms_raw), rooms_raw.keys())
         rooms = {}
         for number, room in rooms_raw.items():
@@ -229,7 +229,7 @@ class MapDataParserV2(MapDataParser):
         history_count = buf.get_uint32('history_count')
         for _ in range(history_count):
             mode = buf.get_uint8('mode')  # 0: taxi, 1: working
-            path_points.append(MapDataParserV2.parse_position(buf, 'path'))
+            path_points.append(MapDataParserViomi.parse_position(buf, 'path'))
         return Path(len(path_points), 1, 0, path_points)
 
     @staticmethod
@@ -240,10 +240,10 @@ class MapDataParserV2(MapDataParser):
         area_count = buf.get_uint32('area_count')
         for _ in range(area_count):
             buf.skip('restricted.unknown1', 12)
-            p1 = MapDataParserV2.parse_position(buf, 'p1')
-            p2 = MapDataParserV2.parse_position(buf, 'p2')
-            p3 = MapDataParserV2.parse_position(buf, 'p3')
-            p4 = MapDataParserV2.parse_position(buf, 'p4')
+            p1 = MapDataParserViomi.parse_position(buf, 'p1')
+            p2 = MapDataParserViomi.parse_position(buf, 'p2')
+            p3 = MapDataParserViomi.parse_position(buf, 'p3')
+            p4 = MapDataParserViomi.parse_position(buf, 'p4')
             buf.skip('restricted.unknown2', 48)
             _LOGGER.debug('restricted: %s %s %s %s', p1, p2, p3, p4)
             if p1 == p2 and p3 == p4:
@@ -259,10 +259,10 @@ class MapDataParserV2(MapDataParser):
         zones = []
         for _ in range(area_count):
             buf.skip('area.unknown1', 12)
-            p1 = MapDataParserV2.parse_position(buf, 'p1')
-            p2 = MapDataParserV2.parse_position(buf, 'p2')
-            p3 = MapDataParserV2.parse_position(buf, 'p3')
-            p4 = MapDataParserV2.parse_position(buf, 'p4')
+            p1 = MapDataParserViomi.parse_position(buf, 'p1')
+            p2 = MapDataParserViomi.parse_position(buf, 'p2')
+            p3 = MapDataParserViomi.parse_position(buf, 'p3')
+            p4 = MapDataParserViomi.parse_position(buf, 'p4')
             buf.skip('area.unknown2', 48)
             zones.append(Zone(p1.x, p1.y, p3.x, p3.y))
         return zones
@@ -283,7 +283,7 @@ class MapDataParserV2(MapDataParser):
             if map_data_rooms is not None and room_id in map_data_rooms:
                 map_data_rooms[room_id].name = room_name
             buf.skip('room.unknown1', 1)
-            room_text_pos = MapDataParserV2.parse_position(buf, 'room.text_pos')
+            room_text_pos = MapDataParserViomi.parse_position(buf, 'room.text_pos')
             _LOGGER.debug('room#%d: %s %s', room_id, room_name, room_text_pos)
         buf.skip('unknown1', 6)
 
@@ -310,7 +310,7 @@ class MapDataParserV2(MapDataParser):
     def parse_position(buf: ParsingBuffer, name: str) -> Optional[Point]:
         x = buf.get_float32(name + '.x')
         y = buf.get_float32(name + '.y')
-        if x == MapDataParserV2.POSITION_UNKNOWN or y == MapDataParserV2.POSITION_UNKNOWN:
+        if x == MapDataParserViomi.POSITION_UNKNOWN or y == MapDataParserViomi.POSITION_UNKNOWN:
             return None
         return Point(int(1000 * x + 20000), int(1000 * y + 20000))
 

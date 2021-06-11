@@ -11,7 +11,7 @@ class XiaomiCloudVacuum:
         self._country = country
         self._user_id = user_id
         self._device_id = device_id
-        self._model = model
+        self.model = model
 
     def get_map(self, map_name, colors, drawables, texts, sizes, image_config, store_response=False) \
             -> Tuple[Optional[MapData], bool]:
@@ -25,6 +25,8 @@ class XiaomiCloudVacuum:
             file1.close()
             map_stored = True
         map_data = self.decode_map(response, colors, drawables, texts, sizes, image_config)
+        if map_data is None:
+            return None, map_stored
         map_data.map_name = map_name
         return map_data, map_stored
 
@@ -39,7 +41,7 @@ class XiaomiCloudVacuum:
         pass
 
     @abstractmethod
-    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config) -> MapData:
+    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config) -> Optional[MapData]:
         pass
 
     @abstractmethod
@@ -47,4 +49,4 @@ class XiaomiCloudVacuum:
         pass
 
     def get_map_archive_extension(self):
-        return "gz"
+        pass

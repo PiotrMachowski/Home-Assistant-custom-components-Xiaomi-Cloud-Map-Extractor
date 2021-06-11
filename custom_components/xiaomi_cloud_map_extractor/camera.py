@@ -12,8 +12,10 @@ from homeassistant.helpers.entity import generate_entity_id
 
 from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
 from custom_components.xiaomi_cloud_map_extractor.const import *
-from custom_components.xiaomi_cloud_map_extractor.viomi.xiaomi_cloud_vacuum_v2 import XiaomiCloudVacuumV2
-from custom_components.xiaomi_cloud_map_extractor.xiaomi.xiaomi_cloud_vacuum_v1 import XiaomiCloudVacuumV1
+from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
+from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
+from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
+from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -145,6 +147,7 @@ class VacuumCamera(Camera):
         self._attributes = attributes
         self._store_map = store_map
         self._forced_api = force_api
+        self._used_api = None
         self._map_saved = None
         self._image = None
         self._map_data = None
@@ -206,10 +209,8 @@ class VacuumCamera(Camera):
         if self._store_map:
             attributes[ATTRIBUTE_MAP_SAVED] = self._map_saved
         if self._device is not None:
-            attributes["user_id"] = self._device._user_id
-            attributes["device_id"] = self._device._device_id
-            attributes["device_model"] = self._device._model
-            attributes["device_is_api_v2"] = not self._device.should_get_map_from_vacuum()
+            attributes[ATTR_MODEL] = self._device.model
+            attributes[ATTR_USED_API] = not self._used_api
         return attributes
 
     @property
@@ -258,17 +259,24 @@ class VacuumCamera(Camera):
                 except:
                     _LOGGER.warning("Unable to retrieve map data")
             else:
-                self._logged_in = False
-                _LOGGER.warning("Unable to retrieve map data")
+                if map_stored:
+                    _LOGGER.warning("Unable to parse map")
+                else:
+                    self._logged_in = False
+                    _LOGGER.warning("Unable to retrieve map data")
         self._logged_in_previously = self._logged_in
 
     def _create_device(self, user_id, device_id, model):
-        detected_api = self._detect_api(model)
-        if detected_api == CONF_AVAILABLE_API_XIAOMI:
-            return XiaomiCloudVacuumV1(self._connector, self._country, user_id, device_id, model)
-        if detected_api == CONF_AVAILABLE_API_VIOMI:
-            return XiaomiCloudVacuumV2(self._connector, self._country, user_id, device_id, model)
-        return XiaomiCloudVacuumV1(self._connector, self._country, user_id, device_id, model)
+        self._used_api = self._detect_api(model)
+        if self._used_api == CONF_AVAILABLE_API_XIAOMI:
+            return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
+        if self._used_api == CONF_AVAILABLE_API_VIOMI:
+            return ViomiVacuum(self._connector, self._country, user_id, device_id, model)
+        if self._used_api == CONF_AVAILABLE_API_ROIDMI:
+            return RoidmiVacuum(self._connector, self._country, user_id, device_id, model)
+        if self._used_api == CONF_AVAILABLE_API_DREAME:
+            return DreameVacuum(self._connector, self._country, user_id, device_id, model)
+        return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
 
     def _detect_api(self, model: str):
         if self._forced_api is not None:

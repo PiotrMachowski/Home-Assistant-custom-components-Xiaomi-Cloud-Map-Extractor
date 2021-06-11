@@ -174,10 +174,12 @@ class VacuumCamera(Camera):
     def device_state_attributes(self):
         attributes = {}
         if self._map_data is not None:
-            rooms = dict(
-                filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), self._map_data.rooms.items())))
-            if len(rooms) == 0:
-                rooms = list(self._map_data.rooms.keys())
+            rooms = []
+            if self._map_data.rooms is not None:
+                rooms = dict(
+                    filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), self._map_data.rooms.items())))
+                if len(rooms) == 0:
+                    rooms = list(self._map_data.rooms.keys())
             for name, value in {
                 ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
                 ATTRIBUTE_CHARGER: self._map_data.charger,
@@ -210,7 +212,7 @@ class VacuumCamera(Camera):
             attributes[ATTRIBUTE_MAP_SAVED] = self._map_saved
         if self._device is not None:
             attributes[ATTR_MODEL] = self._device.model
-            attributes[ATTR_USED_API] = not self._used_api
+            attributes[ATTR_USED_API] = self._used_api
         return attributes
 
     @property
@@ -257,13 +259,10 @@ class VacuumCamera(Camera):
                     self._map_data = map_data
                     self._map_saved = map_stored
                 except:
-                    _LOGGER.warning("Unable to retrieve map data")
+                    _LOGGER.warning("Unable to parse map data")
             else:
-                if map_stored:
-                    _LOGGER.warning("Unable to parse map")
-                else:
-                    self._logged_in = False
-                    _LOGGER.warning("Unable to retrieve map data")
+                self._logged_in = False
+                _LOGGER.warning("Unable to retrieve map data")
         self._logged_in_previously = self._logged_in
 
     def _create_device(self, user_id, device_id, model):

@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 from typing import Dict, List, Optional, Set
+
+from PIL.Image import Image as ImageType
 
 from custom_components.xiaomi_cloud_map_extractor.const import *
 
@@ -106,6 +110,20 @@ class ImageData:
             ATTR_ROTATION: self.dimensions.rotation,
             ATTR_WIDTH: self.dimensions.width
         }
+
+    @staticmethod
+    def create_empty(data: ImageType) -> ImageData:
+        image_config = {
+            CONF_TRIM: {
+                CONF_LEFT: 0,
+                CONF_RIGHT: 0,
+                CONF_TOP: 0,
+                CONF_BOTTOM: 0
+            },
+            CONF_SCALE: 1,
+            CONF_ROTATE: 0
+        }
+        return ImageData(0, 0, 0, 0, 0, image_config, data)
 
 
 class Path:
@@ -253,6 +271,8 @@ class MapData:
         self.map_name: Optional[str] = None
 
     def calibration(self):
+        if self.image.is_empty:
+            return None
         calibration_points = []
         for point in [Point(25500, 25500), Point(26500, 25500), Point(26500, 26500)]:
             img_point = point.to_img(self.image.dimensions).rotated(self.image.dimensions)

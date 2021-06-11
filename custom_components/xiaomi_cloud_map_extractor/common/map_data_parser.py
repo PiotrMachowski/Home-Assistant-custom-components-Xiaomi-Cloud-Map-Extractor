@@ -1,13 +1,20 @@
 import logging
 
 from custom_components.xiaomi_cloud_map_extractor.common.image_handler import ImageHandler
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData, ImageData
 from custom_components.xiaomi_cloud_map_extractor.const import *
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MapDataParser:
+
+    @staticmethod
+    def create_empty(colors) -> MapData:
+        map_data = MapData()
+        empty_map = ImageHandler.create_empty_map_image(colors, "Vacuum not supported")
+        map_data.image = ImageData.create_empty(empty_map)
+        return map_data
 
     @staticmethod
     def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:

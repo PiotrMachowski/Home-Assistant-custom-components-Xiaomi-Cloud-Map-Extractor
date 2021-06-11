@@ -58,17 +58,16 @@ class ImageHandler:
                    COLOR_ROOM_14, COLOR_ROOM_15, COLOR_ROOM_16]
 
     @staticmethod
-    def create_empty_map_image(colors) -> ImageType:
+    def create_empty_map_image(colors, text="NO MAP") -> ImageType:
         color = ImageHandler.__get_color__(COLOR_MAP_OUTSIDE, colors)
-        image = Image.new('RGBA', (100, 100), color=color)
+        image = Image.new('RGBA', (200, 100), color=color)
         if sum(color[0:3]) > 382:
             text_color = (0, 0, 0)
         else:
             text_color = (255, 255, 255)
         draw = ImageDraw.Draw(image, "RGBA")
-        text = "NO MAP"
         w, h = draw.textsize(text)
-        draw.text((50 - w / 2, 50 - h / 2), text, fill=text_color)
+        draw.text(((image.size[0] - w) / 2, (image.size[1] - h) / 2), text, fill=text_color)
         return image
 
     @staticmethod

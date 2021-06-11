@@ -1,7 +1,3 @@
-from abc import abstractmethod
-from typing import Optional
-
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
 from custom_components.xiaomi_cloud_map_extractor.common.vacuum import XiaomiCloudVacuum
 
 
@@ -19,10 +15,6 @@ class XiaomiCloudVacuumV2(XiaomiCloudVacuum):
         if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
             return None
         return api_response["result"]["url"]
-
-    @abstractmethod
-    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config) -> Optional[MapData]:
-        pass
 
     def should_get_map_from_vacuum(self):
         return False

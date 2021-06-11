@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Optional, Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
+from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 
 
 class XiaomiCloudVacuum:
@@ -36,12 +37,11 @@ class XiaomiCloudVacuum:
         map_url = self.get_map_url(map_name)
         return self._connector.get_raw_map_data(map_url)
 
-    @abstractmethod
-    def get_map_url(self, map_name):
-        pass
+    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config) -> Optional[MapData]:
+        return MapDataParser.create_empty(colors)
 
     @abstractmethod
-    def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config) -> Optional[MapData]:
+    def get_map_url(self, map_name):
         pass
 
     @abstractmethod

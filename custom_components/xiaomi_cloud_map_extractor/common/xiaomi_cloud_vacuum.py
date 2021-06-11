@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Optional, Tuple
 
-from .map_data import MapData
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
 
 
 class XiaomiCloudVacuum:

@@ -10,10 +10,10 @@ from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN,
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
 
-from .const import *
-from .xiaomi_cloud_connector import XiaomiCloudConnector
-from .xiaomi_cloud_vacuum_v1 import XiaomiCloudVacuumV1
-from .xiaomi_cloud_vacuum_v2 import XiaomiCloudVacuumV2
+from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
+from custom_components.xiaomi_cloud_map_extractor.const import *
+from custom_components.xiaomi_cloud_map_extractor.viomi.xiaomi_cloud_vacuum_v2 import XiaomiCloudVacuumV2
+from custom_components.xiaomi_cloud_map_extractor.xiaomi.xiaomi_cloud_vacuum_v1 import XiaomiCloudVacuumV1
 
 _LOGGER = logging.getLogger(__name__)
 

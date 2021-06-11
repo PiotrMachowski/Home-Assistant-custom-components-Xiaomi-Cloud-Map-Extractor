@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Set
 
-from .const import *
+from custom_components.xiaomi_cloud_map_extractor.const import *
 
 
 class Point:

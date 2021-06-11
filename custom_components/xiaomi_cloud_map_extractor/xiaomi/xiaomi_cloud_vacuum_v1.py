@@ -1,8 +1,8 @@
 import gzip
 
-from .map_data import MapData
-from .map_data_parser_v1 import MapDataParserV1
-from .xiaomi_cloud_vacuum import XiaomiCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
+from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_vacuum import XiaomiCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.xiaomi.map_data_parser_v1 import MapDataParserV1
 
 
 class XiaomiCloudVacuumV1(XiaomiCloudVacuum):

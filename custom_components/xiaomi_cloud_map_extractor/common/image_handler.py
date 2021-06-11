@@ -4,8 +4,8 @@ from typing import Callable
 from PIL import Image, ImageDraw, ImageFont
 from PIL.Image import Image as ImageType
 
-from .const import *
-from .map_data import ImageData
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import ImageData
+from custom_components.xiaomi_cloud_map_extractor.const import *
 
 _LOGGER = logging.getLogger(__name__)
 

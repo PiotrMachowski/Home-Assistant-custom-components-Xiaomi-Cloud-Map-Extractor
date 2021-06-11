@@ -9,7 +9,7 @@ from typing import Optional
 
 import requests
 
-from .const import *
+from custom_components.xiaomi_cloud_map_extractor.const import *
 
 
 # noinspection PyBroadException

@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import json
+import logging
 import os
 import random
 import time
@@ -10,6 +11,8 @@ from typing import Optional
 import requests
 
 from custom_components.xiaomi_cloud_map_extractor.const import *
+
+_LOGGER = logging.getLogger(__name__)
 
 
 # noinspection PyBroadException
@@ -67,16 +70,25 @@ class XiaomiCloudConnector:
             response = self._session.post(url, headers=headers, params=fields, timeout=10)
         except:
             response = None
-        successful = response is not None and response.status_code == 200 and "ssecurity" in self.to_json(
-            response.text) and len(str(self.to_json(response.text)["ssecurity"])) > 4
+        successful = response is not None and response.status_code == 200
         if successful:
             json_resp = self.to_json(response.text)
-            self._ssecurity = json_resp["ssecurity"]
-            self._userId = json_resp["userId"]
-            self._cUserId = json_resp["cUserId"]
-            self._passToken = json_resp["passToken"]
-            self._location = json_resp["location"]
-            self._code = json_resp["code"]
+            successful = "ssecurity" in json_resp and len(str(json_resp["ssecurity"])) > 4
+            if successful:
+                self._ssecurity = json_resp["ssecurity"]
+                self._userId = json_resp["userId"]
+                self._cUserId = json_resp["cUserId"]
+                self._passToken = json_resp["passToken"]
+                self._location = json_resp["location"]
+                self._code = json_resp["code"]
+            else:
+                if "notificationUrl" in json_resp:
+                    _LOGGER.error(
+                        "Additional authentication required. " +
+                        "Open following URL using device that has the same public IP, " +
+                        "as your Home Assistant instance: %s ",
+                        json_resp["notificationUrl"])
+
         return successful
 
     def login_step_3(self):

@@ -1,17 +1,21 @@
 import io
 import logging
-import miio
 import time
-import voluptuous as vol
 from datetime import timedelta
 
+import miio
+import voluptuous as vol
+from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
-from homeassistant.components.camera import PLATFORM_SCHEMA, ENTITY_ID_FORMAT, Camera
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TOKEN, CONF_USERNAME, CONF_PASSWORD
 from homeassistant.helpers.entity import generate_entity_id
 
-from .const import *
-from .xiaomi_cloud_connector import XiaomiCloudConnector
+from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
+from custom_components.xiaomi_cloud_map_extractor.const import *
+from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
+from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
+from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
+from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,6 +44,8 @@ COLOR_SCHEMA = vol.Or(
 
 PERCENT_SCHEMA = vol.All(vol.Coerce(float), vol.Range(min=0, max=100))
 
+POSITIVE_FLOAT_SCHEMA = vol.All(vol.Coerce(float), vol.Range(min=0))
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HOST): cv.string,
@@ -58,7 +64,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_DRAW, default=[]): vol.All(cv.ensure_list, [vol.In(CONF_AVAILABLE_DRAWABLES)]),
         vol.Optional(CONF_MAP_TRANSFORM, default={CONF_SCALE: 1, CONF_ROTATE: 0, CONF_TRIM: DEFAULT_TRIMS}):
             vol.Schema({
-                vol.Optional(CONF_SCALE, default=1): vol.All(vol.Coerce(float), vol.Range(min=0)),
+                vol.Optional(CONF_SCALE, default=1): POSITIVE_FLOAT_SCHEMA,
                 vol.Optional(CONF_ROTATE, default=0): vol.In([0, 90, 180, 270]),
                 vol.Optional(CONF_TRIM, default=DEFAULT_TRIMS): vol.Schema({
                     vol.Optional(CONF_LEFT, default=0): PERCENT_SCHEMA,
@@ -78,22 +84,21 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                 vol.Optional(CONF_FONT_SIZE, default=0): cv.positive_int
             })]),
         vol.Optional(CONF_SIZES, default=DEFAULT_SIZES): vol.Schema({
-            vol.Optional(CONF_SIZE_VACUUM_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_VACUUM_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
-            vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
+            vol.Optional(CONF_SIZE_VACUUM_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_VACUUM_RADIUS]): POSITIVE_FLOAT_SCHEMA,
+            vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS,
-                         default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
-            vol.Optional(CONF_SIZE_OBSTACLE_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
+                         default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS]): POSITIVE_FLOAT_SCHEMA,
+            vol.Optional(CONF_SIZE_OBSTACLE_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_RADIUS]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS,
-                         default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0)),
-            vol.Optional(CONF_SIZE_CHARGER_RADIUS, default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]):
-                vol.All(vol.Coerce(float), vol.Range(min=0))
+                         default=DEFAULT_SIZES[CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS]): POSITIVE_FLOAT_SCHEMA,
+            vol.Optional(CONF_SIZE_CHARGER_RADIUS,
+                         default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]): POSITIVE_FLOAT_SCHEMA
         }),
-        vol.Optional(CONF_STORE_MAP, default=False): cv.boolean
+        vol.Optional(CONF_STORE_MAP, default=False): cv.boolean,
+        vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
 
@@ -117,19 +122,21 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
     store_map = config[CONF_STORE_MAP]
+    force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map)])
+                                     image_config, colors, drawables, sizes, texts, attributes, store_map, force_api)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map):
+                 drawables, sizes, texts, attributes, store_map, force_api):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
         self._vacuum = miio.Vacuum(host, token)
         self._connector = XiaomiCloudConnector(username, password)
+        self._device = None
         self._name = name
         self._should_poll = should_poll
         self._image_config = image_config
@@ -139,6 +146,8 @@ class VacuumCamera(Camera):
         self._texts = texts
         self._attributes = attributes
         self._store_map = store_map
+        self._forced_api = force_api
+        self._used_api = None
         self._map_saved = None
         self._image = None
         self._map_data = None
@@ -165,9 +174,16 @@ class VacuumCamera(Camera):
     def device_state_attributes(self):
         attributes = {}
         if self._map_data is not None:
+            rooms = []
+            if self._map_data.rooms is not None:
+                rooms = dict(
+                    filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), self._map_data.rooms.items())))
+                if len(rooms) == 0:
+                    rooms = list(self._map_data.rooms.keys())
             for name, value in {
                 ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
                 ATTRIBUTE_CHARGER: self._map_data.charger,
+                ATTRIBUTE_CLEANED_ROOMS: self._map_data.cleaned_rooms,
                 ATTRIBUTE_COUNTRY: self._country,
                 ATTRIBUTE_GOTO: self._map_data.goto,
                 ATTRIBUTE_GOTO_PATH: self._map_data.goto_path,
@@ -182,10 +198,11 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_OBSTACLES: self._map_data.obstacles,
                 ATTRIBUTE_OBSTACLES_WITH_PHOTO: self._map_data.obstacles_with_photo,
                 ATTRIBUTE_PATH: self._map_data.path,
-                ATTRIBUTE_ROOM_NUMBERS: list(self._map_data.rooms.keys()),
+                ATTRIBUTE_ROOM_NUMBERS: rooms,
                 ATTRIBUTE_ROOMS: self._map_data.rooms,
                 ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
                 ATTRIBUTE_VACUUM_ROOM: self._map_data.vacuum_room,
+                ATTRIBUTE_VACUUM_ROOM_NAME: self._map_data.vacuum_room_name,
                 ATTRIBUTE_WALLS: self._map_data.walls,
                 ATTRIBUTE_ZONES: self._map_data.zones
             }.items():
@@ -193,6 +210,9 @@ class VacuumCamera(Camera):
                     attributes[name] = value
         if self._store_map:
             attributes[ATTRIBUTE_MAP_SAVED] = self._map_saved
+        if self._device is not None:
+            attributes[ATTR_MODEL] = self._device.model
+            attributes[ATTR_USED_API] = self._used_api
         return attributes
 
     @property
@@ -205,9 +225,15 @@ class VacuumCamera(Camera):
             self._logged_in = self._connector.login()
             if not self._logged_in and self._logged_in_previously:
                 _LOGGER.error("Unable to log in, check credentials")
-        if self._country is None and self._logged_in:
-            self._country = self._connector.get_country_for_device(self._vacuum.ip, self._vacuum.token)
+        if self._device is None and self._logged_in:
+            self._country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.ip,
+                                                                                          self._vacuum.token,
+                                                                                          self._country)
+            if self._country is not None:
+                self._device = self._create_device(user_id, device_id, model)
         map_name = "retry"
+        if self._device is not None and not self._device.should_get_map_from_vacuum():
+            map_name = "0"
         while map_name == "retry" and counter > 0:
             time.sleep(0.1)
             try:
@@ -222,9 +248,8 @@ class VacuumCamera(Camera):
                 counter = counter - 1
         self._received_map_name_previously = map_name != "retry"
         if self._logged_in and map_name != "retry" and self._country is not None:
-            map_data, map_stored = self._connector.get_map(self._country, map_name, self._colors, self._drawables,
-                                                           self._texts, self._sizes, self._image_config,
-                                                           self._store_map)
+            map_data, map_stored = self._device.get_map(map_name, self._colors, self._drawables, self._texts,
+                                                        self._sizes, self._image_config, self._store_map)
             if map_data is not None:
                 # noinspection PyBroadException
                 try:
@@ -234,8 +259,32 @@ class VacuumCamera(Camera):
                     self._map_data = map_data
                     self._map_saved = map_stored
                 except:
-                    _LOGGER.warning("Unable to retrieve map data")
+                    _LOGGER.warning("Unable to parse map data")
             else:
                 self._logged_in = False
                 _LOGGER.warning("Unable to retrieve map data")
         self._logged_in_previously = self._logged_in
+
+    def _create_device(self, user_id, device_id, model):
+        self._used_api = self._detect_api(model)
+        if self._used_api == CONF_AVAILABLE_API_XIAOMI:
+            return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
+        if self._used_api == CONF_AVAILABLE_API_VIOMI:
+            return ViomiVacuum(self._connector, self._country, user_id, device_id, model)
+        if self._used_api == CONF_AVAILABLE_API_ROIDMI:
+            return RoidmiVacuum(self._connector, self._country, user_id, device_id, model)
+        if self._used_api == CONF_AVAILABLE_API_DREAME:
+            return DreameVacuum(self._connector, self._country, user_id, device_id, model)
+        return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
+
+    def _detect_api(self, model: str):
+        if self._forced_api is not None:
+            return self._forced_api
+
+        def list_contains_model(prefixes):
+            return len(list(filter(lambda x: model.startswith(x), prefixes))) > 0
+
+        filtered = list(filter(lambda x: list_contains_model(x[1]), AVAILABLE_APIS.items()))
+        if len(filtered) > 0:
+            return filtered[0][0]
+        return CONF_AVAILABLE_API_XIAOMI

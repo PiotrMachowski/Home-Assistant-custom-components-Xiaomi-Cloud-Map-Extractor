@@ -220,7 +220,8 @@ class MapDataParserViomi(MapDataParser):
                                  (room[2] + image_left) * MM,
                                  (room[3] + image_top) * MM)
         return ImageData(image_size, image_top, image_left, image_height, image_width, image_config,
-                         image, {DRAWABLE_CLEANED_AREA: cleaned_areas_layer}), rooms, cleaned_areas
+                         image, lambda x: 400 + x * 20,
+                         {DRAWABLE_CLEANED_AREA: cleaned_areas_layer}), rooms, cleaned_areas
 
     @staticmethod
     def parse_history(buf: ParsingBuffer) -> Path:
@@ -312,7 +313,7 @@ class MapDataParserViomi(MapDataParser):
         y = buf.get_float32(name + '.y')
         if x == MapDataParserViomi.POSITION_UNKNOWN or y == MapDataParserViomi.POSITION_UNKNOWN:
             return None
-        return Point(int(1000 * x + 20000), int(1000 * y + 20000))
+        return Point(x, y)
 
     @staticmethod
     def parse_unknown_section(buf: ParsingBuffer) -> bool:

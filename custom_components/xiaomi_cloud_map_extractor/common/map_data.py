@@ -34,10 +34,7 @@ class Point:
         }
 
     def to_img(self, image_dimensions):
-        x = self.x / MM - image_dimensions.left
-        y = self.y / MM - image_dimensions.top
-        y = image_dimensions.height - y - 1
-        return Point(x * image_dimensions.scale, y * image_dimensions.scale)
+        return image_dimensions.to_img(self)
 
     def rotated(self, image_dimensions):
         alpha = image_dimensions.rotation
@@ -69,17 +66,24 @@ class Obstacle(Point):
 
 
 class ImageDimensions:
-    def __init__(self, top, left, height, width, scale, rotation):
+    def __init__(self, top, left, height, width, scale, rotation, img_transformation):
         self.top = top
         self.left = left
         self.height = height
         self.width = width
         self.scale = scale
         self.rotation = rotation
+        self.img_transformation = img_transformation
+
+    def to_img(self, point: Point):
+        x = self.img_transformation(point.x) - self.left
+        y = self.height - (self.img_transformation(point.y) - self.top) - 1
+        return Point(x * self.scale, y * self.scale)
 
 
 class ImageData:
-    def __init__(self, size, top, left, height, width, image_config, data, additional_layers: Dict = None):
+    def __init__(self, size, top, left, height, width, image_config, data, img_transformation,
+                 additional_layers: Dict = None):
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
         trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * width / 100)
         trim_top = int(image_config[CONF_TRIM][CONF_TOP] * height / 100)
@@ -92,7 +96,7 @@ class ImageData:
                                           height - trim_top - trim_bottom,
                                           width - trim_left - trim_right,
                                           scale,
-                                          rotation)
+                                          rotation, img_transformation)
         self.is_empty = height == 0 or width == 0
         self.data = data
         if additional_layers is None:
@@ -123,7 +127,7 @@ class ImageData:
             CONF_SCALE: 1,
             CONF_ROTATE: 0
         }
-        return ImageData(0, 0, 0, 0, 0, image_config, data)
+        return ImageData(0, 0, 0, 0, 0, image_config, data, lambda x: x)
 
 
 class Path:

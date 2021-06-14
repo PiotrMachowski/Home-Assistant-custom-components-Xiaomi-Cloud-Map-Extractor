@@ -147,7 +147,7 @@ class MapDataParserXiaomi(MapDataParser):
                          image_height,
                          image_width,
                          image_config,
-                         image), rooms
+                         image, lambda x: x / MM), rooms
 
     @staticmethod
     def parse_goto_target(data):

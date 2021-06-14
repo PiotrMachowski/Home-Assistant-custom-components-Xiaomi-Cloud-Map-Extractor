@@ -357,29 +357,28 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
 
 This integration was tested on following vacuums:
  - Xiaomi:
-   - Xiaomi Vacuum Gen 1 (Mi Robot Vacuum/SDJQR01RR/SDJQR02RR)
-   - Xiaomi Mi Robot 1S 
-   - Roborock S4
-   - Roborock S5 (software without rooms support)
-   - Roborock S5 (software with rooms support)
-   - Roborock S5 Max
-   - Roborock S6
-   - Roborock S6 MaxV
-   - Roborock S6 Pure
-   - Roborock S7
+   - `rockrobo.vacuum.v1` (Xiaomi Vacuum Gen 1,Mi Robot Vacuum, SDJQR01RR, SDJQR02RR)
+   - `roborock.vacuum.m1s` (Xiaomi Mi Robot 1S)
+   - `roborock.vacuum.s4` (Roborock S4)
+   - `roborock.vacuum.s5` (Roborock S5)
+   - `roborock.vacuum.s5e` (Roborock S5 Max)
+   - `rockrobo.vacuum.s6` (Roborock S6)
+   - `roborock.vacuum.a08` (Roborock S6 Pure)
+   - `roborock.vacuum.a10` (Roborock S6 MaxV)
+   - `roborock.vacuum.a15` (Roborock S7)
  - Viomi:
-   - STYJ02YM (`viomi.vacuum.v6`)
-   - Mi Robot Vacuum-Mop Pro (`viomi.vacuum.v7`)
-   - Mi Robot Vacuum-Mop Pro (`viomi.vacuum.v8`)
-   - Viomi V3 (`viomi.vacuum.v13`)
+   - `viomi.vacuum.v6` (Viomi Vacuum V2 Pro, Xiaomi Mijia STYJ02YM, Mi Robot Vacuum Mop Pro)
+   - `viomi.vacuum.v7` (Mi Robot Vacuum-Mop Pro)
+   - `viomi.vacuum.v8` (Mi Robot Vacuum-Mop Pro)
+   - `viomi.vacuum.v13` (Viomi V3)
  
 ## Unsupported devices
 
 At this moment this integration is known to not work with following vacuums:
  - Dreame ([#126](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/126)):
-   - Dreame F9 (`dreame.vacuum.p2008`)
+   - `dreame.vacuum.p2008` (Dreame F9)
  - Roidmi ([#127](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/127)):
-   - Roidmi EVE Plus (`roidmi.vacuum.v60`)
+   - `roidmi.vacuum.v60` (Roidmi EVE Plus)
 
 ## Retrieving map
 

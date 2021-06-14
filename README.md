@@ -6,7 +6,8 @@
 
 # Xiaomi Cloud Map Extractor
 
-This custom integration provides a way to present a live view of a map for a Xiaomi vacuum.
+This custom integration provides a way to present a live view of a map for Xiaomi, Roborock and Viomi vacuums.
+([Supported devices](#supported-devices))
 
 <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_no_rooms.png" width=48%>  <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_rooms.png" width=48%>
 
@@ -40,7 +41,168 @@ After installation and a reboot of your Home Assistant instance, you should get 
 This might take a few minutes after a first restart.
 If you have a problem with configuration validation you have to remove camera from `configuration.yaml`, restart Home Assistant, add camera config and restart HA again.
 
-#### Available configuration parameters
+### Examples
+
+#### Basic
+
+```yaml
+camera:
+  - platform: xiaomi_cloud_map_extractor
+    host: !secret xiaomi_vacuum_host
+    token: !secret xiaomi_vacuum_token
+    username: !secret xiaomi_cloud_username
+    password: !secret xiaomi_cloud_password
+```
+
+#### Recommended
+
+```yaml
+camera:
+  - platform: xiaomi_cloud_map_extractor
+    host: !secret xiaomi_vacuum_host
+    token: !secret xiaomi_vacuum_token
+    username: !secret xiaomi_cloud_username
+    password: !secret xiaomi_cloud_password
+    draw: ['all']
+    attributes:
+      - calibration_points    
+```
+
+
+#### Full
+
+| This configuration's purpose is to show all available options, do not use it unless you know what you are doing. |
+| --- |
+
+<details>
+<summary>I know what I'm doing and I will not recklessly copy this config to my setup</summary>
+
+```yaml
+camera:
+  - platform: xiaomi_cloud_map_extractor
+    host: !secret xiaomi_vacuum_host
+    token: !secret xiaomi_vacuum_token
+    username: !secret xiaomi_cloud_username
+    password: !secret xiaomi_cloud_password
+    country: "de"
+    name: "My Vacuum Camera"
+    colors:
+      color_map_inside: [32, 115, 185]
+      color_map_outside: [19, 87, 148]
+      color_map_wall: [100, 196, 254]
+      color_map_wall_v2: [93, 109, 126]
+      color_grey_wall: [93, 109, 126]
+      color_ignored_obstacle: [0, 0, 0, 127]
+      color_ignored_obstacle_with_photo: [0, 0, 0, 127]
+      color_obstacle: [0, 0, 0, 127]
+      color_obstacle_with_photo: [0, 0, 0, 127]
+      color_path: [147, 194, 238]
+      color_goto_path: [0, 255, 0]
+      color_predicted_path: [255, 255, 0, 0]
+      color_cleaned_area: [127, 127, 127, 127]
+      color_zones: [0xAD, 0xD8, 0xFF, 0x8F]
+      color_zones_outline: [0xAD, 0xD8, 0xFF]
+      color_virtual_walls: [255, 0, 0]
+      color_no_go_zones: [255, 33, 55, 127]
+      color_no_go_zones_outline: [255, 0, 0]
+      color_no_mop_zones: [163, 130, 211, 127]
+      color_no_mop_zones_outline: [163, 130, 211]
+      color_charger: [0x66, 0xfe, 0xda, 0x7f]
+      color_robo: [75, 235, 149]
+      color_unknown: [0, 0, 0]
+      color_scan: [0xDF, 0xDF, 0xDF]
+    room_colors:
+      1: [240, 178, 122]
+      2: [133, 193, 233]
+      3: [217, 136, 128]
+      4: [52, 152, 219]
+      5: [205, 97, 85]
+      6: [243, 156, 18]
+      7: [88, 214, 141]
+      8: [245, 176, 65]
+      9: [252, 212, 81]
+      10: [72, 201, 176]
+      11: [84, 153, 199]
+      12: [133, 193, 233]
+      13: [245, 176, 65]
+      14: [82, 190, 128]
+      15: [72, 201, 176]
+      16: [165, 105, 18]
+    draw:
+      - charger
+      - path
+      - goto_path
+      - cleaned_area
+      - obstacles
+      - ignored_obstacles
+      - obstacles_with_photo
+      - ignored_obstacles_with_photo
+      - predicted_path
+      - no_go_zones
+      - no_mopping_zones
+      - vacuum_position
+      - virtual_walls
+      - zones
+    texts:
+      - text: "Room 1"
+        x: 25
+        y: 25
+        color: [125, 20, 213]
+      - text: "Room 2"
+        x: 25
+        y: 75
+        color: [125, 20, 213, 127]
+        font: "FreeSans.ttf"
+        font_size: 25
+    map_transformation:
+      scale: 2
+      rotate: 180
+      trim:
+        top: 10
+        bottom: 20
+        left: 30
+        right: 40
+    sizes:
+      charger_radius: 4
+      vacuum_radius: 6.5
+      obstacle_radius: 3
+      ignored_obstacle_radius: 3
+      obstacle_with_photo_radius: 3
+      ignored_obstacle_with_photo_radius: 3
+    attributes:
+      - calibration_points
+      - charger
+      - cleaned_rooms
+      - country
+      - goto
+      - goto_path
+      - goto_predicted_path
+      - image
+      - is_empty
+      - map_name
+      - no_go_areas
+      - no_mopping_areas
+      - obstacles
+      - ignored_obstacles
+      - obstacles_with_photo
+      - ignored_obstacles_with_photo
+      - path
+      - room_numbers
+      - rooms
+      - vacuum_position
+      - vacuum_room
+      - vacuum_room_name
+      - walls
+      - zones
+    scan_interval:
+      seconds: 10
+    auto_update: true
+    store_map: false
+    force_api: xiaomi
+```
+</details>
+
+### Available configuration parameters
 
 | Key | Type | Required | Value | Description |
 |---|---|---|---|---|
@@ -61,6 +223,7 @@ If you have a problem with configuration validation you have to remove camera fr
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 | `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. If disabled use service `homeassistant.update_entity` to update map manually. |
 | `store_map` | boolean | false | default: `false` | Enables storing raw map data in `/tmp` directory ([more info](#retrieving-map)). It can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
+| `force_api` | string | false | One of: `xiaomi`, `viomi` | Forces usage of specific API. | 
 
 #### Colors configuration
 
@@ -79,6 +242,7 @@ If you have a problem with configuration validation you have to remove camera fr
   | `color_path` | Path of a vacuum |
   | `color_goto_path` | Path for goto mode |
   | `color_predicted_path` | Predicted path to a point in goto mode |
+  | `color_cleaned_area` | Fill of area that already has been cleaned (Viomi) |
   | `color_zones` | Fill of areas selected for zoned cleaning |
   | `color_zones_outline` | Outline of areas selected for zoned cleaning |
   | `color_virtual_walls` | Virtual walls |
@@ -112,6 +276,7 @@ If you have a problem with configuration validation you have to remove camera fr
   - `path`
   - `goto_path`
   - `predicted_path`
+  - `cleaned_area`
   - `no_go_zones`
   - `no_mopping_zones`
   - `obstacles`
@@ -163,10 +328,9 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   A list of attributes that an entity should have.
   Available values:
   - `calibration_points` - Calculated calibration points for [Lovelace Xiaomi Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card).
-
      <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_card.gif" width=50%>
-  
   - `charger`
+  - `cleaned_rooms`
   - `country`
   - `goto`
   - `goto_path`
@@ -185,179 +349,37 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `rooms`
   - `vacuum_position`
   - `vacuum_room`
+  - `vacuum_room_name`
   - `walls`
   - `zones`
-  
-### Examples
-
-#### Basic
-
-```yaml
-camera:
-  - platform: xiaomi_cloud_map_extractor
-    host: !secret xiaomi_vacuum_host
-    token: !secret xiaomi_vacuum_token
-    username: !secret xiaomi_cloud_username
-    password: !secret xiaomi_cloud_password
-```
-
-#### Recommended
-
-```yaml
-camera:
-  - platform: xiaomi_cloud_map_extractor
-    host: !secret xiaomi_vacuum_host
-    token: !secret xiaomi_vacuum_token
-    username: !secret xiaomi_cloud_username
-    password: !secret xiaomi_cloud_password
-    draw: ['all']
-    attributes:
-      - calibration_points    
-```
-
-
-#### Full
-
-> This configuration's purpose is to show all available options, do not use it unless you know what you are doing.
-
-```yaml
-camera:
-  - platform: xiaomi_cloud_map_extractor
-    host: !secret xiaomi_vacuum_host
-    token: !secret xiaomi_vacuum_token
-    username: !secret xiaomi_cloud_username
-    password: !secret xiaomi_cloud_password
-    country: "de"
-    name: "My Vacuum Camera"
-    colors:
-      color_map_inside: [32, 115, 185]
-      color_map_outside: [19, 87, 148]
-      color_map_wall: [100, 196, 254]
-      color_map_wall_v2: [93, 109, 126]
-      color_grey_wall: [93, 109, 126]
-      color_ignored_obstacle: [0, 0, 0, 127]
-      color_ignored_obstacle_with_photo: [0, 0, 0, 127]
-      color_obstacle: [0, 0, 0, 127]
-      color_obstacle_with_photo: [0, 0, 0, 127]
-      color_path: [147, 194, 238]
-      color_goto_path: [0, 255, 0]
-      color_predicted_path: [255, 255, 0, 0]
-      color_zones: [0xAD, 0xD8, 0xFF, 0x8F]
-      color_zones_outline: [0xAD, 0xD8, 0xFF]
-      color_virtual_walls: [255, 0, 0]
-      color_no_go_zones: [255, 33, 55, 127]
-      color_no_go_zones_outline: [255, 0, 0]
-      color_no_mop_zones: [163, 130, 211, 127]
-      color_no_mop_zones_outline: [163, 130, 211]
-      color_charger: [0x66, 0xfe, 0xda, 0x7f]
-      color_robo: [75, 235, 149]
-      color_unknown: [0, 0, 0]
-      color_scan: [0xDF, 0xDF, 0xDF]
-    room_colors:
-      1: [240, 178, 122]
-      2: [133, 193, 233]
-      3: [217, 136, 128]
-      4: [52, 152, 219]
-      5: [205, 97, 85]
-      6: [243, 156, 18]
-      7: [88, 214, 141]
-      8: [245, 176, 65]
-      9: [252, 212, 81]
-      10: [72, 201, 176]
-      11: [84, 153, 199]
-      12: [133, 193, 233]
-      13: [245, 176, 65]
-      14: [82, 190, 128]
-      15: [72, 201, 176]
-      16: [165, 105, 18]
-    draw:
-      - charger
-      - path
-      - goto_path
-      - obstacles
-      - ignored_obstacles
-      - obstacles_with_photo
-      - ignored_obstacles_with_photo
-      - predicted_path
-      - no_go_zones
-      - no_mopping_zones
-      - vacuum_position
-      - virtual_walls
-      - zones
-    texts:
-      - text: "Room 1"
-        x: 25
-        y: 25
-        color: [125, 20, 213]
-      - text: "Room 2"
-        x: 25
-        y: 75
-        color: [125, 20, 213, 127]
-        font: "FreeSans.ttf"
-        font_size: 25
-    map_transformation:
-      scale: 2
-      rotate: 180
-      trim:
-        top: 10
-        bottom: 20
-        left: 30
-        right: 40
-    sizes:
-      charger_radius: 4
-      vacuum_radius: 6.5
-      obstacle_radius: 3
-      ignored_obstacle_radius: 3
-      obstacle_with_photo_radius: 3
-      ignored_obstacle_with_photo_radius: 3
-    attributes:
-      - calibration_points
-      - charger
-      - country
-      - goto
-      - goto_path
-      - goto_predicted_path
-      - image
-      - is_empty
-      - map_name
-      - no_go_areas
-      - no_mopping_areas
-      - obstacles
-      - ignored_obstacles
-      - obstacles_with_photo
-      - ignored_obstacles_with_photo
-      - path
-      - room_numbers
-      - rooms
-      - vacuum_position
-      - vacuum_room
-      - walls
-      - zones
-    scan_interval:
-      seconds: 10
-    auto_update: true
-    store_map: false
-```
 
 ## Supported devices
 
 This integration was tested on following vacuums:
- - Xiaomi Vacuum Gen 1 (Mi Robot Vacuum/SDJQR01RR/SDJQR02RR)
- - Xiaomi Mi Robot 1S 
- - Roborock S4 (software with rooms support)
- - Roborock S5 (software without rooms support)
- - Roborock S5 (software with rooms support)
- - Roborock S5 Max
- - Roborock S6
- - Roborock S6 MaxV
- - Roborock S6 Pure
- - Roborock S7
+ - Xiaomi:
+   - Xiaomi Vacuum Gen 1 (Mi Robot Vacuum/SDJQR01RR/SDJQR02RR)
+   - Xiaomi Mi Robot 1S 
+   - Roborock S4
+   - Roborock S5 (software without rooms support)
+   - Roborock S5 (software with rooms support)
+   - Roborock S5 Max
+   - Roborock S6
+   - Roborock S6 MaxV
+   - Roborock S6 Pure
+   - Roborock S7
+ - Viomi:
+   - STYJ02YM (`viomi.vacuum.v6`)
+   - Mi Robot Vacuum-Mop Pro (`viomi.vacuum.v7`)
+   - Mi Robot Vacuum-Mop Pro (`viomi.vacuum.v8`)
+   - Viomi V3 (`viomi.vacuum.v13`)
  
 ## Unsupported devices
 
 At this moment this integration is known to not work with following vacuums:
- - Roborock E50
- - Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM)
+ - Dreame ([#126](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/126)):
+   - Dreame F9 (`dreame.vacuum.p2008`)
+ - Roidmi ([#127](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/127)):
+   - Roidmi EVE Plus (`roidmi.vacuum.v60`)
 
 ## Retrieving map
 

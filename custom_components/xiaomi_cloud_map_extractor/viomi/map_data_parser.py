@@ -171,15 +171,18 @@ class MapDataParserViomi(MapDataParser):
                 if map_data.vacuum_room is not None:
                     map_data.vacuum_room_name = map_data.rooms[map_data.vacuum_room].name
                 _LOGGER.debug('current vacuum room: %s', map_data.vacuum_room)
-            # ImageHandlerViomi.draw_zones(map_data.image, [room for number, room in map_data.rooms.items()], colors)
             ImageHandlerViomi.rotate(map_data.image)
             ImageHandlerViomi.draw_texts(map_data.image, texts)
         return map_data
 
     @staticmethod
+    def map_to_image(x):
+        return x * 20 + 400
+
+    @staticmethod
     def get_current_vacuum_room(buf: ParsingBuffer, vacuum_position: Point) -> Optional[int]:
-        x = int(400 + vacuum_position.x * 20)
-        y = int(400 + vacuum_position.y * 20)
+        x = int(MapDataParserViomi.map_to_image(vacuum_position.x))
+        y = int(MapDataParserViomi.map_to_image(vacuum_position.y))
         pixel_type = buf.get_at_image(y * 800 + x)
         if ImageHandlerViomi.MAP_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_ROOM_MAX:
             return pixel_type
@@ -220,7 +223,7 @@ class MapDataParserViomi(MapDataParser):
                                  (room[2] + image_left - 400) / 20,
                                  (room[3] + image_top - 400) / 20)
         return ImageData(image_size, image_top, image_left, image_height, image_width, image_config,
-                         image, lambda x: 400 + x * 20,
+                         image, MapDataParserViomi.map_to_image,
                          {DRAWABLE_CLEANED_AREA: cleaned_areas_layer}), rooms, cleaned_areas
 
     @staticmethod

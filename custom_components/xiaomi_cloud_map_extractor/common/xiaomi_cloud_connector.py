@@ -100,9 +100,10 @@ class XiaomiCloudConnector:
             response = self._session.get(self._location, headers=headers, timeout=10)
         except:
             response = None
-        if response is not None and response.status_code == 200:
+        successful = response is not None and response.status_code == 200 and "serviceToken" in response.cookies
+        if successful:
             self._serviceToken = response.cookies.get("serviceToken")
-        return response.status_code == 200
+        return successful
 
     def login(self):
         self._session.close()

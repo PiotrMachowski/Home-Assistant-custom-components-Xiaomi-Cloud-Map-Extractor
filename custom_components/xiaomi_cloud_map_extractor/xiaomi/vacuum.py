@@ -16,7 +16,10 @@ class XiaomiVacuum(XiaomiCloudVacuum):
             "data": '{"obj_name":"' + map_name + '"}'
         }
         api_response = self._connector.execute_api_call(url, params)
-        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
+        if api_response is None or \
+                "result" not in api_response or \
+                api_response["result"] is None or \
+                "url" not in api_response["result"]:
             return None
         return api_response["result"]["url"]
 

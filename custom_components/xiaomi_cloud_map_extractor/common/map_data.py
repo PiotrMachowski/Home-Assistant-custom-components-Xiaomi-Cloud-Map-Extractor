@@ -251,7 +251,9 @@ class Area:
 
 
 class MapData:
-    def __init__(self):
+    def __init__(self, calibration_center=0, calibration_diff=0):
+        self._calibration_center = calibration_center
+        self._calibration_diff = calibration_diff
         self.blocks = None
         self.charger: Optional[Point] = None
         self.goto: Optional[List[Point]] = None
@@ -278,7 +280,9 @@ class MapData:
         if self.image.is_empty:
             return None
         calibration_points = []
-        for point in [Point(25500, 25500), Point(26500, 25500), Point(26500, 26500)]:
+        for point in [Point(self._calibration_center, self._calibration_center),
+                      Point(self._calibration_center + self._calibration_diff, self._calibration_center),
+                      Point(self._calibration_center, self._calibration_center + self._calibration_diff)]:
             img_point = point.to_img(self.image.dimensions).rotated(self.image.dimensions)
             calibration_points.append({
                 "vacuum": {"x": point.x, "y": point.y},

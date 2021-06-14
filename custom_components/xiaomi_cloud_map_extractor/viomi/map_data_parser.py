@@ -98,7 +98,7 @@ class MapDataParserViomi(MapDataParser):
 
     @staticmethod
     def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:
-        map_data = MapData()
+        map_data = MapData(0, 1)
         buf = ParsingBuffer('header', raw, 0, len(raw))
         feature_flags = buf.get_uint32('feature_flags')
         map_id = buf.peek_uint32('map_id')

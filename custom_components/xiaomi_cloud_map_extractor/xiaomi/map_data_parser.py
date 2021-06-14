@@ -38,7 +38,7 @@ class MapDataParserXiaomi(MapDataParser):
 
     @staticmethod
     def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:
-        map_data = MapData()
+        map_data = MapData(25500, 1000)
         map_header_length = MapDataParserXiaomi.get_int16(raw, 0x02)
         map_data.major_version = MapDataParserXiaomi.get_int16(raw, 0x08)
         map_data.minor_version = MapDataParserXiaomi.get_int16(raw, 0x0A)

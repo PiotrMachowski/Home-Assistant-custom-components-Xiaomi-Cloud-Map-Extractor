@@ -221,7 +221,7 @@ camera:
 | `sizes` | map | false |  | Sizes of map's elements ([see below](#sizes-configuration)) |
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
-| `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. If disabled use service `homeassistant.update_entity` to update map manually. |
+| `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. ([see below](#updates) |
 | `store_map` | boolean | false | default: `false` | Enables storing raw map data in `/tmp` directory ([more info](#retrieving-map)). It can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
 | `force_api` | string | false | One of: `xiaomi`, `viomi` | Forces usage of specific API. | 
 
@@ -352,6 +352,17 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `vacuum_room_name`
   - `walls`
   - `zones`
+
+## Updates
+
+Camera image is updated every 5s by default.
+It can be disabled in config using `auto_update` property.
+
+You can also disable and enable automatic updates using services `camera.turn_off`, `camera.turn_on`.
+
+If automatic updates are disabled you can manually trigger update using `homeassistant.update_entity` service.
+
+You can change interval of automatic updates using `scan_interval` setting ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval))
 
 ## Supported devices
 

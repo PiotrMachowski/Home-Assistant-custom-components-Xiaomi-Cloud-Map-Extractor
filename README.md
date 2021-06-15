@@ -310,7 +310,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   |---|---|---|---|---|
   | `scale` | float | false | 1 | Scaling factor for a map. |
   | `rotate` | integer | false | 0 | Angle of map rotation. Available values: [`0`, `90`, `180`, `270`] |
-  | `trim` | map | false | 0 | Map trimming configuration. Each trimming direction is in percents: value `25` means trimming of quarter in a given dimension. Available keys: [`left`, `right`, `top`, `bottom`] |
+  | `trim` | map | false | 0 | Map trimming configuration. Each trimming direction is in percents: value `25` means trimming of quarter of image size in a given dimension. Available keys: [`left`, `right`, `top`, `bottom`] |
 
 #### Sizes configuration
 

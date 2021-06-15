@@ -116,8 +116,8 @@ class MapDataParserXiaomi(MapDataParser):
         image_top = MapDataParserXiaomi.get_int32(header, block_header_length - 16)
         image_left = MapDataParserXiaomi.get_int32(header, block_header_length - 12)
         image_width = MapDataParserXiaomi.get_int32(header, block_header_length - 4)
-        x = round(map_to_image(vacuum_position.x) - image_left)
-        y = round(map_to_image(vacuum_position.y) - image_top)
+        x = round(MapDataParserXiaomi.map_to_image(vacuum_position.x) - image_left)
+        y = round(MapDataParserXiaomi.map_to_image(vacuum_position.y) - image_top)
         room = ImageHandlerXiaomi.get_room_at_pixel(data, image_width, x, y)
         return room
 

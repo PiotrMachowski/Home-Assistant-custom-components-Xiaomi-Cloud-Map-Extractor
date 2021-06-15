@@ -5,7 +5,7 @@ from datetime import timedelta
 
 import miio
 import voluptuous as vol
-from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA
+from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA, SUPPORT_ON_OFF
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
@@ -169,6 +169,16 @@ class VacuumCamera(Camera):
     @property
     def name(self):
         return self._name
+
+    def turn_on(self):
+        self._should_poll = True
+
+    def turn_off(self):
+        self._should_poll = False
+
+    @property
+    def supported_features(self):
+        return SUPPORT_ON_OFF
 
     @property
     def device_state_attributes(self):

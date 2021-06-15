@@ -14,6 +14,7 @@ class ImageHandlerViomi(ImageHandler):
     MAP_OUTSIDE = 0x00
     MAP_WALL = 0xff
     MAP_SCAN = 0x01
+    MAP_OBSTACLE = 0x02
     MAP_ROOM_MIN = 10
     MAP_ROOM_MAX = 59
     MAP_SELECTED_ROOM_MIN = 60
@@ -54,6 +55,8 @@ class ImageHandlerViomi(ImageHandler):
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_WALL_V2, colors)
                 elif pixel_type == ImageHandlerViomi.MAP_SCAN:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_SCAN, colors)
+                elif pixel_type == ImageHandlerViomi.MAP_OBSTACLE:
+                    pixels[x, y] = ImageHandler.__get_color__(COLOR_UNKNOWN, colors)  # TODO
                 elif ImageHandlerViomi.MAP_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_SELECTED_ROOM_MAX:
                     room_x = img_x + trim_left
                     room_y = img_y + trim_bottom

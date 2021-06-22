@@ -21,9 +21,9 @@ class XiaomiCloudVacuum:
             return None, False
         map_stored = False
         if store_response:
-            file1 = open(f"/tmp/map_data.{self.get_map_archive_extension()}", "wb")
-            file1.write(response)
-            file1.close()
+            raw_map_file = open(f"/tmp/map_data.{self.get_map_archive_extension()}", "wb")
+            raw_map_file.write(response)
+            raw_map_file.close()
             map_stored = True
         map_data = self.decode_map(response, colors, drawables, texts, sizes, image_config)
         if map_data is None:
@@ -38,7 +38,7 @@ class XiaomiCloudVacuum:
         return self._connector.get_raw_map_data(map_url)
 
     def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config) -> Optional[MapData]:
-        return MapDataParser.create_empty(colors)
+        return MapDataParser.create_empty(colors, "Vacuum not supported")
 
     @abstractmethod
     def get_map_url(self, map_name):

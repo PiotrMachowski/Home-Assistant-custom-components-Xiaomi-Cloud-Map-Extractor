@@ -2,6 +2,7 @@ import io
 import logging
 import time
 from datetime import timedelta
+from enum import Enum
 
 import miio
 import voluptuous as vol
@@ -10,6 +11,7 @@ from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN,
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
 
+from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
 from custom_components.xiaomi_cloud_map_extractor.const import *
 from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
@@ -136,6 +138,7 @@ class VacuumCamera(Camera):
         self.content_type = CONTENT_TYPE
         self._vacuum = miio.Vacuum(host, token)
         self._connector = XiaomiCloudConnector(username, password)
+        self._status = CameraStatus.INITIALIZING
         self._device = None
         self._name = name
         self._should_poll = should_poll
@@ -161,7 +164,7 @@ class VacuumCamera(Camera):
 
     @property
     def frame_interval(self):
-        return 0.5
+        return 1
 
     def camera_image(self):
         return self._image
@@ -231,10 +234,16 @@ class VacuumCamera(Camera):
 
     def update(self):
         counter = 10
-        if not self._logged_in:
+        if self._status != CameraStatus.TWO_FACTOR_AUTH_REQUIRED and not self._logged_in:
             self._logged_in = self._connector.login()
-            if not self._logged_in and self._logged_in_previously:
-                _LOGGER.error("Unable to log in, check credentials")
+            if self._logged_in is None:
+                self._status = CameraStatus.TWO_FACTOR_AUTH_REQUIRED
+            elif self._logged_in:
+                self._status = CameraStatus.OK
+            else:
+                self._status = CameraStatus.FAILED_LOGIN
+                if self._logged_in_previously:
+                    _LOGGER.error("Unable to log in, check credentials")
         if self._device is None and self._logged_in:
             self._country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.ip,
                                                                                           self._vacuum.token,
@@ -268,12 +277,29 @@ class VacuumCamera(Camera):
                     self._image = img_byte_arr.getvalue()
                     self._map_data = map_data
                     self._map_saved = map_stored
+                    if self._map_data.image.is_empty:
+                        self._status = CameraStatus.EMPTY_MAP
+                    else:
+                        self._status = CameraStatus.OK
                 except:
                     _LOGGER.warning("Unable to parse map data")
+                    self._status = CameraStatus.UNABLE_TO_PARSE_MAP
             else:
                 self._logged_in = False
                 _LOGGER.warning("Unable to retrieve map data")
+                self._status = CameraStatus.UNABLE_TO_RETRIEVE_MAP
+        else:
+            if map_name == "retry" and self._status == CameraStatus.OK:
+                self._status = CameraStatus.FAILED_TO_RETRIEVE_MAP_FROM_VACUUM
+
+            self._set_map_data(MapDataParser.create_empty(self._colors, str(self._status)))
         self._logged_in_previously = self._logged_in
+
+    def _set_map_data(self, map_data):
+        img_byte_arr = io.BytesIO()
+        map_data.image.data.save(img_byte_arr, format='PNG')
+        self._image = img_byte_arr.getvalue()
+        self._map_data = map_data
 
     def _create_device(self, user_id, device_id, model):
         self._used_api = self._detect_api(model)
@@ -298,3 +324,18 @@ class VacuumCamera(Camera):
         if len(filtered) > 0:
             return filtered[0][0]
         return CONF_AVAILABLE_API_XIAOMI
+
+
+class CameraStatus(Enum):
+    EMPTY_MAP = 'Empty map'
+    FAILED_LOGIN = 'Failed to login'
+    FAILED_TO_RETRIEVE_MAP_FROM_VACUUM = 'Failed to retrieve map from vacuum'
+    INITIALIZING = 'Initializing'
+    NOT_LOGGED_IN = 'Not logged in'
+    OK = 'OK'
+    TWO_FACTOR_AUTH_REQUIRED = 'Two factor auth required (see logs)'
+    UNABLE_TO_PARSE_MAP = 'Unable to parse map'
+    UNABLE_TO_RETRIEVE_MAP = 'Unable to retrieve map'
+
+    def __str__(self):
+        return str(self._value_)

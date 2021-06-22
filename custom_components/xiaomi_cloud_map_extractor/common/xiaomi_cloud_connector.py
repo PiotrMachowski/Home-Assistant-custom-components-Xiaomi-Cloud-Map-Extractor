@@ -88,6 +88,7 @@ class XiaomiCloudConnector:
                         "Open following URL using device that has the same public IP, " +
                         "as your Home Assistant instance: %s ",
                         json_resp["notificationUrl"])
+                    successful = None
 
         return successful
 

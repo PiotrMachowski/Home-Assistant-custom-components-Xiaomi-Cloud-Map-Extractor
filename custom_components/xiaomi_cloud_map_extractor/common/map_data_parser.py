@@ -10,9 +10,9 @@ _LOGGER = logging.getLogger(__name__)
 class MapDataParser:
 
     @staticmethod
-    def create_empty(colors) -> MapData:
+    def create_empty(colors, text) -> MapData:
         map_data = MapData()
-        empty_map = ImageHandler.create_empty_map_image(colors, "Vacuum not supported")
+        empty_map = ImageHandler.create_empty_map_image(colors, text)
         map_data.image = ImageData.create_empty(empty_map)
         return map_data
 

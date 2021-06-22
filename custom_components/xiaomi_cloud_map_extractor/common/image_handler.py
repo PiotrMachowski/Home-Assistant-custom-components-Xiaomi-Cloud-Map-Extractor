@@ -60,7 +60,7 @@ class ImageHandler:
     @staticmethod
     def create_empty_map_image(colors, text="NO MAP") -> ImageType:
         color = ImageHandler.__get_color__(COLOR_MAP_OUTSIDE, colors)
-        image = Image.new('RGBA', (200, 100), color=color)
+        image = Image.new('RGBA', (300, 200), color=color)
         if sum(color[0:3]) > 382:
             text_color = (0, 0, 0)
         else:

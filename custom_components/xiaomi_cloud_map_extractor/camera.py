@@ -10,6 +10,7 @@ from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_S
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.reload import async_setup_reload_service
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
@@ -105,6 +106,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+    await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
+
     host = config[CONF_HOST]
     token = config[CONF_TOKEN]
     username = config[CONF_USERNAME]

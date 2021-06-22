@@ -1,3 +1,6 @@
+DOMAIN = "xiaomi_cloud_map_extractor"
+PLATFORMS = ["camera"]
+
 CONF_ATTRIBUTES = "attributes"
 CONF_AUTO_UPDATE = "auto_update"
 CONF_AVAILABLE_API_DREAME = "dreame"

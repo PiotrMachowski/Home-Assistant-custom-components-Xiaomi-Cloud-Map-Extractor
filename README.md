@@ -364,6 +364,10 @@ If automatic updates are disabled you can manually trigger update using `homeass
 
 You can change interval of automatic updates using `scan_interval` setting ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval))
 
+If you want to disable map updates when a vacuum is not running you can use [this blueprint](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/blob/master/blueprints/automation/disable_vacuum_camera_update_when_docked.yaml).
+
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FPiotrMachowski%2FHome-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor%2Fblob%2Fmaster%2Fblueprints%2Fautomation%2Fdisable_vacuum_camera_update_when_docked.yaml)
+
 ## Supported devices
 
 This integration was tested on following vacuums:

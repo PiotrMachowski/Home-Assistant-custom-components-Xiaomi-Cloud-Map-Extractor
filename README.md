@@ -41,6 +41,8 @@ After installation and a reboot of your Home Assistant instance, you should get 
 This might take a few minutes after a first restart.
 If you have a problem with configuration validation you have to remove camera from `configuration.yaml`, restart Home Assistant, add camera config and restart HA again.
 
+After modification of camera's configuration you can reload its settings in [Configuration](https://my.home-assistant.io/redirect/config/) or using `xiaomi_cloud_map_extractor.reload` service.
+
 ### Examples
 
 #### Basic

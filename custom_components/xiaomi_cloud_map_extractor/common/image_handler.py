@@ -24,6 +24,7 @@ class ImageHandler:
         COLOR_ZONES: (0xAD, 0xD8, 0xFF, 0x8F),
         COLOR_ZONES_OUTLINE: (0xAD, 0xD8, 0xFF),
         COLOR_VIRTUAL_WALLS: (255, 0, 0),
+        COLOR_NEW_DISCOVERED_AREA: (64, 64, 64),
         COLOR_NO_GO_ZONES: (255, 33, 55, 127),
         COLOR_NO_GO_ZONES_OUTLINE: (255, 0, 0),
         COLOR_NO_MOPPING_ZONES: (163, 130, 211, 127),

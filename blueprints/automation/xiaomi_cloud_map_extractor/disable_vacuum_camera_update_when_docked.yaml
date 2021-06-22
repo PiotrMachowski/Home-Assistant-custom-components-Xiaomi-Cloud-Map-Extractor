@@ -18,13 +18,18 @@ blueprint:
 mode: restart
 
 trigger:
-  platform: state
-  entity_id: !input vacuum
+  - platform: state
+    entity_id: !input vacuum
 
 condition:
   - condition: template
     value_template: '{{ trigger.to_state.state != trigger.from_state.state }}'
 
 action:
-  - service: '{% if trigger.to_state.state in ("unavailable", "unknown", "docked") %}homeassistant.turn_off{% else %}homeassistant.turn_on{% endif %}'
+  - service: |
+      {% if trigger.to_state.state in ["unavailable", "unknown", "docked"] %}
+        camera.turn_off
+      {% else %}
+        camera.turn_on
+      {% endif %}
     entity_id: !input camera

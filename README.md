@@ -105,6 +105,7 @@ camera:
       color_zones: [0xAD, 0xD8, 0xFF, 0x8F]
       color_zones_outline: [0xAD, 0xD8, 0xFF]
       color_virtual_walls: [255, 0, 0]
+      color_new_discovered_area: [64, 64, 64]
       color_no_go_zones: [255, 33, 55, 127]
       color_no_go_zones_outline: [255, 0, 0]
       color_no_mop_zones: [163, 130, 211, 127]
@@ -248,6 +249,7 @@ camera:
   | `color_zones` | Fill of areas selected for zoned cleaning |
   | `color_zones_outline` | Outline of areas selected for zoned cleaning |
   | `color_virtual_walls` | Virtual walls |
+  | `color_new_discovered_area` | Newly discovered areas (Viomi) |
   | `color_no_go_zones` | Fill of no-go zones |
   | `color_no_go_zones_outline` | Outline of no-go zones |
   | `color_no_mop_zones` | Fill of no-mopping zones |

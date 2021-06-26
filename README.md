@@ -396,6 +396,7 @@ This integration was tested on following vacuums:
 At this moment this integration is known to not work with following vacuums:
  - Dreame ([#126](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/126)):
    - `dreame.vacuum.p2008` (Dreame F9)
+   - `dreame.vacuum.mc1808` (Xiaomi Mijia 1c/Mi Vacuum Mop)
  - Roidmi ([#127](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/127)):
    - `roidmi.vacuum.v60` (Roidmi EVE Plus)
 

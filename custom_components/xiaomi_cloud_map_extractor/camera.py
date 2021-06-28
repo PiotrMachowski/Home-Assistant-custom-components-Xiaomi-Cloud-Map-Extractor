@@ -319,6 +319,8 @@ class VacuumCamera(Camera):
     def _detect_api(self, model: str):
         if self._forced_api is not None:
             return self._forced_api
+        if model in API_EXCEPTIONS:
+            return API_EXCEPTIONS[model]
 
         def list_contains_model(prefixes):
             return len(list(filter(lambda x: model.startswith(x), prefixes))) > 0

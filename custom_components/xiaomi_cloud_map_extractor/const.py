@@ -195,4 +195,8 @@ AVAILABLE_APIS = {
     CONF_AVAILABLE_API_VIOMI: ["viomi.vacuum."]
 }
 
+API_EXCEPTIONS = {
+    "viomi.vacuum.v18": CONF_AVAILABLE_API_DREAME
+}
+
 MM = 50

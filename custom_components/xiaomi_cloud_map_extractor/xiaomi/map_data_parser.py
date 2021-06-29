@@ -107,6 +107,10 @@ class MapDataParserXiaomi(MapDataParser):
         return x / MM
 
     @staticmethod
+    def image_to_map(x):
+        return x * MM
+
+    @staticmethod
     def get_current_vacuum_room(block_start_position, raw, vacuum_position):
         block_header_length = MapDataParserXiaomi.get_int16(raw, block_start_position + 0x02)
         header = MapDataParserXiaomi.get_bytes(raw, block_start_position, block_header_length)
@@ -141,10 +145,10 @@ class MapDataParserXiaomi(MapDataParser):
         image, rooms_raw = ImageHandlerXiaomi.parse(data, image_width, image_height, colors, image_config)
         rooms = {}
         for number, room in rooms_raw.items():
-            rooms[number] = Room(number, (room[0] + image_left) * MM,
-                                 (room[1] + image_top) * MM,
-                                 (room[2] + image_left) * MM,
-                                 (room[3] + image_top) * MM)
+            rooms[number] = Room(number, MapDataParserXiaomi.image_to_map(room[0] + image_left),
+                                 MapDataParserXiaomi.image_to_map(room[1] + image_top),
+                                 MapDataParserXiaomi.image_to_map(room[2] + image_left),
+                                 MapDataParserXiaomi.image_to_map(room[3] + image_top))
         return ImageData(image_size,
                          image_top,
                          image_left,

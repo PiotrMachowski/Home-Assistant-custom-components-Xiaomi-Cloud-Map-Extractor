@@ -180,6 +180,10 @@ class MapDataParserViomi(MapDataParser):
         return x * 20 + 400
 
     @staticmethod
+    def image_to_map(x):
+        return (x - 400) / 20
+
+    @staticmethod
     def get_current_vacuum_room(buf: ParsingBuffer, vacuum_position: Point) -> Optional[int]:
         x = int(MapDataParserViomi.map_to_image(vacuum_position.x))
         y = int(MapDataParserViomi.map_to_image(vacuum_position.y))
@@ -218,10 +222,10 @@ class MapDataParserViomi(MapDataParser):
         _LOGGER.debug('img: number of rooms: %d, numbers: %s', len(rooms_raw), rooms_raw.keys())
         rooms = {}
         for number, room in rooms_raw.items():
-            rooms[number] = Room(number, (room[0] + image_left - 400) / 20,
-                                 (room[1] + image_top - 400) / 20,
-                                 (room[2] + image_left - 400) / 20,
-                                 (room[3] + image_top - 400) / 20)
+            rooms[number] = Room(number, MapDataParserViomi.image_to_map(room[0] + image_left),
+                                 MapDataParserViomi.image_to_map(room[1] + image_top),
+                                 MapDataParserViomi.image_to_map(room[2] + image_left),
+                                 MapDataParserViomi.image_to_map(room[3] + image_top))
         return ImageData(image_size, image_top, image_left, image_height, image_width, image_config,
                          image, MapDataParserViomi.map_to_image,
                          {DRAWABLE_CLEANED_AREA: cleaned_areas_layer}), rooms, cleaned_areas

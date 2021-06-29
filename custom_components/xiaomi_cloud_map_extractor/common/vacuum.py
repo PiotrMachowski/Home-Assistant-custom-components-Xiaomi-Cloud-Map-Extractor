@@ -21,7 +21,7 @@ class XiaomiCloudVacuum:
             return None, False
         map_stored = False
         if store_response:
-            raw_map_file = open(f"/tmp/map_data.{self.get_map_archive_extension()}", "wb")
+            raw_map_file = open(f"/tmp/map_data_{self.model}.{self.get_map_archive_extension()}", "wb")
             raw_map_file.write(response)
             raw_map_file.close()
             map_stored = True

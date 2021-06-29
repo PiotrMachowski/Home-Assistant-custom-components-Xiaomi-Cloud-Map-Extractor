@@ -406,7 +406,7 @@ If you don't use Core installation ([installation types](https://www.home-assist
 - In [SSH & Terminal add-on](https://github.com/hassio-addons/addon-ssh) enable protected access
 - Open terminal and use the following command to copy file: 
   ```
-  docker exec homeassistant bash -c "mkdir -p /config/tmp/ && cp /tmp/map_data.* /config/tmp/"
+  docker exec homeassistant bash -c "mkdir -p /config/tmp/ && cp /tmp/map_data* /config/tmp/"
   ```
 - Map file will appear in `tmp` folder in your `config` folder
 

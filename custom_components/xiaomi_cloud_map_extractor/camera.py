@@ -6,6 +6,7 @@ from enum import Enum
 
 import miio
 import voluptuous as vol
+import PIL.Image as Image
 from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA, SUPPORT_ON_OFF
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
@@ -101,6 +102,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                          default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]): POSITIVE_FLOAT_SCHEMA
         }),
         vol.Optional(CONF_STORE_MAP, default=False): cv.boolean,
+        vol.Optional(CONF_STORE_MAP_IMAGE, default=False): cv.boolean,
         vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
@@ -127,15 +129,16 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
     store_map = config[CONF_STORE_MAP]
+    store_map_image = config[CONF_STORE_MAP_IMAGE]
     force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map, force_api)])
+                                     image_config, colors, drawables, sizes, texts, attributes, store_map, store_map_image, force_api)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map, force_api):
+                 drawables, sizes, texts, attributes, store_map, store_map_image, force_api):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -152,6 +155,7 @@ class VacuumCamera(Camera):
         self._texts = texts
         self._attributes = attributes
         self._store_map = store_map
+        self._store_map_image = store_map_image
         self._forced_api = force_api
         self._used_api = None
         self._map_saved = None
@@ -330,6 +334,10 @@ class VacuumCamera(Camera):
             return filtered[0][0]
         return CONF_AVAILABLE_API_XIAOMI
 
+    def _safe_image_to_file(self):
+        if self._store_map_image:
+            image = Image.open(io.BytesIO(self._image))
+            image.save("/tmp/image.png")
 
 class CameraStatus(Enum):
     EMPTY_MAP = 'Empty map'

@@ -337,7 +337,6 @@ class VacuumCamera(Camera):
         return CONF_AVAILABLE_API_XIAOMI
 
     def _safe_image_to_file(self):
-        _LOGGER.error("Got OSError while fetching the state: %s", self._store_map_image)
         if self._store_map_image:
             image = Image.open(io.BytesIO(self._image))
             image.save(f"/tmp/image_{self._device.model}.png")

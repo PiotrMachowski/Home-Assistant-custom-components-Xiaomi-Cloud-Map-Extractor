@@ -103,6 +103,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         }),
         vol.Optional(CONF_STORE_MAP, default=False): cv.boolean,
         vol.Optional(CONF_STORE_MAP_IMAGE, default=False): cv.boolean,
+        vol.Optional(CONF_STORE_MAP_IMAGE_PATH, default="/tmp"): cv.string,
         vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
@@ -130,15 +131,16 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     attributes = config[CONF_ATTRIBUTES]
     store_map = config[CONF_STORE_MAP]
     store_map_image = config[CONF_STORE_MAP_IMAGE]
+    store_map_image_path = config[CONF_STORE_MAP_IMAGE_PATH]
     force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map, store_map_image, force_api)])
+                                     image_config, colors, drawables, sizes, texts, attributes, store_map, store_map_image, store_map_image_path, force_api)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map, store_map_image, force_api):
+                 drawables, sizes, texts, attributes, store_map, store_map_image, store_map_image_path, force_api):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -156,6 +158,7 @@ class VacuumCamera(Camera):
         self._attributes = attributes
         self._store_map = store_map
         self._store_map_image = store_map_image
+        self._store_map_image_path = store_map_image_path
         self._forced_api = force_api
         self._used_api = None
         self._map_saved = None
@@ -339,7 +342,7 @@ class VacuumCamera(Camera):
     def _safe_image_to_file(self):
         if self._store_map_image:
             image = Image.open(io.BytesIO(self._image))
-            image.save(f"/tmp/image_{self._device.model}.png")
+            image.save(f"${self._store_map_image_path}/image_{self._device.model}.png")
 
 class CameraStatus(Enum):
     EMPTY_MAP = 'Empty map'

@@ -342,6 +342,7 @@ class VacuumCamera(Camera):
     def _safe_image_to_file(self):
         if self._store_map_image:
             image = Image.open(io.BytesIO(self._image))
+            _LOGGER.warning("%s", self._store_map_image_path)
             image.save(f"${self._store_map_image_path}/image_{self._device.model}.png")
 
 class CameraStatus(Enum):

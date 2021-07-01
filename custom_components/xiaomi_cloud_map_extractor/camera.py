@@ -288,6 +288,7 @@ class VacuumCamera(Camera):
                         self._status = CameraStatus.EMPTY_MAP
                     else:
                         self._status = CameraStatus.OK
+                        self._safe_image_to_file()
                 except:
                     _LOGGER.warning("Unable to parse map data")
                     self._status = CameraStatus.UNABLE_TO_PARSE_MAP
@@ -307,6 +308,7 @@ class VacuumCamera(Camera):
         map_data.image.data.save(img_byte_arr, format='PNG')
         self._image = img_byte_arr.getvalue()
         self._map_data = map_data
+        self._safe_image_to_file()
 
     def _create_device(self, user_id, device_id, model):
         self._used_api = self._detect_api(model)

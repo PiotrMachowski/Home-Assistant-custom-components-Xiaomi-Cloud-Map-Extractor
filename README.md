@@ -226,6 +226,8 @@ camera:
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 | `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. ([see below](#updates)) |
 | `store_map` | boolean | false | default: `false` | Enables storing raw map data in `/tmp` directory ([more info](#retrieving-map)). It can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
+| `store_map_image` | boolean | false | default: `false` | Enables storing map image in `store_map_path` path with name `image_device_name.png` | 
+| `store_map_path` | string | false | default: `/tmp` | Storing map image directory | 
 | `force_api` | string | false | One of: `xiaomi`, `viomi` | Forces usage of specific API. | 
 
 #### Colors configuration

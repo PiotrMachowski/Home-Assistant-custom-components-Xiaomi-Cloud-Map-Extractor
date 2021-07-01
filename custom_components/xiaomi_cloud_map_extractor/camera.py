@@ -135,7 +135,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map, store_map_image, store_map_image_path, force_api)])
+                                     image_config, colors, drawables, sizes, texts, attributes, store_map,
+                                     store_map_image, store_map_image_path, force_api)])
 
 
 class VacuumCamera(Camera):
@@ -341,8 +342,12 @@ class VacuumCamera(Camera):
 
     def _safe_image_to_file(self):
         if self._store_map_image:
-            image = Image.open(io.BytesIO(self._image))
-            image.save(f"{self._store_map_image_path}/image_{self._device.model}.png")
+            try:
+                image = Image.open(io.BytesIO(self._image))
+                image.save(f"{self._store_map_image_path}/image_{self._device.model}.png")
+            except:
+                _LOGGER.warning("Error while saving image")
+
 
 class CameraStatus(Enum):
     EMPTY_MAP = 'Empty map'

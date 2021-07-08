@@ -52,6 +52,12 @@ class Point:
             alpha = alpha - 90
         return Point(x, y)
 
+    def __mul__(self, other):
+        return Point(self.x * other, self.y * other, self.a)
+
+    def __truediv__(self, other):
+        return Point(self.x / other, self.y / other, self.a)
+
 
 class Obstacle(Point):
     def __init__(self, x, y, details):

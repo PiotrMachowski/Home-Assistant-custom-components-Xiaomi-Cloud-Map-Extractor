@@ -2,7 +2,8 @@ import json
 import logging
 from typing import Dict, List, Tuple
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
+    Wall
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 from custom_components.xiaomi_cloud_map_extractor.const import *
 from custom_components.xiaomi_cloud_map_extractor.roidmi.image_handler import ImageHandlerRoidmi
@@ -34,19 +35,21 @@ class MapDataParserRoidmi(MapDataParser):
         map_data.path = MapDataParserRoidmi.parse_path(map_info)
         map_data.vacuum_position = MapDataParserRoidmi.parse_vacuum_position(map_info)
         map_data.charger = MapDataParserRoidmi.parse_charger_position(map_info)
-        map_data.no_go_areas, map_data.no_mopping_areas = MapDataParserRoidmi.parse_areas(map_info)
-        if map_data.path is not None:
-            ImageHandlerRoidmi.draw_path(map_data.image, map_data.path, colors, scale)
-        if map_data.charger is not None:
-            ImageHandlerRoidmi.draw_charger(map_data.image, map_data.charger, sizes, colors)
-        if map_data.vacuum_position is not None:
-            ImageHandlerRoidmi.draw_vacuum_position(map_data.image, map_data.vacuum_position, sizes, colors)
-        if map_data.no_go_areas is not None:
-            ImageHandlerRoidmi.draw_no_go_areas(map_data.image, map_data.no_go_areas, colors)
-        if map_data.no_mopping_areas is not None:
-            ImageHandlerRoidmi.draw_no_mopping_areas(map_data.image, map_data.no_mopping_areas, colors)
-        ImageHandlerRoidmi.draw_texts(map_data.image, texts)
+        map_data.no_go_areas, map_data.no_mopping_areas, map_data.walls = MapDataParserRoidmi.parse_areas(map_info)
+        if not map_data.image.is_empty:
+            MapDataParserRoidmi.draw_elements(colors, drawables, sizes, map_data, image_config)
+            # if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
+            #     map_data.vacuum_room = MapDataParserRoidmi.get_current_vacuum_room(buf, map_data.vacuum_position)
+            #     if map_data.vacuum_room is not None:
+            #         map_data.vacuum_room_name = map_data.rooms[map_data.vacuum_room].name
+            ImageHandlerRoidmi.rotate(map_data.image)
+            ImageHandlerRoidmi.draw_texts(map_data.image, texts)
+
         return map_data
+
+    @staticmethod
+    def get_current_vacuum_room(map_image: bytes, map_data: MapData, scale: float):
+        point = map_data.vacuum_position.to_img(map_data.image.dimensions) / scale
 
     @staticmethod
     def map_to_image(p: Point, resolution, min_x, min_y) -> Point:
@@ -117,9 +120,10 @@ class MapDataParserRoidmi(MapDataParser):
         return rooms
 
     @staticmethod
-    def parse_areas(map_info: dict) -> Tuple[List[Area], List[Area]]:
+    def parse_areas(map_info: dict) -> Tuple[List[Area], List[Area], List[Wall]]:
         no_go_areas = []
         no_mopping_areas = []
+        walls = []
         if "area" in map_info:
             areas = map_info["area"]
             for area in areas:
@@ -136,4 +140,15 @@ class MapDataParserRoidmi(MapDataParser):
                     no_area = Area(x0, y0, x1, y1, x2, y2, x3, y3)
                     if "forbidType" in area and area["forbidType"] == "mop":
                         no_mopping_areas.append(no_area)
-        return no_go_areas, no_mopping_areas
+                    if "forbidType" in area and area["forbidType"] == "all":
+                        no_go_areas.append(no_area)
+                if "active" in area and area["active"] == "forbid" and "vertexs" in area and len(area["vertexs"]) == 2:
+                    vertexs = area["vertexs"]
+                    x0 = vertexs[0][0]
+                    y0 = vertexs[0][1]
+                    x1 = vertexs[1][0]
+                    y1 = vertexs[1][1]
+                    wall = Wall(x0, y0, x1, y1)
+                    if "forbidType" in area and area["forbidType"] == "all":
+                        walls.append(wall)
+        return no_go_areas, no_mopping_areas, walls

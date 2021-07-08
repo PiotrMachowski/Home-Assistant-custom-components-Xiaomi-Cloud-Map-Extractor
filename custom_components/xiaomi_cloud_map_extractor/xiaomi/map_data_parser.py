@@ -103,8 +103,8 @@ class MapDataParserXiaomi(MapDataParser):
         return map_data
 
     @staticmethod
-    def map_to_image(x):
-        return x / MM
+    def map_to_image(p: Point):
+        return Point(p.x / MM, p.y / MM)
 
     @staticmethod
     def image_to_map(x):
@@ -120,9 +120,8 @@ class MapDataParserXiaomi(MapDataParser):
         image_top = MapDataParserXiaomi.get_int32(header, block_header_length - 16)
         image_left = MapDataParserXiaomi.get_int32(header, block_header_length - 12)
         image_width = MapDataParserXiaomi.get_int32(header, block_header_length - 4)
-        x = round(MapDataParserXiaomi.map_to_image(vacuum_position.x) - image_left)
-        y = round(MapDataParserXiaomi.map_to_image(vacuum_position.y) - image_top)
-        room = ImageHandlerXiaomi.get_room_at_pixel(data, image_width, x, y)
+        p = MapDataParserXiaomi.map_to_image(vacuum_position)
+        room = ImageHandlerXiaomi.get_room_at_pixel(data, image_width, round(p.x - image_left), round(p.y - image_top))
         return room
 
     @staticmethod

@@ -101,9 +101,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             vol.Optional(CONF_SIZE_CHARGER_RADIUS,
                          default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]): POSITIVE_FLOAT_SCHEMA
         }),
-        vol.Optional(CONF_STORE_MAP, default=False): cv.boolean,
+        vol.Optional(CONF_STORE_MAP_RAW, default=False): cv.boolean,
         vol.Optional(CONF_STORE_MAP_IMAGE, default=False): cv.boolean,
-        vol.Optional(CONF_STORE_MAP_IMAGE_PATH, default="/tmp"): cv.string,
+        vol.Optional(CONF_STORE_MAP_PATH, default="/tmp"): cv.string,
         vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
@@ -129,19 +129,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if DRAWABLE_ALL in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
-    store_map = config[CONF_STORE_MAP]
+    store_map_raw = config[CONF_STORE_MAP_RAW]
     store_map_image = config[CONF_STORE_MAP_IMAGE]
-    store_map_image_path = config[CONF_STORE_MAP_IMAGE_PATH]
+    store_map_path = config[CONF_STORE_MAP_PATH]
     force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map,
-                                     store_map_image, store_map_image_path, force_api)])
+                                     image_config, colors, drawables, sizes, texts, attributes, store_map_raw,
+                                     store_map_image, store_map_path, force_api)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map, store_map_image, store_map_image_path, force_api):
+                 drawables, sizes, texts, attributes, store_map_raw, store_map_image, store_map_path, force_api):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -157,9 +157,9 @@ class VacuumCamera(Camera):
         self._sizes = sizes
         self._texts = texts
         self._attributes = attributes
-        self._store_map = store_map
+        self._store_map_raw = store_map_raw
         self._store_map_image = store_map_image
-        self._store_map_image_path = store_map_image_path
+        self._store_map_path = store_map_path
         self._forced_api = force_api
         self._used_api = None
         self._map_saved = None
@@ -232,7 +232,7 @@ class VacuumCamera(Camera):
             }.items():
                 if name in self._attributes:
                     attributes[name] = value
-        if self._store_map:
+        if self._store_map_raw:
             attributes[ATTRIBUTE_MAP_SAVED] = self._map_saved
         if self._device is not None:
             attributes[ATTR_MODEL] = self._device.model
@@ -261,8 +261,7 @@ class VacuumCamera(Camera):
                     _LOGGER.error("Unable to log in, check credentials")
         if self._device is None and self._logged_in:
             _LOGGER.debug("Retrieving device info, country: %s", self._country)
-            country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.ip, self._vacuum.token,
-                                                                                    self._country)
+            country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.token, self._country)
             if model is not None:
                 self._country = country
                 _LOGGER.debug("Retrieved device model: %s", model)
@@ -294,8 +293,9 @@ class VacuumCamera(Camera):
         self._received_map_name_previously = map_name != "retry"
         if self._logged_in and map_name != "retry" and self._device is not None:
             _LOGGER.debug("Retrieving map from Xiaomi cloud")
+            store_map_path = self._store_map_path if self._store_map_raw else None
             map_data, map_stored = self._device.get_map(map_name, self._colors, self._drawables, self._texts,
-                                                        self._sizes, self._image_config, self._store_map)
+                                                        self._sizes, self._image_config, store_map_path)
             if map_data is not None:
                 # noinspection PyBroadException
                 try:
@@ -358,7 +358,7 @@ class VacuumCamera(Camera):
         if self._store_map_image:
             try:
                 image = Image.open(io.BytesIO(self._image))
-                image.save(f"{self._store_map_image_path}/image_{self._device.model}.png")
+                image.save(f"{self._store_map_path}/map_image_{self._device.model}.png")
             except:
                 _LOGGER.warning("Error while saving image")
 

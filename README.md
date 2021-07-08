@@ -200,7 +200,9 @@ camera:
     scan_interval:
       seconds: 10
     auto_update: true
-    store_map: false
+    store_map_raw: false
+    store_map_image: true
+    store_map_path: "/tmp"
     force_api: xiaomi
 ```
 </details>
@@ -225,9 +227,9 @@ camera:
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 | `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. ([see below](#updates)) |
-| `store_map` | boolean | false | default: `false` | Enables storing raw map data in `/tmp` directory ([more info](#retrieving-map)). It can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
-| `store_map_image` | boolean | false | default: `false` | Enables storing map image in `store_map_path` path with name `image_device_name.png` | 
-| `store_map_path` | string | false | default: `/tmp` | Storing map image directory | 
+| `store_map_raw` | boolean | false | default: `false` | Enables storing raw map data in `store_map_path` directory ([more info](#retrieving-map)). Xiaomi map can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
+| `store_map_image` | boolean | false | default: `false` | Enables storing map image in `store_map_path` path with name `map_image_<device_model>.png` | 
+| `store_map_path` | string | false | default: `/tmp` | Storing map data directory | 
 | `force_api` | string | false | One of: `xiaomi`, `viomi` | Forces usage of specific API. | 
 
 #### Colors configuration
@@ -392,6 +394,9 @@ This integration was tested on following vacuums:
    - `viomi.vacuum.v7` (Mi Robot Vacuum-Mop Pro)
    - `viomi.vacuum.v8` (Mi Robot Vacuum-Mop Pro)
    - `viomi.vacuum.v13` (Viomi V3)
+   - `viomi.vacuum.v18` (Viomi S9)
+ - Roidmi:
+   - `roidmi.vacuum.v60` (Roidmi EVE Plus)
  
 ## Unsupported devices
 
@@ -403,12 +408,12 @@ At this moment this integration is known to not work with following vacuums:
 
 ## Retrieving map
 
-When `store_map: true` is added to your config this integration will store a raw map file in `/tmp` directory.
+When `store_map_raw: true` is added to your config this integration will store a raw map file in `/tmp` directory.
 If you don't use Core installation ([installation types](https://www.home-assistant.io/installation/#compare-installation-methods)) you can retrieve this file in the following way:
 - In [SSH & Terminal add-on](https://github.com/hassio-addons/addon-ssh) enable protected access
 - Open terminal and use the following command to copy file: 
   ```
-  docker exec homeassistant bash -c "mkdir -p /config/tmp/ && cp /tmp/map_data* /config/tmp/"
+  docker exec homeassistant bash -c "mkdir -p /config/tmp/ && cp /tmp/map_* /config/tmp/"
   ```
 - Map file will appear in `tmp` folder in your `config` folder
 

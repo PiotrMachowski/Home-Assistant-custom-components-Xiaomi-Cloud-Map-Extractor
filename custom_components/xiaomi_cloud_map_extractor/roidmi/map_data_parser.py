@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
     Wall
@@ -38,18 +38,19 @@ class MapDataParserRoidmi(MapDataParser):
         map_data.no_go_areas, map_data.no_mopping_areas, map_data.walls = MapDataParserRoidmi.parse_areas(map_info)
         if not map_data.image.is_empty:
             MapDataParserRoidmi.draw_elements(colors, drawables, sizes, map_data, image_config)
-            # if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
-            #     map_data.vacuum_room = MapDataParserRoidmi.get_current_vacuum_room(buf, map_data.vacuum_position)
-            #     if map_data.vacuum_room is not None:
-            #         map_data.vacuum_room_name = map_data.rooms[map_data.vacuum_room].name
+            if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
+                map_data.vacuum_room = MapDataParserRoidmi.get_current_vacuum_room(map_image, map_data)
+                if map_data.vacuum_room is not None:
+                    map_data.vacuum_room_name = map_data.rooms[map_data.vacuum_room].name
             ImageHandlerRoidmi.rotate(map_data.image)
             ImageHandlerRoidmi.draw_texts(map_data.image, texts)
 
         return map_data
 
     @staticmethod
-    def get_current_vacuum_room(map_image: bytes, map_data: MapData, scale: float):
-        point = map_data.vacuum_position.to_img(map_data.image.dimensions) / scale
+    def get_current_vacuum_room(map_image: bytes, map_data: MapData) -> Optional[int]:
+        point = map_data.vacuum_position.to_img(map_data.image.dimensions)
+        return None
 
     @staticmethod
     def map_to_image(p: Point, resolution, min_x, min_y) -> Point:

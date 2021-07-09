@@ -186,7 +186,7 @@ class MapDataParserViomi(MapDataParser):
     @staticmethod
     def get_current_vacuum_room(buf: ParsingBuffer, vacuum_position: Point) -> Optional[int]:
         vacuum_position_on_image = MapDataParserViomi.map_to_image(vacuum_position)
-        pixel_type = buf.get_at_image(vacuum_position_on_image.y * 800 + vacuum_position_on_image.x)
+        pixel_type = buf.get_at_image(int(vacuum_position_on_image.y) * 800 + int(vacuum_position_on_image.x))
         if ImageHandlerViomi.MAP_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_ROOM_MAX:
             return pixel_type
         elif ImageHandlerViomi.MAP_SELECTED_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_SELECTED_ROOM_MAX:

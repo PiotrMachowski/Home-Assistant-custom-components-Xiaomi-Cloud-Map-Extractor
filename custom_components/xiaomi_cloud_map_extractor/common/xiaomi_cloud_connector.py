@@ -127,7 +127,7 @@ class XiaomiCloudConnector:
                 return response.content
         return None
 
-    def get_device_details(self, ip_address, token, country):
+    def get_device_details(self, token, country):
         countries_to_check = CONF_AVAILABLE_COUNTRIES
         if country is not None:
             countries_to_check = [country]
@@ -135,9 +135,8 @@ class XiaomiCloudConnector:
             devices = self.get_devices(country)
             if devices is None:
                 continue
-            found = list(filter(
-                lambda d: d["localip"] == ip_address and d["token"] == token,
-                devices["result"]["list"]))
+            found = list(filter(lambda d: str(d["token"]).casefold() == str(token).casefold(),
+                                devices["result"]["list"]))
             if len(found) > 0:
                 user_id = found[0]["uid"]
                 device_id = found[0]["did"]

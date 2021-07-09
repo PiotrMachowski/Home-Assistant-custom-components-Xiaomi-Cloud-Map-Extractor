@@ -112,6 +112,7 @@ camera:
       color_no_mop_zones_outline: [163, 130, 211]
       color_charger: [0x66, 0xfe, 0xda, 0x7f]
       color_robo: [75, 235, 149]
+      color_room_names: [0, 0, 0]
       color_unknown: [0, 0, 0]
       color_scan: [0xDF, 0xDF, 0xDF]
     room_colors:
@@ -133,16 +134,17 @@ camera:
       16: [165, 105, 18]
     draw:
       - charger
-      - path
-      - goto_path
       - cleaned_area
-      - obstacles
+      - goto_path
       - ignored_obstacles
-      - obstacles_with_photo
       - ignored_obstacles_with_photo
-      - predicted_path
       - no_go_zones
       - no_mopping_zones
+      - obstacles
+      - obstacles_with_photo
+      - path
+      - predicted_path
+      - room_names
       - vacuum_position
       - virtual_walls
       - zones
@@ -200,7 +202,9 @@ camera:
     scan_interval:
       seconds: 10
     auto_update: true
-    store_map: false
+    store_map_raw: false
+    store_map_image: true
+    store_map_path: "/tmp"
     force_api: xiaomi
 ```
 </details>
@@ -225,7 +229,9 @@ camera:
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 | `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. ([see below](#updates)) |
-| `store_map` | boolean | false | default: `false` | Enables storing raw map data in `/tmp` directory ([more info](#retrieving-map)). It can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
+| `store_map_raw` | boolean | false | default: `false` | Enables storing raw map data in `store_map_path` directory ([more info](#retrieving-map)). Xiaomi map can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
+| `store_map_image` | boolean | false | default: `false` | Enables storing map image in `store_map_path` path with name `map_image_<device_model>.png` | 
+| `store_map_path` | string | false | default: `/tmp` | Storing map data directory | 
 | `force_api` | string | false | One of: `xiaomi`, `viomi` | Forces usage of specific API. | 
 
 #### Colors configuration
@@ -237,31 +243,32 @@ camera:
    
   | Color name | Description |
   | --- | --- |
+  | `color_charger` | Charger position |
+  | `color_cleaned_area` | Fill of area that already has been cleaned (Viomi) |
+  | `color_goto_path` | Path for goto mode |
+  | `color_grey_wall` | Obstacles (e.g. chairs, table legs) |
+  | `color_ignored_obstacle_with_photo` | Ignored obstacle with photo mark on a map |
+  | `color_ignored_obstacle` | Ignored obstacle mark on a map |
   | `color_map_inside` | Map inside (for software without rooms support) |
   | `color_map_outside` | Map outside |
-  | `color_map_wall` | Walls (for software without rooms support) |
   | `color_map_wall_v2` | Walls (for software with rooms support) |
-  | `color_grey_wall` | Obstacles (e.g. chairs, table legs) |
-  | `color_path` | Path of a vacuum |
-  | `color_goto_path` | Path for goto mode |
-  | `color_predicted_path` | Predicted path to a point in goto mode |
-  | `color_cleaned_area` | Fill of area that already has been cleaned (Viomi) |
-  | `color_zones` | Fill of areas selected for zoned cleaning |
-  | `color_zones_outline` | Outline of areas selected for zoned cleaning |
-  | `color_virtual_walls` | Virtual walls |
+  | `color_map_wall` | Walls (for software without rooms support) |
   | `color_new_discovered_area` | Newly discovered areas (Viomi) |
-  | `color_no_go_zones` | Fill of no-go zones |
   | `color_no_go_zones_outline` | Outline of no-go zones |
-  | `color_no_mop_zones` | Fill of no-mopping zones |
+  | `color_no_go_zones` | Fill of no-go zones |
   | `color_no_mop_zones_outline` | Outline of no-mopping zones |
-  | `color_obstacle` | Obstacle mark on a map |
-  | `color_ignored_obstacle` | Ignored obstacle mark on a map |
+  | `color_no_mop_zones` | Fill of no-mopping zones |
   | `color_obstacle_with_photo` | Obstacle with photo mark on a map |
-  | `color_ignored_obstacle_with_photo` | Ignored obstacle with photo mark on a map |
-  | `color_charger` | Charger position |
+  | `color_obstacle` | Obstacle mark on a map |
+  | `color_path` | Path of a vacuum |
+  | `color_predicted_path` | Predicted path to a point in goto mode |
   | `color_robo` | Vacuum position |
+  | `color_room_names` | Room names (if available) |
   | `color_scan` | Areas not assigned to any room (for software with rooms support) |
   | `color_unknown` | Other areas |
+  | `color_virtual_walls` | Virtual walls |
+  | `color_zones_outline` | Outline of areas selected for zoned cleaning |
+  | `color_zones` | Fill of areas selected for zoned cleaning |
 
 #### Room colors configuration
 
@@ -277,16 +284,17 @@ camera:
   ```
   Available values:
   - `charger`
-  - `path`
-  - `goto_path`
-  - `predicted_path`
   - `cleaned_area`
+  - `goto_path`
+  - `ignored_obstacles_with_photo`
+  - `ignored_obstacles`
   - `no_go_zones`
   - `no_mopping_zones`
-  - `obstacles`
-  - `ignored_obstacles`
   - `obstacles_with_photo`
-  - `ignored_obstacles_with_photo`
+  - `obstacles`
+  - `path`
+  - `predicted_path`
+  - `room_names`
   - `vacuum_position`
   - `virtual_walls`
   - `zones`
@@ -336,24 +344,24 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `charger`
   - `cleaned_rooms`
   - `country`
-  - `goto`
   - `goto_path`
   - `goto_predicted_path`
+  - `goto`
+  - `ignored_obstacles_with_photo`
+  - `ignored_obstacles`
   - `image`
   - `is_empty`
   - `map_name`
   - `no_go_areas`
   - `no_mopping_areas`
-  - `obstacles`
-  - `ignored_obstacles`
   - `obstacles_with_photo`
-  - `ignored_obstacles_with_photo`
+  - `obstacles`
   - `path`
   - `room_numbers`
   - `rooms`
   - `vacuum_position`
-  - `vacuum_room`
   - `vacuum_room_name`
+  - `vacuum_room`
   - `walls`
   - `zones`
 
@@ -390,23 +398,23 @@ This integration was tested on following vacuums:
    - `viomi.vacuum.v7` (Mi Robot Vacuum-Mop Pro)
    - `viomi.vacuum.v8` (Mi Robot Vacuum-Mop Pro)
    - `viomi.vacuum.v13` (Viomi V3)
+   - `viomi.vacuum.v18` (Viomi S9)
+ - Roidmi:
+   - `roidmi.vacuum.v60` (Roidmi EVE Plus)
  
 ## Unsupported devices
 
 At this moment this integration is known to not work with following vacuums:
  - Dreame ([#126](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/126)):
-   - `dreame.vacuum.p2008` (Dreame F9)
- - Roidmi ([#127](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/127)):
-   - `roidmi.vacuum.v60` (Roidmi EVE Plus)
 
 ## Retrieving map
 
-When `store_map: true` is added to your config this integration will store a raw map file in `/tmp` directory.
+When `store_map_raw: true` is added to your config this integration will store a raw map file in `/tmp` directory.
 If you don't use Core installation ([installation types](https://www.home-assistant.io/installation/#compare-installation-methods)) you can retrieve this file in the following way:
 - In [SSH & Terminal add-on](https://github.com/hassio-addons/addon-ssh) enable protected access
 - Open terminal and use the following command to copy file: 
   ```
-  docker exec homeassistant bash -c "mkdir -p /config/tmp/ && cp /tmp/map_data* /config/tmp/"
+  docker exec homeassistant bash -c "mkdir -p /config/tmp/ && cp /tmp/map_* /config/tmp/"
   ```
 - Map file will appear in `tmp` folder in your `config` folder
 

@@ -31,6 +31,7 @@ class ImageHandler:
         COLOR_NO_MOPPING_ZONES_OUTLINE: (163, 130, 211),
         COLOR_CHARGER: (0x66, 0xfe, 0xda, 0x7f),
         COLOR_ROBO: (75, 235, 149),
+        COLOR_ROOM_NAMES: (0, 0, 0),
         COLOR_OBSTACLE: (0, 0, 0, 128),
         COLOR_IGNORED_OBSTACLE: (0, 0, 0, 128),
         COLOR_OBSTACLE_WITH_PHOTO: (0, 0, 0, 128),
@@ -149,6 +150,15 @@ class ImageHandler:
         color = ImageHandler.__get_color__(COLOR_ROBO, colors)
         radius = sizes[CONF_SIZE_VACUUM_RADIUS]
         ImageHandler.__draw_circle__(image, vacuum_position, radius, color, color)
+
+    @staticmethod
+    def draw_room_names(image: ImageData, rooms, colors):
+        color = ImageHandler.__get_color__(COLOR_ROOM_NAMES, colors)
+        for room in rooms.values():
+            p = room.point()
+            if p is not None:
+                point = p.to_img(image.dimensions)
+                ImageHandler.__draw_text__(image, room.name, point.x, point.y, color)
 
     @staticmethod
     def rotate(image: ImageData):

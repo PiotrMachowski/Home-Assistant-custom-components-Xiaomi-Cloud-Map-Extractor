@@ -52,6 +52,12 @@ class Point:
             alpha = alpha - 90
         return Point(x, y)
 
+    def __mul__(self, other):
+        return Point(self.x * other, self.y * other, self.a)
+
+    def __truediv__(self, other):
+        return Point(self.x / other, self.y / other, self.a)
+
 
 class Obstacle(Point):
     def __init__(self, x, y, details):
@@ -76,9 +82,8 @@ class ImageDimensions:
         self.img_transformation = img_transformation
 
     def to_img(self, point: Point):
-        x = self.img_transformation(point.x) - self.left
-        y = self.height - (self.img_transformation(point.y) - self.top) - 1
-        return Point(x * self.scale, y * self.scale)
+        p = self.img_transformation(point)
+        return Point((p.x - self.left) * self.scale, (self.height - (p.y - self.top) - 1) * self.scale)
 
 
 class ImageData:
@@ -127,7 +132,7 @@ class ImageData:
             CONF_SCALE: 1,
             CONF_ROTATE: 0
         }
-        return ImageData(0, 0, 0, 0, 0, image_config, data, lambda x: x)
+        return ImageData(0, 0, 0, 0, 0, image_config, data, lambda p: p)
 
 
 class Path:
@@ -169,22 +174,30 @@ class Zone:
 
 
 class Room(Zone):
-    def __init__(self, number, x0, y0, x1, y1, name=None):
+    def __init__(self, number, x0, y0, x1, y1, name=None, pos_x=None, pos_y=None):
         super().__init__(x0, y0, x1, y1)
         self.number = number
         self.name = name
+        self.pos_x = pos_x
+        self.pos_y = pos_y
 
     def as_dict(self):
+        super_dict = {**super(Room, self).as_dict()}
         if self.name is not None:
-            return {
-                **super(Room, self).as_dict(),
-                "name": self.name
-            }
-        return super(Room, self).as_dict()
+            super_dict[ATTR_NAME] = self.name
+        if self.pos_x is not None:
+            super_dict[ATTR_X] = self.pos_x
+        if self.name is not None:
+            super_dict[ATTR_Y] = self.pos_y
+        return super_dict
 
     def __str__(self):
         return f"[number: {self.number}, name: {self.name}, {self.x0}, {self.y0}, {self.x1}, {self.y1}]"
 
+    def point(self) -> Optional[Point]:
+        if self.pos_x is not None and self.pos_y is not None and self.name is not None:
+            return Point(self.pos_x, self.pos_y)
+        return None
 
 class Wall:
     def __init__(self, x0, y0, x1, y1):

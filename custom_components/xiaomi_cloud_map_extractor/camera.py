@@ -5,6 +5,7 @@ from datetime import timedelta
 from enum import Enum
 
 import miio
+import PIL.Image as Image
 import voluptuous as vol
 from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA, SUPPORT_ON_OFF
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
@@ -100,7 +101,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             vol.Optional(CONF_SIZE_CHARGER_RADIUS,
                          default=DEFAULT_SIZES[CONF_SIZE_CHARGER_RADIUS]): POSITIVE_FLOAT_SCHEMA
         }),
-        vol.Optional(CONF_STORE_MAP, default=False): cv.boolean,
+        vol.Optional(CONF_STORE_MAP_RAW, default=False): cv.boolean,
+        vol.Optional(CONF_STORE_MAP_IMAGE, default=False): cv.boolean,
+        vol.Optional(CONF_STORE_MAP_PATH, default="/tmp"): cv.string,
         vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
@@ -126,16 +129,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if DRAWABLE_ALL in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
-    store_map = config[CONF_STORE_MAP]
+    store_map_raw = config[CONF_STORE_MAP_RAW]
+    store_map_image = config[CONF_STORE_MAP_IMAGE]
+    store_map_path = config[CONF_STORE_MAP_PATH]
     force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map, force_api)])
+                                     image_config, colors, drawables, sizes, texts, attributes, store_map_raw,
+                                     store_map_image, store_map_path, force_api)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map, force_api):
+                 drawables, sizes, texts, attributes, store_map_raw, store_map_image, store_map_path, force_api):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -151,7 +157,9 @@ class VacuumCamera(Camera):
         self._sizes = sizes
         self._texts = texts
         self._attributes = attributes
-        self._store_map = store_map
+        self._store_map_raw = store_map_raw
+        self._store_map_image = store_map_image
+        self._store_map_path = store_map_path
         self._forced_api = force_api
         self._used_api = None
         self._map_saved = None
@@ -224,7 +232,7 @@ class VacuumCamera(Camera):
             }.items():
                 if name in self._attributes:
                     attributes[name] = value
-        if self._store_map:
+        if self._store_map_raw:
             attributes[ATTRIBUTE_MAP_SAVED] = self._map_saved
         if self._device is not None:
             attributes[ATTR_MODEL] = self._device.model
@@ -238,28 +246,58 @@ class VacuumCamera(Camera):
     def update(self):
         counter = 10
         if self._status != CameraStatus.TWO_FACTOR_AUTH_REQUIRED and not self._logged_in:
-            self._logged_in = self._connector.login()
-            if self._logged_in is None:
-                self._status = CameraStatus.TWO_FACTOR_AUTH_REQUIRED
-            elif self._logged_in:
-                self._status = CameraStatus.OK
-            else:
-                self._status = CameraStatus.FAILED_LOGIN
-                if self._logged_in_previously:
-                    _LOGGER.error("Unable to log in, check credentials")
+            self._handle_login()
         if self._device is None and self._logged_in:
-            self._country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.ip,
-                                                                                          self._vacuum.token,
-                                                                                          self._country)
-            if self._country is not None:
-                self._device = self._create_device(user_id, device_id, model)
+            self._handle_device()
+        map_name = self._handle_map_name(counter)
+        if map_name == "retry" and self._device is not None:
+            self._status = CameraStatus.FAILED_TO_RETRIEVE_MAP_FROM_VACUUM
+        self._received_map_name_previously = map_name != "retry"
+        if self._logged_in and map_name != "retry" and self._device is not None:
+            self._handle_map_data(map_name)
+        else:
+            _LOGGER.debug("Unable to retrieve map, reasons: Logged in - %s, map name - %s, device retrieved - %s",
+                          self._logged_in, map_name, self._device is not None)
+            self._set_map_data(MapDataParser.create_empty(self._colors, str(self._status)))
+        self._logged_in_previously = self._logged_in
+
+    def _handle_login(self):
+        _LOGGER.debug("Logging in...")
+        self._logged_in = self._connector.login()
+        if self._logged_in is None:
+            _LOGGER.debug("2FA required")
+            self._status = CameraStatus.TWO_FACTOR_AUTH_REQUIRED
+        elif self._logged_in:
+            _LOGGER.debug("Logged in")
+            self._status = CameraStatus.LOGGED_IN
+        else:
+            _LOGGER.debug("Failed to log in")
+            self._status = CameraStatus.FAILED_LOGIN
+            if self._logged_in_previously:
+                _LOGGER.error("Unable to log in, check credentials")
+
+    def _handle_device(self):
+        _LOGGER.debug("Retrieving device info, country: %s", self._country)
+        country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.token, self._country)
+        if model is not None:
+            self._country = country
+            _LOGGER.debug("Retrieved device model: %s", model)
+            self._device = self._create_device(user_id, device_id, model)
+            _LOGGER.debug("Created device, used api: %s", self._used_api)
+        else:
+            _LOGGER.error("Failed to retrieve model")
+            self._status = CameraStatus.FAILED_TO_RETRIEVE_DEVICE
+
+    def _handle_map_name(self, counter):
         map_name = "retry"
         if self._device is not None and not self._device.should_get_map_from_vacuum():
             map_name = "0"
         while map_name == "retry" and counter > 0:
+            _LOGGER.debug("Retrieving map name from device")
             time.sleep(0.1)
             try:
                 map_name = self._vacuum.map()[0]
+                _LOGGER.debug("Map name %s", map_name)
             except OSError as exc:
                 _LOGGER.error("Got OSError while fetching the state: %s", exc)
             except miio.DeviceException as exc:
@@ -268,41 +306,39 @@ class VacuumCamera(Camera):
                 self._received_map_name_previously = False
             finally:
                 counter = counter - 1
-        self._received_map_name_previously = map_name != "retry"
-        if self._logged_in and map_name != "retry" and self._country is not None:
-            map_data, map_stored = self._device.get_map(map_name, self._colors, self._drawables, self._texts,
-                                                        self._sizes, self._image_config, self._store_map)
-            if map_data is not None:
-                # noinspection PyBroadException
-                try:
-                    img_byte_arr = io.BytesIO()
-                    map_data.image.data.save(img_byte_arr, format='PNG')
-                    self._image = img_byte_arr.getvalue()
-                    self._map_data = map_data
-                    self._map_saved = map_stored
-                    if self._map_data.image.is_empty:
-                        self._status = CameraStatus.EMPTY_MAP
-                    else:
-                        self._status = CameraStatus.OK
-                except:
-                    _LOGGER.warning("Unable to parse map data")
-                    self._status = CameraStatus.UNABLE_TO_PARSE_MAP
-            else:
-                self._logged_in = False
-                _LOGGER.warning("Unable to retrieve map data")
-                self._status = CameraStatus.UNABLE_TO_RETRIEVE_MAP
-        else:
-            if map_name == "retry" and self._status == CameraStatus.OK:
-                self._status = CameraStatus.FAILED_TO_RETRIEVE_MAP_FROM_VACUUM
+        return map_name
 
-            self._set_map_data(MapDataParser.create_empty(self._colors, str(self._status)))
-        self._logged_in_previously = self._logged_in
+    def _handle_map_data(self, map_name):
+        _LOGGER.debug("Retrieving map from Xiaomi cloud")
+        store_map_path = self._store_map_path if self._store_map_raw else None
+        map_data, map_stored = self._device.get_map(map_name, self._colors, self._drawables, self._texts,
+                                                    self._sizes, self._image_config, store_map_path)
+        if map_data is not None:
+            # noinspection PyBroadException
+            try:
+                _LOGGER.debug("Map data retrieved")
+                self._set_map_data(map_data)
+                self._map_saved = map_stored
+                if self._map_data.image.is_empty:
+                    _LOGGER.debug("Map is empty")
+                    self._status = CameraStatus.EMPTY_MAP
+                else:
+                    _LOGGER.debug("Map is ok")
+                    self._status = CameraStatus.OK
+            except:
+                _LOGGER.warning("Unable to parse map data")
+                self._status = CameraStatus.UNABLE_TO_PARSE_MAP
+        else:
+            self._logged_in = False
+            _LOGGER.warning("Unable to retrieve map data")
+            self._status = CameraStatus.UNABLE_TO_RETRIEVE_MAP
 
     def _set_map_data(self, map_data):
         img_byte_arr = io.BytesIO()
         map_data.image.data.save(img_byte_arr, format='PNG')
         self._image = img_byte_arr.getvalue()
         self._map_data = map_data
+        self._store_image()
 
     def _create_device(self, user_id, device_id, model):
         self._used_api = self._detect_api(model)
@@ -330,14 +366,24 @@ class VacuumCamera(Camera):
             return filtered[0][0]
         return CONF_AVAILABLE_API_XIAOMI
 
+    def _store_image(self):
+        if self._store_map_image:
+            try:
+                image = Image.open(io.BytesIO(self._image))
+                image.save(f"{self._store_map_path}/map_image_{self._device.model}.png")
+            except:
+                _LOGGER.warning("Error while saving image")
+
 
 class CameraStatus(Enum):
     EMPTY_MAP = 'Empty map'
     FAILED_LOGIN = 'Failed to login'
+    FAILED_TO_RETRIEVE_DEVICE = 'Failed to retrieve device'
     FAILED_TO_RETRIEVE_MAP_FROM_VACUUM = 'Failed to retrieve map from vacuum'
     INITIALIZING = 'Initializing'
     NOT_LOGGED_IN = 'Not logged in'
     OK = 'OK'
+    LOGGED_IN = 'Logged in'
     TWO_FACTOR_AUTH_REQUIRED = 'Two factor auth required (see logs)'
     UNABLE_TO_PARSE_MAP = 'Unable to parse map'
     UNABLE_TO_RETRIEVE_MAP = 'Unable to retrieve map'

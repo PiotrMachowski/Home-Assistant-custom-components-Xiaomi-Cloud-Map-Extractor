@@ -232,7 +232,7 @@ camera:
 | `store_map_raw` | boolean | false | default: `false` | Enables storing raw map data in `store_map_path` directory ([more info](#retrieving-map)). Xiaomi map can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
 | `store_map_image` | boolean | false | default: `false` | Enables storing map image in `store_map_path` path with name `map_image_<device_model>.png` | 
 | `store_map_path` | string | false | default: `/tmp` | Storing map data directory | 
-| `force_api` | string | false | One of: `xiaomi`, `viomi` | Forces usage of specific API. | 
+| `force_api` | string | false | One of: `xiaomi`, `viomi`, `roidmi` | Forces usage of specific API. | 
 
 #### Colors configuration
 
@@ -383,8 +383,8 @@ If you want to disable map updates when a vacuum is not running you can use [thi
 ## Supported devices
 
 This integration was tested on following vacuums:
- - Xiaomi:
-   - `rockrobo.vacuum.v1` (Xiaomi Vacuum Gen 1,Mi Robot Vacuum, SDJQR01RR, SDJQR02RR)
+ - Xiaomi map format:
+   - `rockrobo.vacuum.v1` (Xiaomi Vacuum Gen 1, Mi Robot Vacuum, SDJQR01RR, SDJQR02RR)
    - `roborock.vacuum.m1s` (Xiaomi Mi Robot 1S)
    - `roborock.vacuum.s4` (Roborock S4)
    - `roborock.vacuum.s5` (Roborock S5)
@@ -393,14 +393,14 @@ This integration was tested on following vacuums:
    - `roborock.vacuum.a08` (Roborock S6 Pure)
    - `roborock.vacuum.a10` (Roborock S6 MaxV)
    - `roborock.vacuum.a15` (Roborock S7)
- - Viomi:
+ - Viomi map format:
    - `viomi.vacuum.v6` (Viomi Vacuum V2 Pro, Xiaomi Mijia STYJ02YM, Mi Robot Vacuum Mop Pro)
    - `viomi.vacuum.v7` (Mi Robot Vacuum-Mop Pro)
    - `viomi.vacuum.v8` (Mi Robot Vacuum-Mop Pro)
    - `viomi.vacuum.v13` (Viomi V3)
-   - `viomi.vacuum.v18` (Viomi S9)
- - Roidmi:
+ - Roidmi map format:
    - `roidmi.vacuum.v60` (Roidmi EVE Plus)
+   - `viomi.vacuum.v18` (Viomi S9)
  
 ## Unsupported devices
 

@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
     Wall
@@ -39,17 +39,19 @@ class MapDataParserRoidmi(MapDataParser):
         if not map_data.image.is_empty:
             MapDataParserRoidmi.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
-                map_data.vacuum_room = MapDataParserRoidmi.get_current_vacuum_room(map_image, map_data)
+                map_data.vacuum_room = MapDataParserRoidmi.get_current_vacuum_room(map_image, map_data, width)
                 if map_data.vacuum_room is not None:
                     map_data.vacuum_room_name = map_data.rooms[map_data.vacuum_room].name
             ImageHandlerRoidmi.rotate(map_data.image)
             ImageHandlerRoidmi.draw_texts(map_data.image, texts)
-
         return map_data
 
     @staticmethod
-    def get_current_vacuum_room(map_image: bytes, map_data: MapData) -> Optional[int]:
-        point = map_data.vacuum_position.to_img(map_data.image.dimensions)
+    def get_current_vacuum_room(map_image: bytes, map_data: MapData, original_width: int) -> Optional[int]:
+        p = map_data.image.dimensions.img_transformation(map_data.vacuum_position)
+        room_number = map_image[int(p.x) + int(p.y) * original_width]
+        if room_number in map_data.rooms:
+            return room_number
         return None
 
     @staticmethod

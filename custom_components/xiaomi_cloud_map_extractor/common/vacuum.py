@@ -38,7 +38,7 @@ class XiaomiCloudVacuum:
         return self._connector.get_raw_map_data(map_url)
 
     def decode_map(self, raw_map, colors, drawables, texts, sizes, image_config) -> Optional[MapData]:
-        return MapDataParser.create_empty(colors, "Vacuum not supported")
+        return MapDataParser.create_empty(colors, f"Vacuum\n{self.model}\nis not supported")
 
     @abstractmethod
     def get_map_url(self, map_name):

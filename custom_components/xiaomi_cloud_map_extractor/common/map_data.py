@@ -194,6 +194,10 @@ class Room(Zone):
     def __str__(self):
         return f"[number: {self.number}, name: {self.name}, {self.x0}, {self.y0}, {self.x1}, {self.y1}]"
 
+    def point(self) -> Optional[Point]:
+        if self.pos_x is not None and self.pos_y is not None and self.name is not None:
+            return Point(self.pos_x, self.pos_y)
+        return None
 
 class Wall:
     def __init__(self, x0, y0, x1, y1):

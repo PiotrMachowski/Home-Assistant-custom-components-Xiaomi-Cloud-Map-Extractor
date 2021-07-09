@@ -53,3 +53,5 @@ class MapDataParser:
                 ImageHandler.draw_zones(map_data.image, map_data.zones, colors)
             if DRAWABLE_CLEANED_AREA == drawable and DRAWABLE_CLEANED_AREA in map_data.image.additional_layers:
                 ImageHandler.draw_layer(map_data.image, drawable)
+            if DRAWABLE_ROOM_NAMES == drawable and map_data.rooms is not None:
+                ImageHandler.draw_room_names(map_data.image, map_data.rooms, colors)

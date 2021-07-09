@@ -117,8 +117,8 @@ class MapDataParserRoidmi(MapDataParser):
         for area in areas:
             id = area["id"]
             name = area["name"]
-            pos_x = area["pos"][0] if "pos" in map_info else None
-            pos_y = area["pos"][1] if "pos" in map_info else None
+            pos_x = area["pos"][0] if "pos" in area else None
+            pos_y = area["pos"][1] if "pos" in area else None
             rooms[id] = Room(id, None, None, None, None, name, pos_x, pos_y)
         return rooms
 

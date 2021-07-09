@@ -112,6 +112,7 @@ camera:
       color_no_mop_zones_outline: [163, 130, 211]
       color_charger: [0x66, 0xfe, 0xda, 0x7f]
       color_robo: [75, 235, 149]
+      color_room_names: [0, 0, 0]
       color_unknown: [0, 0, 0]
       color_scan: [0xDF, 0xDF, 0xDF]
     room_colors:
@@ -133,16 +134,17 @@ camera:
       16: [165, 105, 18]
     draw:
       - charger
-      - path
-      - goto_path
       - cleaned_area
-      - obstacles
+      - goto_path
       - ignored_obstacles
-      - obstacles_with_photo
       - ignored_obstacles_with_photo
-      - predicted_path
       - no_go_zones
       - no_mopping_zones
+      - obstacles
+      - obstacles_with_photo
+      - path
+      - predicted_path
+      - room_names
       - vacuum_position
       - virtual_walls
       - zones
@@ -241,31 +243,32 @@ camera:
    
   | Color name | Description |
   | --- | --- |
+  | `color_charger` | Charger position |
+  | `color_cleaned_area` | Fill of area that already has been cleaned (Viomi) |
+  | `color_goto_path` | Path for goto mode |
+  | `color_grey_wall` | Obstacles (e.g. chairs, table legs) |
+  | `color_ignored_obstacle_with_photo` | Ignored obstacle with photo mark on a map |
+  | `color_ignored_obstacle` | Ignored obstacle mark on a map |
   | `color_map_inside` | Map inside (for software without rooms support) |
   | `color_map_outside` | Map outside |
-  | `color_map_wall` | Walls (for software without rooms support) |
   | `color_map_wall_v2` | Walls (for software with rooms support) |
-  | `color_grey_wall` | Obstacles (e.g. chairs, table legs) |
-  | `color_path` | Path of a vacuum |
-  | `color_goto_path` | Path for goto mode |
-  | `color_predicted_path` | Predicted path to a point in goto mode |
-  | `color_cleaned_area` | Fill of area that already has been cleaned (Viomi) |
-  | `color_zones` | Fill of areas selected for zoned cleaning |
-  | `color_zones_outline` | Outline of areas selected for zoned cleaning |
-  | `color_virtual_walls` | Virtual walls |
+  | `color_map_wall` | Walls (for software without rooms support) |
   | `color_new_discovered_area` | Newly discovered areas (Viomi) |
-  | `color_no_go_zones` | Fill of no-go zones |
   | `color_no_go_zones_outline` | Outline of no-go zones |
-  | `color_no_mop_zones` | Fill of no-mopping zones |
+  | `color_no_go_zones` | Fill of no-go zones |
   | `color_no_mop_zones_outline` | Outline of no-mopping zones |
-  | `color_obstacle` | Obstacle mark on a map |
-  | `color_ignored_obstacle` | Ignored obstacle mark on a map |
+  | `color_no_mop_zones` | Fill of no-mopping zones |
   | `color_obstacle_with_photo` | Obstacle with photo mark on a map |
-  | `color_ignored_obstacle_with_photo` | Ignored obstacle with photo mark on a map |
-  | `color_charger` | Charger position |
+  | `color_obstacle` | Obstacle mark on a map |
+  | `color_path` | Path of a vacuum |
+  | `color_predicted_path` | Predicted path to a point in goto mode |
   | `color_robo` | Vacuum position |
+  | `color_room_names` | Room names (if available) |
   | `color_scan` | Areas not assigned to any room (for software with rooms support) |
   | `color_unknown` | Other areas |
+  | `color_virtual_walls` | Virtual walls |
+  | `color_zones_outline` | Outline of areas selected for zoned cleaning |
+  | `color_zones` | Fill of areas selected for zoned cleaning |
 
 #### Room colors configuration
 
@@ -281,16 +284,17 @@ camera:
   ```
   Available values:
   - `charger`
-  - `path`
-  - `goto_path`
-  - `predicted_path`
   - `cleaned_area`
+  - `goto_path`
+  - `ignored_obstacles_with_photo`
+  - `ignored_obstacles`
   - `no_go_zones`
   - `no_mopping_zones`
-  - `obstacles`
-  - `ignored_obstacles`
   - `obstacles_with_photo`
-  - `ignored_obstacles_with_photo`
+  - `obstacles`
+  - `path`
+  - `predicted_path`
+  - `room_names`
   - `vacuum_position`
   - `virtual_walls`
   - `zones`
@@ -340,24 +344,24 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `charger`
   - `cleaned_rooms`
   - `country`
-  - `goto`
   - `goto_path`
   - `goto_predicted_path`
+  - `goto`
+  - `ignored_obstacles_with_photo`
+  - `ignored_obstacles`
   - `image`
   - `is_empty`
   - `map_name`
   - `no_go_areas`
   - `no_mopping_areas`
-  - `obstacles`
-  - `ignored_obstacles`
   - `obstacles_with_photo`
-  - `ignored_obstacles_with_photo`
+  - `obstacles`
   - `path`
   - `room_numbers`
   - `rooms`
   - `vacuum_position`
-  - `vacuum_room`
   - `vacuum_room_name`
+  - `vacuum_room`
   - `walls`
   - `zones`
 
@@ -402,9 +406,6 @@ This integration was tested on following vacuums:
 
 At this moment this integration is known to not work with following vacuums:
  - Dreame ([#126](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/126)):
-   - `dreame.vacuum.p2008` (Dreame F9)
- - Roidmi ([#127](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/127)):
-   - `roidmi.vacuum.v60` (Roidmi EVE Plus)
 
 ## Retrieving map
 

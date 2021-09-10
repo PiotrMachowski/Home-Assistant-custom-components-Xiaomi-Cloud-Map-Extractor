@@ -418,6 +418,17 @@ If you don't use Core installation ([installation types](https://www.home-assist
   ```
 - Map file will appear in `tmp` folder in your `config` folder
 
+## Enabling debug logging
+
+To enable debug logging add following section to your `configuration.yaml`
+
+```yaml
+logger:
+  default: info
+  logs:
+    custom_components.xiaomi_cloud_map_extractor: debug
+```
+
 ## Special thanks
 
 This integration wouldn't exist without following projects:

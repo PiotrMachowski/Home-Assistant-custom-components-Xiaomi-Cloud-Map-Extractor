@@ -33,7 +33,7 @@ rm xiaomi_cloud_map_extractor.zip
 
 After installation of the custom component, it needs to be configured in `configuration.yaml` file.
 To do so, add a camera entry to your configuration with at least a [basic](#basic) or [recommended](#recommended) configuration.
-Vacuum token can be extracted by following [this guide](https://www.home-assistant.io/integrations/xiaomi_miio/#retrieving-the-access-token).
+Vacuum token can be extracted by following [this guide](https://www.home-assistant.io/integrations/xiaomi_miio/#retrieving-the-access-token) (ignore "not recommended" message, as it applies only to built-in Xiaomi Miio integration).
 You also need to enter your Xiaomi Cloud username and password.
 These are the credentials used for the Xiaomi Home app (_not ones from Roborock app_).
 

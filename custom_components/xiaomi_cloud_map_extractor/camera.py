@@ -21,6 +21,7 @@ from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVac
 from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
 from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
 
+
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=5)
@@ -145,7 +146,7 @@ class VacuumCamera(Camera):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
-        self._vacuum = miio.Vacuum(host, token)
+        self._vacuum = miio.RoborockVacuum(host, token)
         self._connector = XiaomiCloudConnector(username, password)
         self._status = CameraStatus.INITIALIZING
         self._device = None
@@ -195,7 +196,7 @@ class VacuumCamera(Camera):
         return SUPPORT_ON_OFF
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         attributes = {}
         if self._map_data is not None:
             rooms = []

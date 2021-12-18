@@ -2,11 +2,10 @@ import json
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
-    Wall
-from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
-from custom_components.xiaomi_cloud_map_extractor.const import *
-from custom_components.xiaomi_cloud_map_extractor.roidmi.image_handler import ImageHandlerRoidmi
+from ..common.map_data import Area, ImageData, MapData, Path, Point, Room, Wall
+from ..common.map_data_parser import MapDataParser
+from ..const import *
+from .image_handler import ImageHandlerRoidmi
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -1,0 +1,9 @@
+pre-commit
+homeassistant
+
+aiohttp
+voluptuous
+pillow
+pybase64
+python-miio
+requests

@@ -1,8 +1,8 @@
 import logging
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import *
-from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
-from custom_components.xiaomi_cloud_map_extractor.xiaomi.image_handler import ImageHandlerXiaomi
+from ..common.map_data import *
+from ..common.map_data_parser import MapDataParser
+from .image_handler import ImageHandlerXiaomi
 
 _LOGGER = logging.getLogger(__name__)
 

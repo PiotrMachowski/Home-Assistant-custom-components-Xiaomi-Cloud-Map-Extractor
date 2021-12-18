@@ -10,7 +10,7 @@ from typing import Optional
 
 import requests
 
-from custom_components.xiaomi_cloud_map_extractor.const import *
+from ..const import *
 
 _LOGGER = logging.getLogger(__name__)
 

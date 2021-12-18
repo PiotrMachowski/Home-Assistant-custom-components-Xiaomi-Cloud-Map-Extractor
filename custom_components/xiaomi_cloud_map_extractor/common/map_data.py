@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Set
 
 from PIL.Image import Image as ImageType
 
-from custom_components.xiaomi_cloud_map_extractor.const import *
+from ..const import *
 
 
 class Point:
@@ -65,7 +65,7 @@ class Obstacle(Point):
         self.details = details
 
     def as_dict(self):
-        return {**super(Obstacle, self).as_dict(), **self.details}
+        return {**super().as_dict(), **self.details}
 
     def __str__(self):
         return f"({self.x}, {self.y}, details = {self.details})"
@@ -182,7 +182,7 @@ class Room(Zone):
         self.pos_y = pos_y
 
     def as_dict(self):
-        super_dict = {**super(Room, self).as_dict()}
+        super_dict = {**super().as_dict()}
         if self.name is not None:
             super_dict[ATTR_NAME] = self.name
         if self.pos_x is not None:

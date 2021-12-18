@@ -4,8 +4,8 @@ from typing import Dict, Tuple
 from PIL import Image
 from PIL.Image import Image as ImageType
 
-from custom_components.xiaomi_cloud_map_extractor.common.image_handler import ImageHandler
-from custom_components.xiaomi_cloud_map_extractor.const import *
+from ..common.image_handler import ImageHandler
+from ..const import *
 
 _LOGGER = logging.getLogger(__name__)
 

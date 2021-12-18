@@ -1,8 +1,8 @@
 import gzip
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
-from custom_components.xiaomi_cloud_map_extractor.common.vacuum_v2 import XiaomiCloudVacuumV2
-from custom_components.xiaomi_cloud_map_extractor.roidmi.map_data_parser import MapDataParserRoidmi
+from ..common.map_data import MapData
+from ..common.vacuum_v2 import XiaomiCloudVacuumV2
+from .map_data_parser import MapDataParserRoidmi
 
 
 class RoidmiVacuum(XiaomiCloudVacuumV2):

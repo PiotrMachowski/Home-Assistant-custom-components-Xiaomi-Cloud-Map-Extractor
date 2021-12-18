@@ -2,11 +2,11 @@ import logging
 from struct import unpack_from
 from typing import Dict, List, Optional, Set, Tuple
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
-    Wall, Zone
-from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
-from custom_components.xiaomi_cloud_map_extractor.const import *
-from custom_components.xiaomi_cloud_map_extractor.viomi.image_handler import ImageHandlerViomi
+from ..common.map_data import (Area, ImageData, MapData, Path, Point, Room,
+                               Wall, Zone)
+from ..common.map_data_parser import MapDataParser
+from ..const import *
+from .image_handler import ImageHandlerViomi
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -1,10 +1,12 @@
-import logging
-import miio
-import time
 import io
+import logging
+import time
+
+import miio
+
+from .const import *
 from .xiaomi_cloud_connector import XiaomiCloudConnector
 from .xiaomi_cloud_vacuum import XiaomiCloudVacuum
-from .const import *
 
 # ********* CONFIGURATION *********
 
@@ -13,7 +15,7 @@ token = ""
 username = ""
 password = ""
 country = ""
-map_name = "0"  # if the vacuum_ip is empty, the map name query will be skipped (userful for Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM) / Viomi V2 Pro / etc.) and this value will be used
+map_name = "0"  # if the vacuum_ip is empty, the map name query will be skipped (useful for Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM) / Viomi V2 Pro / etc.) and this value will be used
 
 draw = [
     "charger",

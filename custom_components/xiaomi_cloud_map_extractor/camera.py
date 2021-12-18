@@ -3,24 +3,26 @@ import logging
 import time
 from datetime import timedelta
 from enum import Enum
+from typing import Optional
 
 import miio
 import PIL.Image as Image
 import voluptuous as vol
-from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA, SUPPORT_ON_OFF
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
+from homeassistant.components.camera import (
+    ENTITY_ID_FORMAT, PLATFORM_SCHEMA, SUPPORT_ON_OFF, Camera)
+from homeassistant.const import (CONF_HOST, CONF_NAME, CONF_PASSWORD,
+                                 CONF_TOKEN, CONF_USERNAME)
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.reload import async_setup_reload_service
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
-from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
-from custom_components.xiaomi_cloud_map_extractor.const import *
-from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
-from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
-from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
-from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
-
+from .common.map_data_parser import MapDataParser
+from .common.xiaomi_cloud_connector import XiaomiCloudConnector
+from .const import *
+from .dreame.vacuum import DreameVacuum
+from .roidmi.vacuum import RoidmiVacuum
+from .viomi.vacuum import ViomiVacuum
+from .xiaomi.vacuum import XiaomiVacuum
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -178,7 +180,7 @@ class VacuumCamera(Camera):
     def frame_interval(self):
         return 1
 
-    def camera_image(self):
+    def camera_image(self, width: Optional[int] = None, height: Optional[int] = None) -> Optional[bytes]:
         return self._image
 
     @property

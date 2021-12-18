@@ -67,7 +67,7 @@ camera:
     password: !secret xiaomi_cloud_password
     draw: ['all']
     attributes:
-      - calibration_points    
+      - calibration_points
 ```
 
 
@@ -229,18 +229,18 @@ camera:
 | `attributes` | list | false |  | List of desired entity attributes ([see below](#attributes-configuration)) |
 | `scan_interval` | interval | false | default: `5` seconds | Interval between map updates ([documentation](https://www.home-assistant.io/docs/configuration/platform_options/#scan-interval)) |
 | `auto_update` | boolean | false | default: `true` | Activation/deactivation of automatic map updates. ([see below](#updates)) |
-| `store_map_raw` | boolean | false | default: `false` | Enables storing raw map data in `store_map_path` directory ([more info](#retrieving-map)). Xiaomi map can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). | 
-| `store_map_image` | boolean | false | default: `false` | Enables storing map image in `store_map_path` path with name `map_image_<device_model>.png` | 
-| `store_map_path` | string | false | default: `/tmp` | Storing map data directory | 
-| `force_api` | string | false | One of: `xiaomi`, `viomi`, `roidmi` | Forces usage of specific API. | 
+| `store_map_raw` | boolean | false | default: `false` | Enables storing raw map data in `store_map_path` directory ([more info](#retrieving-map)). Xiaomi map can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). |
+| `store_map_image` | boolean | false | default: `false` | Enables storing map image in `store_map_path` path with name `map_image_<device_model>.png` |
+| `store_map_path` | string | false | default: `/tmp` | Storing map data directory |
+| `force_api` | string | false | One of: `xiaomi`, `viomi`, `roidmi` | Forces usage of specific API. |
 
 #### Colors configuration
 
   Each color is represented by a list of 3 or 4 parameters: `[red, green, blue]` or `[red, green, blue, alpha]`.
-  Each parameter is a number from a range 0-255 and can be also provided as a HEX value: [0x12, 0xAF, 0xC5] matches #12AFC5. 
-  
+  Each parameter is a number from a range 0-255 and can be also provided as a HEX value: [0x12, 0xAF, 0xC5] matches #12AFC5.
+
   <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_no_rooms_custom_colors.png" width=50%>
-   
+
   | Color name | Description |
   | --- | --- |
   | `color_charger` | Charger position |
@@ -274,7 +274,7 @@ camera:
 
   This section contains mapping between room numbers and colors.
   Each color is represented by a list of 3 or 4 parameters: `[red, green, blue]` or `[red, green, blue, alpha]`.
-  Each parameter is a number from a range 0-255 and can be also provided as a HEX value: [0x12, 0xAF, 0xC5] matches #12AFC5. 
+  Each parameter is a number from a range 0-255 and can be also provided as a HEX value: [0x12, 0xAF, 0xC5] matches #12AFC5.
 
 #### Draw configuration
 
@@ -401,7 +401,7 @@ This integration was tested on following vacuums:
  - Roidmi map format:
    - `roidmi.vacuum.v60` (Roidmi EVE Plus)
    - `viomi.vacuum.v18` (Viomi S9)
- 
+
 ## Unsupported devices
 
 At this moment this integration is known to not work with following vacuums:
@@ -412,7 +412,7 @@ At this moment this integration is known to not work with following vacuums:
 When `store_map_raw: true` is added to your config this integration will store a raw map file in `/tmp` directory.
 If you don't use Core installation ([installation types](https://www.home-assistant.io/installation/#compare-installation-methods)) you can retrieve this file in the following way:
 - In [SSH & Terminal add-on](https://github.com/hassio-addons/addon-ssh) enable protected access
-- Open terminal and use the following command to copy file: 
+- Open terminal and use the following command to copy file:
   ```
   docker exec homeassistant bash -c "mkdir -p /config/tmp/ && cp /tmp/map_* /config/tmp/"
   ```

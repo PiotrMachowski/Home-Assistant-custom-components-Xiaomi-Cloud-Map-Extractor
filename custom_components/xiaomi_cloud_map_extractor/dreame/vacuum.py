@@ -1,4 +1,4 @@
-from custom_components.xiaomi_cloud_map_extractor.common.vacuum_v2 import XiaomiCloudVacuumV2
+from ..common.vacuum_v2 import XiaomiCloudVacuumV2
 
 
 class DreameVacuum(XiaomiCloudVacuumV2):

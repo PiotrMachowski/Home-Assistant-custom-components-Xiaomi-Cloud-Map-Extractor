@@ -1,0 +1,27 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download repo
+        uses: actions/checkout@v1
+
+      - name: Zip xiaomi_cloud_map_extractor dir
+        run: |
+          cd /home/runner/work/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/custom_components/xiaomi_cloud_map_extractor
+          zip xiaomi_cloud_map_extractor.zip -r ./
+
+      - name: Upload zip to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /home/runner/work/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/custom_components/xiaomi_cloud_map_extractor/xiaomi_cloud_map_extractor.zip
+          asset_name: xiaomi_cloud_map_extractor.zip
+          tag: ${{ github.ref }}
+          overwrite: true

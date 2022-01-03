@@ -112,7 +112,7 @@ class MapDataParserRoidmi(MapDataParser):
         areas = []
         if "autoArea" in map_info:
             areas = map_info["autoArea"]
-        elif "autoAreaValue" in map_info:
+        elif "autoAreaValue" in map_info and map_info["autoAreaValue"] is not None:
             areas = map_info["autoAreaValue"]
         for area in areas:
             id = area["id"]

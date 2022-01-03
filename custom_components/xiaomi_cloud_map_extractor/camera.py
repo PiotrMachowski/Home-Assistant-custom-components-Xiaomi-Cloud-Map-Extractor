@@ -195,7 +195,7 @@ class VacuumCamera(Camera):
         return SUPPORT_ON_OFF
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes (self):
         attributes = {}
         if self._map_data is not None:
             rooms = []

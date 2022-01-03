@@ -13,7 +13,7 @@ token = ""
 username = ""
 password = ""
 country = ""
-map_name = "0"  # if the vacuum_ip is empty, the map name query will be skipped (userful for Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM) / Viomi V2 Pro / etc.) and this value will be used
+map_name = "0"  # if the vacuum_ip is empty, the map name query will be skipped (useful for Xiaomi Mi Robot Vacuum Mop Pro (STYJ02YM) / Viomi V2 Pro / etc.) and this value will be used
 
 draw = [
     "charger",

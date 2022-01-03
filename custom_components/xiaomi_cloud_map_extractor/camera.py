@@ -145,7 +145,7 @@ class VacuumCamera(Camera):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
-        self._vacuum = miio.Vacuum(host, token)
+        self._vacuum = miio.RoborockVacuum(host, token)
         self._connector = XiaomiCloudConnector(username, password)
         self._status = CameraStatus.INITIALIZING
         self._device = None
@@ -195,7 +195,7 @@ class VacuumCamera(Camera):
         return SUPPORT_ON_OFF
 
     @property
-    def extra_state_attributes (self):
+    def extra_state_attributes(self):
         attributes = {}
         if self._map_data is not None:
             rooms = []

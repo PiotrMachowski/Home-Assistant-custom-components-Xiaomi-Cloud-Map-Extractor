@@ -3,6 +3,7 @@ import logging
 import time
 from datetime import timedelta
 from enum import Enum
+from typing import Optional
 
 try:
     from miio import RoborockVacuum, DeviceException
@@ -180,7 +181,7 @@ class VacuumCamera(Camera):
     def frame_interval(self):
         return 1
 
-    def camera_image(self):
+    def camera_image(self, width: Optional[int] = None, height: Optional[int] = None) -> Optional[bytes]:
         return self._image
 
     @property

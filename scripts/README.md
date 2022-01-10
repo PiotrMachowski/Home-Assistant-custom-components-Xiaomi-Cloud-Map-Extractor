@@ -13,12 +13,12 @@ pip3 install pillow pybase64 python requests pycryptodome pyyaml
 
 Downloading map from Xiaomi cloud:
 ```bash
-python3 download --config camera.yaml
+python3 map_processor.py download --config camera.yaml
 ```
 
 Parsing already downloaded raw map file:
 ```bash
-python3 parse --config camera.yaml --map-file map_data.gz --api xiaomi
+python3 map_processor.py parse --config camera.yaml --map-file map_data.gz --api xiaomi
 ```
 
 Config file (passed with argument `--config`) should contain configuration of `xiaomi_cloud_map_extractor` camera.

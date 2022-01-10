@@ -2,11 +2,11 @@ import logging
 from struct import unpack_from
 from typing import Dict, List, Optional, Set, Tuple
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
+from ..common.map_data import Area, ImageData, MapData, Path, Point, Room, \
     Wall, Zone
-from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
-from custom_components.xiaomi_cloud_map_extractor.const import *
-from custom_components.xiaomi_cloud_map_extractor.viomi.image_handler import ImageHandlerViomi
+from ..common.map_data_parser import MapDataParser
+from ..const import *
+from .image_handler import ImageHandlerViomi
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -176,17 +176,14 @@ class MapDataParserViomi(MapDataParser):
         return map_data
 
     @staticmethod
-    def map_to_image(p: Point):
-        return Point(p.x * 20 + 400, p.y * 20 + 400)
-
-    @staticmethod
-    def image_to_map(x):
-        return (x - 400) / 20
+    def map_to_image(x):
+        return x * 20 + 400
 
     @staticmethod
     def get_current_vacuum_room(buf: ParsingBuffer, vacuum_position: Point) -> Optional[int]:
-        vacuum_position_on_image = MapDataParserViomi.map_to_image(vacuum_position)
-        pixel_type = buf.get_at_image(int(vacuum_position_on_image.y) * 800 + int(vacuum_position_on_image.x))
+        x = int(MapDataParserViomi.map_to_image(vacuum_position.x))
+        y = int(MapDataParserViomi.map_to_image(vacuum_position.y))
+        pixel_type = buf.get_at_image(y * 800 + x)
         if ImageHandlerViomi.MAP_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_ROOM_MAX:
             return pixel_type
         elif ImageHandlerViomi.MAP_SELECTED_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_SELECTED_ROOM_MAX:
@@ -221,13 +218,13 @@ class MapDataParserViomi(MapDataParser):
         _LOGGER.debug('img: number of rooms: %d, numbers: %s', len(rooms_raw), rooms_raw.keys())
         rooms = {}
         for number, room in rooms_raw.items():
-            rooms[number] = Room(number, MapDataParserViomi.image_to_map(room[0] + image_left),
-                                 MapDataParserViomi.image_to_map(room[1] + image_top),
-                                 MapDataParserViomi.image_to_map(room[2] + image_left),
-                                 MapDataParserViomi.image_to_map(room[3] + image_top))
+            rooms[number] = Room(number, (room[0] + image_left - 400) / 20,
+                                 (room[1] + image_top - 400) / 20,
+                                 (room[2] + image_left - 400) / 20,
+                                 (room[3] + image_top - 400) / 20)
         return ImageData(image_size, image_top, image_left, image_height, image_width, image_config,
                          image, MapDataParserViomi.map_to_image,
-                         additional_layers={DRAWABLE_CLEANED_AREA: cleaned_areas_layer}), rooms, cleaned_areas
+                         {DRAWABLE_CLEANED_AREA: cleaned_areas_layer}), rooms, cleaned_areas
 
     @staticmethod
     def parse_history(buf: ParsingBuffer) -> Path:
@@ -311,8 +308,7 @@ class MapDataParserViomi(MapDataParser):
         magic = buf.get_uint32('magic')
         if magic != map_id:
             raise ValueError(
-                f"error parsing section {name} at offset {buf._offs - 4:#x}: magic check failed. " +
-                f"Magic: {magic:#x}, Map ID: {map_id:#x}")
+                f"error parsing section {name} at offset {buf._offs - 4:#x}: magic check failed {magic:#x}")
 
     @staticmethod
     def parse_position(buf: ParsingBuffer, name: str) -> Optional[Point]:

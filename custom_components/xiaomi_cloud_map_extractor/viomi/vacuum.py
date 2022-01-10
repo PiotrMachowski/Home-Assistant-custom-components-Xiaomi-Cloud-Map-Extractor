@@ -1,8 +1,8 @@
 import zlib
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
+from custom_components.xiaomi_cloud_map_extractor.xiaomi_vacuum_map_parser.common.map_data import MapData
 from custom_components.xiaomi_cloud_map_extractor.common.vacuum_v2 import XiaomiCloudVacuumV2
-from custom_components.xiaomi_cloud_map_extractor.viomi.map_data_parser import MapDataParserViomi
+from custom_components.xiaomi_cloud_map_extractor.xiaomi_vacuum_map_parser.viomi.map_data_parser import MapDataParserViomi
 
 
 class ViomiVacuum(XiaomiCloudVacuumV2):

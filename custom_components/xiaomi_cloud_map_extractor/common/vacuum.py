@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from typing import Optional, Tuple
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
-from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
+from custom_components.xiaomi_cloud_map_extractor.xiaomi_vacuum_map_parser.common.map_data import MapData
+from custom_components.xiaomi_cloud_map_extractor.xiaomi_vacuum_map_parser.common.map_data_parser import MapDataParser
 
 
 class XiaomiCloudVacuum:

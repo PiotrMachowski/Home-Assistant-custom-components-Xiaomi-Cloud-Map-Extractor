@@ -1,0 +1,1 @@
+"""Xiaomi vacuum map parser."""

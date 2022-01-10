@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Set
 
 from PIL.Image import Image as ImageType
 
-from custom_components.xiaomi_cloud_map_extractor.const import *
+from ..const import *
 
 
 class Point:

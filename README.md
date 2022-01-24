@@ -41,7 +41,7 @@ To do it search for `Xiaomi Cloud Map Extractor` in *Integrations* section.
 
 ### Manual
 
-To install this integration manually you have to download [*xiaomi_cloud_map_extractor.zip*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/releases/latest/download/xiaomi_cloud_map_extractor.zip) extract its contents to `config/custom_components/xiaomi_cloud_map_extractor` directory:
+To install this integration manually you have to download [*xiaomi_cloud_map_extractor.zip*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/releases/latest/download/xiaomi_cloud_map_extractor.zip) and extract its contents to `config/custom_components/xiaomi_cloud_map_extractor` directory:
 ```bash
 mkdir -p custom_components/xiaomi_cloud_map_extractor
 cd custom_components/xiaomi_cloud_map_extractor
@@ -460,3 +460,4 @@ This integration wouldn't exist without following projects:
 
 
 <a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+<a href="https://paypal.me/PiMachowski" target="_blank"><img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" border="0" alt="PayPal Logo" style="height: auto !important;width: auto !important;"></a>

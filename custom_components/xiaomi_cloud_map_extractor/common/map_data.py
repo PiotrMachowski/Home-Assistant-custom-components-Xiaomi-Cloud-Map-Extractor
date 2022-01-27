@@ -18,6 +18,9 @@ class Point:
             return f"({self.x}, {self.y})"
         return f"({self.x}, {self.y}, a = {self.a})"
 
+    def __repr__(self):
+        return self.__str__()
+
     def __eq__(self, other):
         return other is not None and self.x == other.x and self.y == other.y and self.a == other.a
 
@@ -161,6 +164,9 @@ class Zone:
     def __str__(self):
         return f"[{self.x0}, {self.y0}, {self.x1}, {self.y1}]"
 
+    def __repr__(self):
+        return self.__str__()
+
     def as_dict(self):
         return {
             ATTR_X0: self.x0,
@@ -194,6 +200,9 @@ class Room(Zone):
     def __str__(self):
         return f"[number: {self.number}, name: {self.name}, {self.x0}, {self.y0}, {self.x1}, {self.y1}]"
 
+    def __repr__(self):
+        return self.__str__()
+
     def point(self) -> Optional[Point]:
         if self.pos_x is not None and self.pos_y is not None and self.name is not None:
             return Point(self.pos_x, self.pos_y)
@@ -208,6 +217,9 @@ class Wall:
 
     def __str__(self):
         return f"[{self.x0}, {self.y0}, {self.x1}, {self.y1}]"
+
+    def __repr__(self):
+        return self.__str__()
 
     def as_dict(self):
         return {
@@ -239,6 +251,9 @@ class Area:
 
     def __str__(self):
         return f"[{self.x0}, {self.y0}, {self.x1}, {self.y1}, {self.x2}, {self.y2}, {self.x3}, {self.y3}]"
+
+    def __repr__(self):
+        return self.__str__()
 
     def as_dict(self):
         return {

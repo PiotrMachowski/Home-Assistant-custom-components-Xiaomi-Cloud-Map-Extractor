@@ -85,6 +85,7 @@ class MapDataParserDreame(MapDataParser):
                     MapDataParserDreame.MapDataTypes.RISM
                 )
                 map_data.no_go_areas = rism_map_data.no_go_areas
+                map_data.no_mopping_areas = rism_map_data.no_mopping_areas
 
             if additional_data_json.get("tr"):
                 map_data.path = MapDataParserDreame.parse_path(additional_data_json["tr"])
@@ -92,6 +93,8 @@ class MapDataParserDreame(MapDataParser):
             if additional_data_json.get("vw"):
                 if additional_data_json["vw"].get("rect"):
                     map_data.no_go_areas = MapDataParserDreame.parse_areas(additional_data_json["vw"]["rect"])
+                if additional_data_json["vw"].get("mop"):
+                    map_data.no_mopping_areas = MapDataParserDreame.parse_areas(additional_data_json["vw"]["mop"])
 
             map_data.image = MapDataParserDreame.parse_image(image_raw, header, colors, image_config, map_data_type)
 

@@ -3,12 +3,14 @@ import logging
 import os
 
 import yaml
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
+
 from custom_components.xiaomi_cloud_map_extractor.camera import PLATFORM_SCHEMA, VacuumCamera
 from custom_components.xiaomi_cloud_map_extractor.const import *
+from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
 from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
 from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
 from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.WARNING)
@@ -86,6 +88,8 @@ def parse_map_file(map_config, map_filename, api, suffix=""):
             map_data = ViomiVacuum.decode_map(None, map_file, colors, drawables, texts, sizes, transform)
         elif api == CONF_AVAILABLE_API_ROIDMI:
             map_data = RoidmiVacuum.decode_map(None, map_file, colors, drawables, texts, sizes, transform)
+        elif api == CONF_AVAILABLE_API_DREAME:
+            map_data = DreameVacuum.decode_map(None, map_file, colors, drawables, texts, sizes, transform)
     except Exception as e:
         print(f"Failed to parse map data! {e}")
     if map_data is not None:

@@ -35,8 +35,8 @@ class MapDataParserDreame(MapDataParser):
         RELATIVE_LINE = "L"
 
     class FrameTypes(IntEnum):
-        I = 73
-        P = 80
+        I_FRAME = 73
+        P_FRAME = 80
 
     class MapDataTypes(str, Enum):
         REGULAR = "regular"
@@ -57,7 +57,7 @@ class MapDataParserDreame(MapDataParser):
 
         header = MapDataParserDreame.parse_header(raw)
 
-        if header.frame_type != MapDataParserDreame.FrameTypes.I:
+        if header.frame_type != MapDataParserDreame.FrameTypes.I_FRAME:
             _LOGGER.error("unsupported map frame type")
             return
 

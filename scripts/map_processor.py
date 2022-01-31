@@ -104,7 +104,7 @@ def parse_map_file(map_config, map_filename, api, suffix=""):
 
 
 def run_download(map_config, data_output_dir):
-    print(f"Downloading map data...")
+    print("Downloading map data...")
     camera = create_camera(map_config, data_output_dir)
     camera.update()
     attributes = camera.extra_state_attributes
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     config_filename = args.config
     print(f"Validating configuration file: {config_filename}")
     config = open_and_validate_config(config_filename)
-    print(f"Configuration validation successful")
+    print("Configuration validation successful")
     output_dir = config_filename.replace(".yaml", "")
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)

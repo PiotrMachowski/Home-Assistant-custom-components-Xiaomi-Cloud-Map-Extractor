@@ -87,6 +87,7 @@ class MapDataParserDreame(MapDataParser):
                     MapDataParserDreame.MapDataTypes.RISM
                 )
                 map_data.no_go_areas = rism_map_data.no_go_areas
+                map_data.no_mopping_areas = rism_map_data.no_mopping_areas
                 map_data.walls = rism_map_data.walls
 
             if additional_data_json.get("tr"):
@@ -95,8 +96,12 @@ class MapDataParserDreame(MapDataParser):
             if additional_data_json.get("vw"):
                 if additional_data_json["vw"].get("rect"):
                     map_data.no_go_areas = MapDataParserDreame.parse_areas(additional_data_json["vw"]["rect"])
+                if additional_data_json["vw"].get("mop"):
+                    map_data.no_mopping_areas = MapDataParserDreame.parse_areas(additional_data_json["vw"]["mop"])
                 if additional_data_json["vw"].get("line"):
                     map_data.walls = MapDataParserDreame.parse_virtual_walls(additional_data_json["vw"]["line"])
+
+            map_data.image = MapDataParserDreame.parse_image(image_raw, header, colors, image_config, map_data_type)
 
             if not map_data.image.is_empty:
                 MapDataParserDreame.draw_elements(colors, drawables, sizes, map_data, image_config)

@@ -237,7 +237,7 @@ class MapDataParserViomi(MapDataParser):
         for _ in range(history_count):
             mode = buf.get_uint8('mode')  # 0: taxi, 1: working
             path_points.append(MapDataParserViomi.parse_position(buf, 'path'))
-        return Path(len(path_points), 1, 0, path_points)
+        return Path(len(path_points), 1, 0, [path_points])
 
     @staticmethod
     def parse_restricted_areas(buf: ParsingBuffer) -> Tuple[List[Wall], List[Area]]:

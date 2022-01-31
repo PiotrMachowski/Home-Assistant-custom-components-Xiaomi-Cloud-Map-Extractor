@@ -91,7 +91,7 @@ class ImageDimensions:
 
 class ImageData:
     def __init__(self, size, top, left, height, width, image_config, data, img_transformation,
-                 additional_layers: Dict = None):
+                 additional_layers: dict = None):
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
         trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * width / 100)
         trim_top = int(image_config[CONF_TRIM][CONF_TOP] * height / 100)
@@ -139,7 +139,7 @@ class ImageData:
 
 
 class Path:
-    def __init__(self, point_length, point_size, angle, path: list):
+    def __init__(self, point_length, point_size, angle, path: List[List[Point]]):
         self.point_length = point_length
         self.point_size = point_size
         self.angle = angle
@@ -207,6 +207,7 @@ class Room(Zone):
         if self.pos_x is not None and self.pos_y is not None and self.name is not None:
             return Point(self.pos_x, self.pos_y)
         return None
+
 
 class Wall:
     def __init__(self, x0, y0, x1, y1):
@@ -285,7 +286,7 @@ class MapData:
         self.blocks = None
         self.charger: Optional[Point] = None
         self.goto: Optional[List[Point]] = None
-        self.goto_path: Optional[List[Point]] = None
+        self.goto_path: Optional[Path] = None
         self.image: Optional[ImageData] = None
         self.no_go_areas: Optional[List[Area]] = None
         self.no_mopping_areas: Optional[List[Area]] = None
@@ -293,8 +294,8 @@ class MapData:
         self.ignored_obstacles: Optional[List[Obstacle]] = None
         self.obstacles_with_photo: Optional[List[Obstacle]] = None
         self.ignored_obstacles_with_photo: Optional[List[Obstacle]] = None
-        self.path: Optional[List[Point]] = None
-        self.predicted_path: Optional[List[Point]] = None
+        self.path: Optional[Path] = None
+        self.predicted_path: Optional[Path] = None
         self.rooms: Optional[Dict[int, Room]] = None
         self.vacuum_position: Optional[Point] = None
         self.vacuum_room: Optional[int] = None

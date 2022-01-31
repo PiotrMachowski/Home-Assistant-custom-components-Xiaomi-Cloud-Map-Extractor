@@ -88,7 +88,7 @@ class MapDataParserRoidmi(MapDataParser):
             for raw_point in raw_points:
                 point = Point(raw_point[0], raw_point[1])
                 path_points.append(point)
-        return Path(None, None, None, path_points)
+        return Path(None, None, None, [path_points])
 
     @staticmethod
     def parse_vacuum_position(map_info: dict) -> Point:

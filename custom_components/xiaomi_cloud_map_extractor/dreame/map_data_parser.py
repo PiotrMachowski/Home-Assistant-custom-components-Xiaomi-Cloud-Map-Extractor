@@ -173,7 +173,6 @@ class MapDataParserDreame(MapDataParser):
                 _LOGGER.error(f'invalid path operator {match["operator"]}')
             current_path.append(current_position)
 
-        path_points = [item for sublist in path_points for item in sublist]
         return Path(None, None, None, path_points)
 
     @staticmethod

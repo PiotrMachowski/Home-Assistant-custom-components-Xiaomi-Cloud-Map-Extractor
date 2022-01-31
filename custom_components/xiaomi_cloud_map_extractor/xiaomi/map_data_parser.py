@@ -227,7 +227,7 @@ class MapDataParserXiaomi(MapDataParser):
         return zones
 
     @staticmethod
-    def parse_path(block_start_position, header, raw):
+    def parse_path(block_start_position, header, raw) -> Path:
         path_points = []
         end_pos = MapDataParserXiaomi.get_int32(header, 0x04)
         point_length = MapDataParserXiaomi.get_int32(header, 0x08)
@@ -238,7 +238,7 @@ class MapDataParserXiaomi(MapDataParser):
             x = MapDataParserXiaomi.get_int16(raw, pos)
             y = MapDataParserXiaomi.get_int16(raw, pos + 2)
             path_points.append(Point(x, y))
-        return Path(point_length, point_size, angle, path_points)
+        return Path(point_length, point_size, angle, [path_points])
 
     @staticmethod
     def parse_area(header, data):

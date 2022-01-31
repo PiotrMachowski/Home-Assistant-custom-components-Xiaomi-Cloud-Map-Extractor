@@ -139,7 +139,7 @@ if __name__ == '__main__':
     args_parser_parse = args_subparsers.add_parser("parse", help="Parse already downloaded map file")
     args_parser_parse.add_argument("--config", type=str, required=True, help="camera yaml config file")
     args_parser_parse.add_argument("--map-file", type=str, required=True, help="raw map file")
-    args_parser_parse.add_argument("--api", type=str, choices=["xiaomi", "viomi", "roidmi"], required=True,
+    args_parser_parse.add_argument("--api", type=str, choices=["xiaomi", "viomi", "roidmi", "dreame"], required=True,
                                    help="used api")
     args = args_parser.parse_args()
 

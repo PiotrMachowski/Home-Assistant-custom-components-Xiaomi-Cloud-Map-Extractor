@@ -6,7 +6,7 @@ import zlib
 from enum import IntEnum, Enum
 from typing import Optional, List
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData, Point, ImageData, Path, Area
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData, Point, ImageData, Path, Area, Wall
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 from custom_components.xiaomi_cloud_map_extractor.dreame.image_handler import ImageHandlerDreame
 
@@ -73,6 +73,8 @@ class MapDataParserDreame(MapDataParser):
             map_data.charger = header.charger_position
             map_data.vacuum_position = header.vacuum_position
 
+            map_data.image = MapDataParserDreame.parse_image(image_raw, header, colors, image_config, map_data_type)
+
             if additional_data_json.get("rism") and\
                     additional_data_json.get("ris") and additional_data_json["ris"] == 2:
                 rism_map_data = MapDataParserDreame.decode_map(
@@ -85,6 +87,7 @@ class MapDataParserDreame(MapDataParser):
                     MapDataParserDreame.MapDataTypes.RISM
                 )
                 map_data.no_go_areas = rism_map_data.no_go_areas
+                map_data.walls = rism_map_data.walls
 
             if additional_data_json.get("tr"):
                 map_data.path = MapDataParserDreame.parse_path(additional_data_json["tr"])
@@ -92,8 +95,8 @@ class MapDataParserDreame(MapDataParser):
             if additional_data_json.get("vw"):
                 if additional_data_json["vw"].get("rect"):
                     map_data.no_go_areas = MapDataParserDreame.parse_areas(additional_data_json["vw"]["rect"])
-
-            map_data.image = MapDataParserDreame.parse_image(image_raw, header, colors, image_config, map_data_type)
+                if additional_data_json["vw"].get("line"):
+                    map_data.walls = MapDataParserDreame.parse_virtual_walls(additional_data_json["vw"]["line"])
 
             if not map_data.image.is_empty:
                 MapDataParserDreame.draw_elements(colors, drawables, sizes, map_data, image_config)
@@ -190,6 +193,10 @@ class MapDataParserDreame(MapDataParser):
                 )
             )
         return parsed_areas
+
+    @staticmethod
+    def parse_virtual_walls(virtual_walls: list) -> List[Wall]:
+        return [Wall(virtual_wall[0], virtual_wall[1], virtual_wall[2], virtual_wall[3]) for virtual_wall in virtual_walls]
 
     @staticmethod
     def read_int_8(data: bytes, offset: int = 0):

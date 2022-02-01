@@ -3,7 +3,11 @@ import logging
 import time
 from datetime import timedelta
 from enum import Enum
-from typing import Optional
+from typing import Any, Dict, List, Optional
+
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
+from custom_components.xiaomi_cloud_map_extractor.common.vacuum import XiaomiCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
 
 try:
     from miio import RoborockVacuum, DeviceException
@@ -144,8 +148,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class VacuumCamera(Camera):
-    def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map_raw, store_map_image, store_map_path, force_api):
+    def __init__(self, entity_id: str, host: str, token: str, username: str, password: str, country: str, name: str,
+                 should_poll: bool, image_config: ImageConfig, colors: Colors, drawables: Drawables, sizes: Sizes,
+                 texts: Texts, attributes: List[str], store_map_raw: bool, store_map_image: bool, store_map_path: str,
+                 force_api: str):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -178,14 +184,14 @@ class VacuumCamera(Camera):
         self.async_schedule_update_ha_state(True)
 
     @property
-    def frame_interval(self):
+    def frame_interval(self) -> float:
         return 1
 
     def camera_image(self, width: Optional[int] = None, height: Optional[int] = None) -> Optional[bytes]:
         return self._image
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     def turn_on(self):
@@ -195,11 +201,11 @@ class VacuumCamera(Camera):
         self._should_poll = False
 
     @property
-    def supported_features(self):
+    def supported_features(self) -> int:
         return SUPPORT_ON_OFF
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> Dict[str, Any]:
         attributes = {}
         if self._map_data is not None:
             rooms = []
@@ -244,7 +250,7 @@ class VacuumCamera(Camera):
         return attributes
 
     @property
-    def should_poll(self):
+    def should_poll(self) -> bool:
         return self._should_poll
 
     def update(self):
@@ -292,7 +298,7 @@ class VacuumCamera(Camera):
             _LOGGER.error("Failed to retrieve model")
             self._status = CameraStatus.FAILED_TO_RETRIEVE_DEVICE
 
-    def _handle_map_name(self, counter):
+    def _handle_map_name(self, counter: int) -> str:
         map_name = "retry"
         if self._device is not None and not self._device.should_get_map_from_vacuum():
             map_name = "0"
@@ -312,7 +318,7 @@ class VacuumCamera(Camera):
                 counter = counter - 1
         return map_name
 
-    def _handle_map_data(self, map_name):
+    def _handle_map_data(self, map_name: str):
         _LOGGER.debug("Retrieving map from Xiaomi cloud")
         store_map_path = self._store_map_path if self._store_map_raw else None
         map_data, map_stored = self._device.get_map(map_name, self._colors, self._drawables, self._texts,
@@ -337,14 +343,14 @@ class VacuumCamera(Camera):
             _LOGGER.warning("Unable to retrieve map data")
             self._status = CameraStatus.UNABLE_TO_RETRIEVE_MAP
 
-    def _set_map_data(self, map_data):
+    def _set_map_data(self, map_data: MapData):
         img_byte_arr = io.BytesIO()
         map_data.image.data.save(img_byte_arr, format='PNG')
         self._image = img_byte_arr.getvalue()
         self._map_data = map_data
         self._store_image()
 
-    def _create_device(self, user_id, device_id, model):
+    def _create_device(self, user_id: str, device_id: str, model: str) -> XiaomiCloudVacuum:
         self._used_api = self._detect_api(model)
         if self._used_api == CONF_AVAILABLE_API_XIAOMI:
             return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
@@ -356,7 +362,7 @@ class VacuumCamera(Camera):
             return DreameVacuum(self._connector, self._country, user_id, device_id, model)
         return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
 
-    def _detect_api(self, model: str):
+    def _detect_api(self, model: str) -> str:
         if self._forced_api is not None:
             return self._forced_api
         if model in API_EXCEPTIONS:

@@ -1,11 +1,12 @@
 from typing import Optional
 
 from custom_components.xiaomi_cloud_map_extractor.common.vacuum import XiaomiCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
 
 
 class XiaomiCloudVacuumV2(XiaomiCloudVacuum):
 
-    def __init__(self, connector, country, user_id, device_id, model):
+    def __init__(self, connector: XiaomiCloudConnector, country: str, user_id: str, device_id: str, model: str):
         super().__init__(connector, country, user_id, device_id, model)
 
     def get_map_url(self, map_name: str) -> Optional[str]:

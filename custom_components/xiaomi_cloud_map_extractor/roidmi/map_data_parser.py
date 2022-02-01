@@ -67,7 +67,7 @@ class MapDataParserRoidmi(MapDataParser):
                     colors: Dict, image_config: Dict, rooms: Dict[int, Room]) -> ImageData:
         image_top = 0
         image_left = 0
-        room_numbers = rooms.keys()
+        room_numbers = list(rooms.keys())
         image, rooms_raw = ImageHandlerRoidmi.parse(map_image, width, height, colors, image_config, room_numbers)
         for number, room in rooms_raw.items():
             pf = lambda p: MapDataParserRoidmi.image_to_map(p, resolution, min_x, min_y)

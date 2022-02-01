@@ -3,12 +3,13 @@ from typing import Optional, Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
+from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
 from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
 
 
 class XiaomiCloudVacuum:
 
-    def __init__(self, connector, country, user_id, device_id, model):
+    def __init__(self, connector: XiaomiCloudConnector, country: str, user_id: str, device_id: str, model: str):
         self._connector = connector
         self._country = country
         self._user_id = user_id
@@ -38,7 +39,7 @@ class XiaomiCloudVacuum:
         map_data.map_name = map_name
         return map_data, map_stored
 
-    def get_raw_map_data(self, map_name) -> Optional[bytes]:
+    def get_raw_map_data(self, map_name: Optional[str]) -> Optional[bytes]:
         if map_name is None:
             return None
         map_url = self.get_map_url(map_name)

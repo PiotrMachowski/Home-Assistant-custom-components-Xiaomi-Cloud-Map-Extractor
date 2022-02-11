@@ -1,4 +1,5 @@
 import logging
+import math
 from typing import Callable
 
 from PIL import Image, ImageDraw, ImageFont
@@ -8,7 +9,6 @@ from custom_components.xiaomi_cloud_map_extractor.common.map_data import ImageDa
 from custom_components.xiaomi_cloud_map_extractor.const import *
 
 _LOGGER = logging.getLogger(__name__)
-
 
 class ImageHandler:
     COLORS = {
@@ -30,7 +30,9 @@ class ImageHandler:
         COLOR_NO_MOPPING_ZONES: (163, 130, 211, 127),
         COLOR_NO_MOPPING_ZONES_OUTLINE: (163, 130, 211),
         COLOR_CHARGER: (0x66, 0xfe, 0xda, 0x7f),
-        COLOR_ROBO: (75, 235, 149),
+        COLOR_CHARGER_OUTLINE: (0x66, 0xfe, 0xda, 0x7f),
+        COLOR_ROBO: (0xff, 0xff, 0xff),
+        COLOR_ROBO_OUTLINE: (0, 0, 0),
         COLOR_ROOM_NAMES: (0, 0, 0),
         COLOR_OBSTACLE: (0, 0, 0, 128),
         COLOR_IGNORED_OBSTACLE: (0, 0, 0, 128),
@@ -113,8 +115,9 @@ class ImageHandler:
     @staticmethod
     def draw_charger(image: ImageData, charger, sizes, colors):
         color = ImageHandler.__get_color__(COLOR_CHARGER, colors)
+        outline = ImageHandler.__get_color__(COLOR_CHARGER_OUTLINE, colors)
         radius = sizes[CONF_SIZE_CHARGER_RADIUS]
-        ImageHandler.__draw_circle__(image, charger, radius, color, color)
+        ImageHandler.__draw_pieslice__(image, charger, radius, outline, color)
 
     @staticmethod
     def draw_obstacles(image: ImageData, obstacles, sizes, colors):
@@ -148,8 +151,9 @@ class ImageHandler:
     @staticmethod
     def draw_vacuum_position(image: ImageData, vacuum_position, sizes, colors):
         color = ImageHandler.__get_color__(COLOR_ROBO, colors)
+        outline = ImageHandler.__get_color__(COLOR_ROBO_OUTLINE, colors)
         radius = sizes[CONF_SIZE_VACUUM_RADIUS]
-        ImageHandler.__draw_circle__(image, vacuum_position, radius, color, color)
+        ImageHandler.__draw_vacuum__(image, vacuum_position, radius, outline, color)
 
     @staticmethod
     def draw_room_names(image: ImageData, rooms, colors):
@@ -182,11 +186,72 @@ class ImageHandler:
         ImageHandler.__draw_layer__(image, image.additional_layers[layer_name])
 
     @staticmethod
+    def __draw_image__(image: ImageData, center, r, outline, fill):
+        def draw_func(draw: ImageDraw):
+            point = center.to_img(image.dimensions)
+            coords = [point.x - r, point.y - r, point.x + r, point.y + r]
+            offset = (point.x - VACUUM_W//2, point.y - VACUUM_H//2)
+            draw.paste(VACUUM_IMG, offset, VACUUM_IMG)
+
+        ImageHandler.__draw_on_new_layer__(image, draw_func)
+
+    @staticmethod
+    def __draw_vacuum__(image: ImageData, vacuum_pos, r, outline, fill):
+        def draw_func(draw: ImageDraw):
+            point = vacuum_pos.to_img(image.dimensions)
+            coords = [point.x - r, point.y - r, point.x + r, point.y + r]
+            draw.ellipse(coords, outline=outline, fill=fill)
+            r_scaled = r / 16
+            r2 = r_scaled * 14
+            x = point.x
+            y = point.y
+            coords = [x - r2, y - r2, x + r2, y + r2]
+            draw.ellipse(coords, outline=outline, fill=None)
+            a1 = (vacuum_pos.a + 104) / 180 * math.pi
+            a2 = (vacuum_pos.a - 104) / 180 * math.pi
+            r2 = r_scaled * 13
+            x1 = x + r2 * math.cos(a1)
+            y1 = y - r2 * math.sin(a1)
+            x2 = x + r2 * math.cos(a2)
+            y2 = y - r2 * math.sin(a2)
+            draw.line([x1,y1,x2,y2], width=1, fill=outline)
+            angle = vacuum_pos.a / 180 * math.pi
+            r2 = r_scaled * 3
+            x = point.x - r2 * math.cos(angle)
+            y = point.y + r2 * math.sin(angle)
+            r2 = r_scaled * 4
+            coords = [x - r2, y - r2, x + r2, y + r2]
+            draw.ellipse(coords, outline=outline, fill=fill)
+            half_color = (
+                (outline[0] + fill[0]) // 2,
+                (outline[1] + fill[1]) // 2,
+                (outline[2] + fill[2]) // 2
+            )
+            r2 = r_scaled * 10
+            x = point.x + r2 * math.cos(angle)
+            y = point.y - r2 * math.sin(angle)
+            r2 = r_scaled * 2
+            coords = [x - r2, y - r2, x + r2, y + r2]
+            draw.ellipse(coords, outline=half_color, fill=half_color)
+
+        ImageHandler.__draw_on_new_layer__(image, draw_func)
+
+    @staticmethod
     def __draw_circle__(image: ImageData, center, r, outline, fill):
         def draw_func(draw: ImageDraw):
             point = center.to_img(image.dimensions)
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.ellipse(coords, outline=outline, fill=fill)
+
+        ImageHandler.__draw_on_new_layer__(image, draw_func)
+
+    @staticmethod
+    def __draw_pieslice__(image: ImageData, position, r, outline, fill):
+        def draw_func(draw: ImageDraw):
+            point = position.to_img(image.dimensions)
+            angle = -position.a
+            coords = [point.x - r, point.y - r, point.x + r, point.y + r]
+            draw.pieslice(coords, angle+90, angle-90, outline="black", fill=fill)
 
         ImageHandler.__draw_on_new_layer__(image, draw_func)
 
@@ -209,7 +274,7 @@ class ImageHandler:
             s = path.path[0].to_img(image.dimensions)
             for point in path.path[1:]:
                 e = point.to_img(image.dimensions)
-                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale), fill=color)
+                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale)*2, fill=color)
                 s = e
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, scale)

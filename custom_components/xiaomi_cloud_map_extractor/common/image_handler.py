@@ -100,9 +100,9 @@ class ImageHandler:
 
     @staticmethod
     def draw_walls(image: ImageData, walls, colors):
-        draw = ImageDraw.Draw(image.data, 'RGBA')
+        # draw = ImageDraw.Draw(image.data, 'RGBA')
         for wall in walls:
-            draw.line(wall.to_img(image.dimensions).as_list(),
+            image.draw.line(wall.to_img(image.dimensions).as_list(),
                       ImageHandler.__get_color__(COLOR_VIRTUAL_WALLS, colors), width=2)
 
     @staticmethod
@@ -304,8 +304,7 @@ class ImageHandler:
             size = [int(image.data.size[0] * scale), int(image.data.size[1] * scale)]
         # layer = Image.new("RGBA", size, (255, 255, 255, 0))
         # draw = ImageDraw.Draw(layer, "RGBA")
-        draw = ImageDraw.Draw(image.data, "RGBA")
-        draw_function(draw)
+        draw_function(image.draw)
         # if scale != 1:
         #     layer = layer.resize(image.data.size, resample=Image.BOX)
         # ImageHandler.__draw_layer__(image, layer)

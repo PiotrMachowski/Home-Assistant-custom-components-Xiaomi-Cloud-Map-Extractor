@@ -186,16 +186,6 @@ class ImageHandler:
         ImageHandler.__draw_layer__(image, image.additional_layers[layer_name])
 
     @staticmethod
-    def __draw_image__(image: ImageData, center, r, outline, fill):
-        def draw_func(draw: ImageDraw):
-            point = center.to_img(image.dimensions)
-            coords = [point.x - r, point.y - r, point.x + r, point.y + r]
-            offset = (point.x - VACUUM_W//2, point.y - VACUUM_H//2)
-            draw.paste(VACUUM_IMG, offset, VACUUM_IMG)
-
-        ImageHandler.__draw_on_new_layer__(image, draw_func)
-
-    @staticmethod
     def __draw_vacuum__(image: ImageData, vacuum_pos, r, outline, fill):
         def draw_func(draw: ImageDraw):
             point = vacuum_pos.to_img(image.dimensions)
@@ -274,7 +264,7 @@ class ImageHandler:
             s = path.path[0].to_img(image.dimensions)
             for point in path.path[1:]:
                 e = point.to_img(image.dimensions)
-                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale)*2, fill=color)
+                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale), fill=color)
                 s = e
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, scale)

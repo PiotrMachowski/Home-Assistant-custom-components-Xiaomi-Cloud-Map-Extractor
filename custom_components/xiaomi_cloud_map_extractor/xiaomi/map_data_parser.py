@@ -54,7 +54,7 @@ class MapDataParserXiaomi(MapDataParser):
             block_data_start = block_start_position + block_header_length
             data = MapDataParserXiaomi.get_bytes(raw, block_data_start, block_data_length)
             if block_type == MapDataParserXiaomi.CHARGER:
-                map_data.charger = MapDataParserXiaomi.parse_charger(block_start_position, raw)
+                map_data.charger = MapDataParserXiaomi.parse_object_position(block_data_length, data)
             elif block_type == MapDataParserXiaomi.IMAGE:
                 img_start = block_start_position
                 image, rooms = MapDataParserXiaomi.parse_image(block_data_length, block_header_length, data, header,
@@ -62,7 +62,7 @@ class MapDataParserXiaomi(MapDataParser):
                 map_data.image = image
                 map_data.rooms = rooms
             elif block_type == MapDataParserXiaomi.ROBOT_POSITION:
-                map_data.vacuum_position = MapDataParserXiaomi.parse_vacuum_position(block_data_length, data)
+                map_data.vacuum_position = MapDataParserXiaomi.parse_object_position(block_data_length, data)
             elif block_type == MapDataParserXiaomi.PATH:
                 map_data.path = MapDataParserXiaomi.parse_path(block_start_position, header, raw)
             elif block_type == MapDataParserXiaomi.GOTO_PATH:
@@ -163,19 +163,15 @@ class MapDataParserXiaomi(MapDataParser):
         return Point(x, y)
 
     @staticmethod
-    def parse_vacuum_position(block_data_length, data):
+    def parse_object_position(block_data_length, data):
         x = MapDataParserXiaomi.get_int32(data, 0x00)
         y = MapDataParserXiaomi.get_int32(data, 0x04)
         a = None
         if block_data_length > 8:
             a = MapDataParserXiaomi.get_int32(data, 0x08)
+            if a > 0xFF:
+                a = (a & 0xFF) - 256
         return Point(x, y, a)
-
-    @staticmethod
-    def parse_charger(block_start_position, raw):
-        x = MapDataParserXiaomi.get_int32(raw, block_start_position + 0x08)
-        y = MapDataParserXiaomi.get_int32(raw, block_start_position + 0x0C)
-        return Point(x, y)
 
     @staticmethod
     def parse_walls(data, header):

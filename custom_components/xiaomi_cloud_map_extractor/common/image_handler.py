@@ -260,11 +260,13 @@ class ImageHandler:
         if len(path.path) < 2:
             return
 
+        scale = 1
+
         def draw_func(draw: ImageDraw):
             s = path.path[0].to_img(image.dimensions)
             for point in path.path[1:]:
                 e = point.to_img(image.dimensions)
-                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale), fill=color)
+                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale) * 2, fill=color)
                 s = e
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, scale)
@@ -300,12 +302,13 @@ class ImageHandler:
             size = image.data.size
         else:
             size = [int(image.data.size[0] * scale), int(image.data.size[1] * scale)]
-        layer = Image.new("RGBA", size, (255, 255, 255, 0))
-        draw = ImageDraw.Draw(layer, "RGBA")
+        # layer = Image.new("RGBA", size, (255, 255, 255, 0))
+        # draw = ImageDraw.Draw(layer, "RGBA")
+        draw = ImageDraw.Draw(image.data, "RGBA")
         draw_function(draw)
-        if scale != 1:
-            layer = layer.resize(image.data.size, resample=Image.BOX)
-        ImageHandler.__draw_layer__(image, layer)
+        # if scale != 1:
+        #     layer = layer.resize(image.data.size, resample=Image.BOX)
+        # ImageHandler.__draw_layer__(image, layer)
 
     @staticmethod
     def __draw_layer__(image: ImageData, layer: ImageType):

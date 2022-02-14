@@ -224,7 +224,8 @@ class ImageHandler:
             coords = [x - r2, y - r2, x + r2, y + r2]
             draw.ellipse(coords, outline=half_color, fill=half_color)
 
-        ImageHandler.__draw_on_new_layer__(image, draw_func)
+        use_transparency = (len(outline) > 3 or len(fill) > 3)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
 
     @staticmethod
     def __draw_circle__(image: ImageData, center, r, outline, fill):
@@ -233,7 +234,8 @@ class ImageHandler:
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.ellipse(coords, outline=outline, fill=fill)
 
-        ImageHandler.__draw_on_new_layer__(image, draw_func)
+        use_transparency = (len(outline) > 3 or len(fill) > 3)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
 
     @staticmethod
     def __draw_pieslice__(image: ImageData, position, r, outline, fill):
@@ -243,33 +245,34 @@ class ImageHandler:
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.pieslice(coords, angle+90, angle-90, outline="black", fill=fill)
 
-        ImageHandler.__draw_on_new_layer__(image, draw_func)
+        use_transparency = (len(outline) > 3 or len(fill) > 3)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
 
     @staticmethod
     def __draw_areas__(image: ImageData, areas, fill, outline):
         if len(areas) == 0:
             return
-        for area in areas:
-            def draw_func(draw: ImageDraw):
+        def draw_func(draw: ImageDraw):
+            for area in areas:
                 draw.polygon(area.to_img(image.dimensions).as_list(), fill, outline)
 
-            ImageHandler.__draw_on_new_layer__(image, draw_func)
+        use_transparency = (len(outline) > 3 or len(fill) > 3)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
 
     @staticmethod
     def __draw_path__(image: ImageData, path, color, scale):
         if len(path.path) < 2:
             return
 
-        scale = 1
-
         def draw_func(draw: ImageDraw):
             s = path.path[0].to_img(image.dimensions)
             for point in path.path[1:]:
                 e = point.to_img(image.dimensions)
-                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale) * 2, fill=color)
+                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale), fill=color)
                 s = e
 
-        ImageHandler.__draw_on_new_layer__(image, draw_func, scale)
+        use_transparency = (len(color) > 3)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, scale, use_transparency)
 
     @staticmethod
     def __draw_text__(image: ImageData, text, x, y, color, font_file=None, font_size=None):
@@ -286,7 +289,8 @@ class ImageHandler:
                 w, h = draw.textsize(text, font)
                 draw.text((x - w / 2, y - h / 2), text, font=font, fill=color)
 
-        ImageHandler.__draw_on_new_layer__(image, draw_func)
+        use_transparency = (len(color) > 3)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
 
     @staticmethod
     def __get_color__(name, colors, default_name=None):
@@ -297,17 +301,19 @@ class ImageHandler:
         return ImageHandler.COLORS[default_name]
 
     @staticmethod
-    def __draw_on_new_layer__(image: ImageData, draw_function: Callable, scale=1):
-        if scale == 1:
+    def __draw_on_new_layer__(image: ImageData, draw_function: Callable, scale=1, use_transparency=False):
+        if scale == 1 and not use_transparency:
             size = image.data.size
+            draw = ImageDraw.Draw(image.data, "RGBA")
+            draw_function(draw)
         else:
             size = [int(image.data.size[0] * scale), int(image.data.size[1] * scale)]
-        # layer = Image.new("RGBA", size, (255, 255, 255, 0))
-        # draw = ImageDraw.Draw(layer, "RGBA")
-        draw_function(image.draw)
-        # if scale != 1:
-        #     layer = layer.resize(image.data.size, resample=Image.BOX)
-        # ImageHandler.__draw_layer__(image, layer)
+            layer = Image.new("RGBA", size, (255, 255, 255, 0))
+            draw = ImageDraw.Draw(layer, "RGBA")
+            draw_function(draw)
+            if scale != 1:
+                layer = layer.resize(image.data.size, resample=Image.BOX)
+            ImageHandler.__draw_layer__(image, layer)
 
     @staticmethod
     def __draw_layer__(image: ImageData, layer: ImageType):

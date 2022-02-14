@@ -191,6 +191,7 @@ camera:
     sizes:
       charger_radius: 4
       vacuum_radius: 6.5
+      path_width: 1
       obstacle_radius: 3
       ignored_obstacle_radius: 3
       obstacle_with_photo_radius: 3

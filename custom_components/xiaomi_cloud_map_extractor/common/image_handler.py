@@ -75,16 +75,16 @@ class ImageHandler:
         return image
 
     @staticmethod
-    def draw_path(image: ImageData, path, colors, scale):
-        ImageHandler.__draw_path__(image, path, ImageHandler.__get_color__(COLOR_PATH, colors), scale)
+    def draw_path(image: ImageData, path, sizes, colors, scale):
+        ImageHandler.__draw_path__(image, path, sizes, ImageHandler.__get_color__(COLOR_PATH, colors), scale)
 
     @staticmethod
-    def draw_goto_path(image: ImageData, path, colors, scale):
-        ImageHandler.__draw_path__(image, path, ImageHandler.__get_color__(COLOR_GOTO_PATH, colors), scale)
+    def draw_goto_path(image: ImageData, path, sizes, colors, scale):
+        ImageHandler.__draw_path__(image, path, sizes, ImageHandler.__get_color__(COLOR_GOTO_PATH, colors), scale)
 
     @staticmethod
-    def draw_predicted_path(image: ImageData, path, colors, scale):
-        ImageHandler.__draw_path__(image, path, ImageHandler.__get_color__(COLOR_PREDICTED_PATH, colors), scale)
+    def draw_predicted_path(image: ImageData, path, sizes, colors, scale):
+        ImageHandler.__draw_path__(image, path, sizes, ImageHandler.__get_color__(COLOR_PREDICTED_PATH, colors), scale)
 
     @staticmethod
     def draw_no_go_areas(image: ImageData, areas, colors):
@@ -260,15 +260,17 @@ class ImageHandler:
         ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
 
     @staticmethod
-    def __draw_path__(image: ImageData, path, color, scale):
+    def __draw_path__(image: ImageData, path, sizes, color, scale):
         if len(path.path) < 2:
             return
+
+        path_width = sizes[CONF_SIZE_PATH_WIDTH]
 
         def draw_func(draw: ImageDraw):
             s = path.path[0].to_img(image.dimensions)
             for point in path.path[1:]:
                 e = point.to_img(image.dimensions)
-                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale), fill=color)
+                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale * path_width), fill=color)
                 s = e
 
         use_transparency = (len(color) > 3)

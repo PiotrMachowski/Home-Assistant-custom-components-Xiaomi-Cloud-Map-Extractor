@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Set
 
 from PIL.Image import Image as ImageType
-from PIL import ImageDraw
 
 from custom_components.xiaomi_cloud_map_extractor.const import *
 
@@ -105,7 +104,6 @@ class ImageData:
                                           rotation, img_transformation)
         self.is_empty = height == 0 or width == 0
         self.data = data
-        self.draw = ImageDraw.Draw(data, 'RGBA')
         if additional_layers is None:
             self.additional_layers = {}
         else:

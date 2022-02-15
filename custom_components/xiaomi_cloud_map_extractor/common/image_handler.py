@@ -186,6 +186,10 @@ class ImageHandler:
         ImageHandler.__draw_layer__(image, image.additional_layers[layer_name])
 
     @staticmethod
+    def __use_transparency__(*colors):
+        return any(len(color) > 3 for color in colors)
+
+    @staticmethod
     def __draw_vacuum__(image: ImageData, vacuum_pos, r, outline, fill):
         def draw_func(draw: ImageDraw):
             point = vacuum_pos.to_img(image.dimensions)
@@ -224,8 +228,7 @@ class ImageHandler:
             coords = [x - r2, y - r2, x + r2, y + r2]
             draw.ellipse(coords, outline=half_color, fill=half_color)
 
-        use_transparency = (len(outline) > 3 or len(fill) > 3)
-        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(outline, fill))
 
     @staticmethod
     def __draw_circle__(image: ImageData, center, r, outline, fill):
@@ -234,8 +237,7 @@ class ImageHandler:
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.ellipse(coords, outline=outline, fill=fill)
 
-        use_transparency = (len(outline) > 3 or len(fill) > 3)
-        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(outline, fill))
 
     @staticmethod
     def __draw_pieslice__(image: ImageData, position, r, outline, fill):
@@ -245,19 +247,19 @@ class ImageHandler:
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.pieslice(coords, angle+90, angle-90, outline="black", fill=fill)
 
-        use_transparency = (len(outline) > 3 or len(fill) > 3)
-        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(outline, fill))
 
     @staticmethod
     def __draw_areas__(image: ImageData, areas, fill, outline):
         if len(areas) == 0:
             return
-        def draw_func(draw: ImageDraw):
-            for area in areas:
+
+        use_transparency = ImageHandler.__use_transparency__(outline, fill)
+        for area in areas:
+            def draw_func(draw: ImageDraw):
                 draw.polygon(area.to_img(image.dimensions).as_list(), fill, outline)
 
-        use_transparency = (len(outline) > 3 or len(fill) > 3)
-        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
+            ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
 
     @staticmethod
     def __draw_path__(image: ImageData, path, sizes, color, scale):
@@ -273,8 +275,7 @@ class ImageHandler:
                 draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale * path_width), fill=color)
                 s = e
 
-        use_transparency = (len(color) > 3)
-        ImageHandler.__draw_on_new_layer__(image, draw_func, scale, use_transparency)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, scale, ImageHandler.__use_transparency__(color))
 
     @staticmethod
     def __draw_text__(image: ImageData, text, x, y, color, font_file=None, font_size=None):
@@ -291,8 +292,7 @@ class ImageHandler:
                 w, h = draw.textsize(text, font)
                 draw.text((x - w / 2, y - h / 2), text, font=font, fill=color)
 
-        use_transparency = (len(color) > 3)
-        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
+        ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(color))
 
     @staticmethod
     def __get_color__(name, colors, default_name=None):

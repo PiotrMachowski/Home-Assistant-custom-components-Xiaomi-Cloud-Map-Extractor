@@ -245,7 +245,7 @@ class ImageHandler:
     def __draw_pieslice__(image: ImageData, position, r, outline, fill):
         def draw_func(draw: ImageDraw):
             point = position.to_img(image.dimensions)
-            angle = -position.a
+            angle = -position.a if position.a is not None else 0
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.pieslice(coords, angle+90, angle-90, outline="black", fill=fill)
 

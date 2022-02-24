@@ -192,6 +192,8 @@ class ImageHandler:
     @staticmethod
     def __draw_vacuum__(image: ImageData, vacuum_pos, r, outline, fill):
         def draw_func(draw: ImageDraw):
+            if vacuum_pos.a is None:
+                vacuum_pos.a = 0
             point = vacuum_pos.to_img(image.dimensions)
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.ellipse(coords, outline=outline, fill=fill)

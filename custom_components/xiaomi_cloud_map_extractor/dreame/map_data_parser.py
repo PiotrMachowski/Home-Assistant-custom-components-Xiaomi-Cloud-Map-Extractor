@@ -4,9 +4,10 @@ import json
 import re
 import zlib
 from enum import IntEnum, Enum
-from typing import Optional, List
+from typing import Optional, List, Tuple, Dict
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData, Point, ImageData, Path, Area, Wall
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData, Point, ImageData, Path, Area, Wall, \
+    Room
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 from custom_components.xiaomi_cloud_map_extractor.dreame.image_handler import ImageHandlerDreame
 
@@ -73,7 +74,7 @@ class MapDataParserDreame(MapDataParser):
             map_data.charger = header.charger_position
             map_data.vacuum_position = header.vacuum_position
 
-            map_data.image = MapDataParserDreame.parse_image(image_raw, header, colors, image_config, map_data_type)
+            map_data.image, map_data.rooms = MapDataParserDreame.parse_image(image_raw, header, colors, image_config, additional_data_json, map_data_type)
 
             if additional_data_json.get("rism") and\
                     additional_data_json.get("ris") and additional_data_json["ris"] == 2:
@@ -89,6 +90,11 @@ class MapDataParserDreame(MapDataParser):
                 map_data.no_go_areas = rism_map_data.no_go_areas
                 map_data.no_mopping_areas = rism_map_data.no_mopping_areas
                 map_data.walls = rism_map_data.walls
+                map_data.rooms = rism_map_data.rooms
+                _LOGGER.debug(f"rooms: {map_data.rooms}")
+
+                if not rism_map_data.image.is_empty:
+                    map_data.image = rism_map_data.image
 
             if additional_data_json.get("tr"):
                 map_data.path = MapDataParserDreame.parse_path(additional_data_json["tr"])
@@ -101,10 +107,12 @@ class MapDataParserDreame(MapDataParser):
                 if additional_data_json["vw"].get("line"):
                     map_data.walls = MapDataParserDreame.parse_virtual_walls(additional_data_json["vw"]["line"])
 
-            map_data.image = MapDataParserDreame.parse_image(image_raw, header, colors, image_config, map_data_type)
+            if additional_data_json.get("sa") and isinstance(additional_data_json["sa"], list):
+                active_segment_ids = [sa[0] for sa in additional_data_json["sa"]]
 
             if not map_data.image.is_empty:
-                MapDataParserDreame.draw_elements(colors, drawables, sizes, map_data, image_config)
+                if map_data_type == MapDataParserDreame.MapDataTypes.REGULAR:
+                    MapDataParserDreame.draw_elements(colors, drawables, sizes, map_data, image_config)
                 ImageHandlerDreame.rotate(map_data.image)
 
         return map_data
@@ -141,9 +149,24 @@ class MapDataParserDreame(MapDataParser):
 
     @staticmethod
     def parse_image(image_raw: bytes, header: MapDataHeader, colors, image_config,
-                    map_data_type: MapDataTypes) -> ImageData:
+                    additional_data_json, map_data_type: MapDataTypes) -> Tuple[ImageData, Dict[int, Room]]:
 
-        image = ImageHandlerDreame.parse(image_raw, header, colors, image_config, map_data_type)
+        _LOGGER.debug(f"parse image for map {map_data_type}")
+        image, image_rooms = ImageHandlerDreame.parse(image_raw, header, colors, image_config, map_data_type)
+
+        room_names = {}
+        if additional_data_json.get("seg_inf"):
+            room_names = {k: base64.decodebytes(v.get("name")) for (k, v) in additional_data_json["seg_inf"].items() if
+                          v.get("name")}
+
+        rooms = {k: Room(
+            k,
+            (v.x0 + header.image_left) * header.image_pixel_size,
+            (v.y0 + header.image_top) * header.image_pixel_size,
+            (v.x1 + header.image_left) * header.image_pixel_size,
+            (v.y1 + header.image_top) * header.image_pixel_size,
+            room_names[k] if room_names.get(k) else str(k)
+        ) for (k, v) in image_rooms.items()}
 
         return ImageData(
             header.image_width * header.image_height,
@@ -154,7 +177,7 @@ class MapDataParserDreame(MapDataParser):
             image_config,
             image,
             lambda p: MapDataParserDreame.map_to_image(p, header.image_pixel_size)
-        )
+        ), rooms
 
     @staticmethod
     def map_to_image(p: Point, image_pixel_size: int) -> Point:

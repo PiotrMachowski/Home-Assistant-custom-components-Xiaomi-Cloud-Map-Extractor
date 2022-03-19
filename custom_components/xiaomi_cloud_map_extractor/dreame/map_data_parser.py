@@ -113,7 +113,7 @@ class MapDataParserDreame(MapDataParser):
             if not map_data.image.is_empty:
                 if map_data_type == MapDataParserDreame.MapDataTypes.REGULAR:
                     MapDataParserDreame.draw_elements(colors, drawables, sizes, map_data, image_config)
-                ImageHandlerDreame.rotate(map_data.image)
+                    ImageHandlerDreame.rotate(map_data.image)
 
         return map_data
 

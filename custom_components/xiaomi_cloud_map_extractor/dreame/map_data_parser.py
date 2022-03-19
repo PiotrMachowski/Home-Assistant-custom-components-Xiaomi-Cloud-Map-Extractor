@@ -156,7 +156,7 @@ class MapDataParserDreame(MapDataParser):
 
         room_names = {}
         if additional_data_json.get("seg_inf"):
-            room_names = {k: base64.decodebytes(v.get("name")) for (k, v) in additional_data_json["seg_inf"].items() if
+            room_names = {int(k): base64.b64decode(v.get("name")).decode('utf-8') for (k, v) in additional_data_json["seg_inf"].items() if
                           v.get("name")}
 
         rooms = {k: Room(

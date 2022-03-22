@@ -50,7 +50,9 @@ class ImageHandlerDreame(ImageHandler):
                     if 0 < segment_id < 62:
                         if segment_id not in rooms:
                             rooms[segment_id] = Room(segment_id, room_x, room_y, room_x, room_y)
-                        rooms[segment_id] = Room(segment_id, min(rooms[segment_id].x0, room_x), min(rooms[segment_id].y0, room_y), max(rooms[segment_id].x1, room_x), max(rooms[segment_id].y1, room_y))
+                        rooms[segment_id] = Room(segment_id,
+                                                 min(rooms[segment_id].x0, room_x), min(rooms[segment_id].y0, room_y),
+                                                 max(rooms[segment_id].x1, room_x), max(rooms[segment_id].y1, room_y))
                         default = ImageHandler.ROOM_COLORS[segment_id >> 1]
                         pixels[x, y] = ImageHandler.__get_color__(f"{COLOR_ROOM_PREFIX}{segment_id}", colors, default)
                     else:
@@ -74,7 +76,9 @@ class ImageHandlerDreame(ImageHandler):
                     elif segment_id > 0:
                         if segment_id not in rooms:
                             rooms[segment_id] = Room(segment_id, room_x, room_y, room_x, room_y)
-                        rooms[segment_id] = Room(segment_id, min(rooms[segment_id].x0, room_x), min(rooms[segment_id].y0, room_y), max(rooms[segment_id].x1, room_x), max(rooms[segment_id].y1, room_y))
+                        rooms[segment_id] = Room(segment_id,
+                                                 min(rooms[segment_id].x0, room_x), min(rooms[segment_id].y0, room_y),
+                                                 max(rooms[segment_id].x1, room_x), max(rooms[segment_id].y1, room_y))
                         default = ImageHandler.ROOM_COLORS[segment_id >> 1]
                         pixels[x, y] = ImageHandler.__get_color__(f"{COLOR_ROOM_PREFIX}{segment_id}", colors, default)
 

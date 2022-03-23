@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 from typing import Dict, List, Optional, Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
@@ -92,19 +93,30 @@ class MapDataParserRoidmi(MapDataParser):
 
     @staticmethod
     def parse_vacuum_position(map_info: dict) -> Point:
-        vacuum_position = None
-        if "robotPos" in map_info and "robotPhi" in map_info:
-            vacuum_position = Point(map_info["robotPos"][0], map_info["robotPos"][1], map_info["robotPhi"])
-        elif "posX" in map_info and "posY" in map_info and "posPhi" in map_info:
-            vacuum_position = Point(map_info["posX"], map_info["posY"], map_info["posPhi"])
+        vacuum_position = MapDataParserRoidmi.parse_position(map_info, "robotPos", "robotPos", "robotPhi")
+        if vacuum_position is None:
+            vacuum_position = MapDataParserRoidmi.parse_position(map_info, "posX", "posY", "posPhi")
         return vacuum_position
 
     @staticmethod
     def parse_charger_position(map_info: dict) -> Point:
-        charger_position = None
-        if "chargeHandlePos" in map_info:
-            charger_position = Point(map_info["chargeHandlePos"][0], map_info["chargeHandlePos"][1])
-        return charger_position
+        return MapDataParserRoidmi.parse_position(map_info, "chargeHandlePos", "chargeHandlePos", "chargeHandlePhi")
+
+    @staticmethod
+    def parse_position(map_info: dict, x_label: str, y_label: str, a_label: str) -> Optional[Point]:
+        position = None
+        if x_label not in map_info or y_label not in map_info:
+            return position
+        x = map_info[x_label]
+        y = map_info[y_label]
+        a = None
+        if x_label == y_label:
+            x = x[0]
+            y = y[1]
+        if a_label in map_info:
+            a = map_info[a_label] / 1000 * 180 / math.pi
+        position = Point(x, y, a)
+        return position
 
     @staticmethod
     def parse_rooms(map_info: dict) -> Dict[int, Room]:

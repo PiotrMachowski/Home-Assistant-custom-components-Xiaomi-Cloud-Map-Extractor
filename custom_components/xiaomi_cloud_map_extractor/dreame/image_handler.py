@@ -1,6 +1,6 @@
 import logging
 from enum import IntEnum
-from typing import Tuple, Dict
+from typing import Dict, Tuple
 
 from PIL import Image
 from PIL.Image import Image as ImageType
@@ -15,7 +15,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ImageHandlerDreame(ImageHandler):
-
     class PixelTypes(IntEnum):
         NONE = 0
         FLOOR = 1

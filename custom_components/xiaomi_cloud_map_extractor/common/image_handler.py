@@ -256,7 +256,7 @@ class ImageHandler:
             point = position.to_img(image.dimensions)
             angle = -position.a if position.a is not None else 0
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
-            draw.pieslice(coords, angle+90, angle-90, outline="black", fill=fill)
+            draw.pieslice(coords, angle + 90, angle - 90, outline="black", fill=fill)
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(outline, fill))
 
@@ -286,7 +286,7 @@ class ImageHandler:
                     for point in current_path[1:]:
                         e = point.to_img(image.dimensions)
                         draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale],
-                          width=int(scale * path_width), fill=color)
+                                  width=int(scale * path_width), fill=color)
                         s = e
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, scale, ImageHandler.__use_transparency__(color))

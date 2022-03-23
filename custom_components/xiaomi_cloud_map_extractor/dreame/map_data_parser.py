@@ -1,13 +1,13 @@
 import base64
-import logging
 import json
+import logging
 import re
 import zlib
-from enum import IntEnum, Enum
-from typing import Optional, List, Tuple, Dict
+from enum import Enum, IntEnum
+from typing import Dict, List, Optional, Tuple
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData, Point, ImageData, Path, Area, Wall, \
-    Room
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
+    Wall
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 from custom_components.xiaomi_cloud_map_extractor.dreame.image_handler import ImageHandlerDreame
 
@@ -64,9 +64,9 @@ class MapDataParserDreame(MapDataParser):
 
         if len(raw) >= MapDataParserDreame.HEADER_SIZE + header.image_width * header.image_height:
             image_raw = raw[
-                MapDataParserDreame.HEADER_SIZE:
-                MapDataParserDreame.HEADER_SIZE + header.image_width * header.image_height
-            ]
+                        MapDataParserDreame.HEADER_SIZE:
+                        MapDataParserDreame.HEADER_SIZE + header.image_width * header.image_height
+                        ]
             additional_data_raw = raw[MapDataParserDreame.HEADER_SIZE + header.image_width * header.image_height:]
             additional_data_json = json.loads(additional_data_raw.decode("utf8"))
             _LOGGER.debug(f'map additional_data: {additional_data_json}')
@@ -74,9 +74,10 @@ class MapDataParserDreame(MapDataParser):
             map_data.charger = header.charger_position
             map_data.vacuum_position = header.vacuum_position
 
-            map_data.image, map_data.rooms = MapDataParserDreame.parse_image(image_raw, header, colors, image_config, additional_data_json, map_data_type)
+            map_data.image, map_data.rooms = MapDataParserDreame.parse_image(image_raw, header, colors, image_config,
+                                                                             additional_data_json, map_data_type)
 
-            if additional_data_json.get("rism") and\
+            if additional_data_json.get("rism") and \
                     additional_data_json.get("ris") and additional_data_json["ris"] == 2:
                 rism_map_data = MapDataParserDreame.decode_map(
                     additional_data_json["rism"],
@@ -156,7 +157,8 @@ class MapDataParserDreame(MapDataParser):
 
         room_names = {}
         if additional_data_json.get("seg_inf"):
-            room_names = {int(k): base64.b64decode(v.get("name")).decode('utf-8') for (k, v) in additional_data_json["seg_inf"].items() if
+            room_names = {int(k): base64.b64decode(v.get("name")).decode('utf-8') for (k, v) in
+                          additional_data_json["seg_inf"].items() if
                           v.get("name")}
 
         rooms = {k: Room(
@@ -225,7 +227,8 @@ class MapDataParserDreame(MapDataParser):
 
     @staticmethod
     def parse_virtual_walls(virtual_walls: list) -> List[Wall]:
-        return [Wall(virtual_wall[0], virtual_wall[1], virtual_wall[2], virtual_wall[3]) for virtual_wall in virtual_walls]
+        return [Wall(virtual_wall[0], virtual_wall[1], virtual_wall[2], virtual_wall[3])
+                for virtual_wall in virtual_walls]
 
     @staticmethod
     def read_int_8(data: bytes, offset: int = 0):

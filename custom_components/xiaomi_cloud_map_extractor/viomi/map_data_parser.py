@@ -1,4 +1,5 @@
 import logging
+import math
 from struct import unpack_from
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -119,9 +120,8 @@ class MapDataParserViomi(MapDataParser):
 
         if feature_flags & MapDataParserViomi.FEATURE_CHARGE_STATION != 0:
             MapDataParserViomi.parse_section(buf, 'charge_station', map_id)
-            map_data.charger = MapDataParserViomi.parse_position(buf, 'pos')
-            foo = buf.get_float32('foo')
-            _LOGGER.debug('pos: %s, foo: %f', map_data.charger, foo)
+            map_data.charger = MapDataParserViomi.parse_position(buf, 'pos', with_angle=True)
+            _LOGGER.debug('pos: %s', map_data.charger)
 
         if feature_flags & MapDataParserViomi.FEATURE_RESTRICTED_AREAS != 0:
             MapDataParserViomi.parse_section(buf, 'restricted_areas', map_id)
@@ -141,9 +141,8 @@ class MapDataParserViomi(MapDataParser):
         if feature_flags & MapDataParserViomi.FEATURE_REALTIME != 0:
             MapDataParserViomi.parse_section(buf, 'realtime', map_id)
             buf.skip('unknown1', 5)
-            map_data.vacuum_position = MapDataParserViomi.parse_position(buf, 'pos')
-            foo = buf.get_float32('foo')
-            _LOGGER.debug('pos: %s, foo: %f', map_data.vacuum_position, foo)
+            map_data.vacuum_position = MapDataParserViomi.parse_position(buf, 'pos', with_angle=True)
+            _LOGGER.debug('pos: %s', map_data.vacuum_position)
 
         if feature_flags & 0x00000800 != 0:
             MapDataParserViomi.parse_section(buf, 'unknown1', map_id)
@@ -315,12 +314,15 @@ class MapDataParserViomi(MapDataParser):
                 f"Magic: {magic:#x}, Map ID: {map_id:#x}")
 
     @staticmethod
-    def parse_position(buf: ParsingBuffer, name: str) -> Optional[Point]:
+    def parse_position(buf: ParsingBuffer, name: str, with_angle: bool = False) -> Optional[Point]:
         x = buf.get_float32(name + '.x')
         y = buf.get_float32(name + '.y')
         if x == MapDataParserViomi.POSITION_UNKNOWN or y == MapDataParserViomi.POSITION_UNKNOWN:
             return None
-        return Point(x, y)
+        a = None
+        if with_angle:
+            a = buf.get_float32(name + '.a') * 180 / math.pi
+        return Point(x, y, a)
 
     @staticmethod
     def parse_unknown_section(buf: ParsingBuffer) -> bool:

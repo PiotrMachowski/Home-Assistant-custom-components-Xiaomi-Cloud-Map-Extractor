@@ -10,6 +10,7 @@ from custom_components.xiaomi_cloud_map_extractor.const import *
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class ImageHandler:
     COLORS = {
         COLOR_MAP_INSIDE: (32, 115, 185),
@@ -195,29 +196,35 @@ class ImageHandler:
             if vacuum_pos.a is None:
                 vacuum_pos.a = 0
             point = vacuum_pos.to_img(image.dimensions)
+            r_scaled = r / 16
+            # main outline
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.ellipse(coords, outline=outline, fill=fill)
-            r_scaled = r / 16
-            r2 = r_scaled * 14
-            x = point.x
-            y = point.y
-            coords = [x - r2, y - r2, x + r2, y + r2]
-            draw.ellipse(coords, outline=outline, fill=None)
+            if r >= 8:
+                # secondary outline
+                r2 = r_scaled * 14
+                x = point.x
+                y = point.y
+                coords = [x - r2, y - r2, x + r2, y + r2]
+                draw.ellipse(coords, outline=outline, fill=None)
+            # bin cover
             a1 = (vacuum_pos.a + 104) / 180 * math.pi
             a2 = (vacuum_pos.a - 104) / 180 * math.pi
             r2 = r_scaled * 13
-            x1 = x + r2 * math.cos(a1)
-            y1 = y - r2 * math.sin(a1)
-            x2 = x + r2 * math.cos(a2)
-            y2 = y - r2 * math.sin(a2)
-            draw.line([x1,y1,x2,y2], width=1, fill=outline)
+            x1 = point.x - r2 * math.cos(a1)
+            y1 = point.y + r2 * math.sin(a1)
+            x2 = point.x - r2 * math.cos(a2)
+            y2 = point.y + r2 * math.sin(a2)
+            draw.line([x1, y1, x2, y2], width=1, fill=outline)
+            # lidar
             angle = vacuum_pos.a / 180 * math.pi
             r2 = r_scaled * 3
-            x = point.x - r2 * math.cos(angle)
-            y = point.y + r2 * math.sin(angle)
+            x = point.x + r2 * math.cos(angle)
+            y = point.y - r2 * math.sin(angle)
             r2 = r_scaled * 4
             coords = [x - r2, y - r2, x + r2, y + r2]
             draw.ellipse(coords, outline=outline, fill=fill)
+            # button
             half_color = (
                 (outline[0] + fill[0]) // 2,
                 (outline[1] + fill[1]) // 2,
@@ -274,7 +281,8 @@ class ImageHandler:
             s = path.path[0].to_img(image.dimensions)
             for point in path.path[1:]:
                 e = point.to_img(image.dimensions)
-                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale], width=int(scale * path_width), fill=color)
+                draw.line([s.x * scale, s.y * scale, e.x * scale, e.y * scale],
+                          width=int(scale * path_width), fill=color)
                 s = e
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, scale, ImageHandler.__use_transparency__(color))
@@ -307,7 +315,6 @@ class ImageHandler:
     @staticmethod
     def __draw_on_new_layer__(image: ImageData, draw_function: Callable, scale=1, use_transparency=False):
         if scale == 1 and not use_transparency:
-            size = image.data.size
             draw = ImageDraw.Draw(image.data, "RGBA")
             draw_function(draw)
         else:

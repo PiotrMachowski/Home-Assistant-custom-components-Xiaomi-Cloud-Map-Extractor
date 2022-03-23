@@ -191,6 +191,7 @@ camera:
     sizes:
       charger_radius: 4
       vacuum_radius: 6.5
+      path_width: 1
       obstacle_radius: 3
       ignored_obstacle_radius: 3
       obstacle_with_photo_radius: 3
@@ -264,7 +265,8 @@ camera:
 
   | Color name | Description |
   | --- | --- |
-  | `color_charger` | Charger position |
+  | `color_charger` | Charger fill |
+  | `color_charger_outline` | Charger outline |
   | `color_cleaned_area` | Fill of area that already has been cleaned (Viomi) |
   | `color_goto_path` | Path for goto mode |
   | `color_grey_wall` | Obstacles (e.g. chairs, table legs) |
@@ -283,7 +285,8 @@ camera:
   | `color_obstacle` | Obstacle mark on a map |
   | `color_path` | Path of a vacuum |
   | `color_predicted_path` | Predicted path to a point in goto mode |
-  | `color_robo` | Vacuum position |
+  | `color_robo` | Vacuum fill |
+  | `color_robo_outline` | Vacuum outline |
   | `color_room_names` | Room names (if available) |
   | `color_scan` | Areas not assigned to any room (for software with rooms support) |
   | `color_unknown` | Other areas |
@@ -349,12 +352,13 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
 
   | Parameter | Type | Required | Default value | Description |
   |---|---|---|---|---|
-  | `charger_radius` | float | false | 4 | Radius of a charger circle. |
-  | `vacuum_radius` | float | false | 4 | Radius of a vacuum circle. |
+  | `charger_radius` | float | false | 6 | Radius of a charger circle. |
+  | `vacuum_radius` | float | false | 6 | Radius of a vacuum semi-circle. |
   | `obstacle_radius` | float | false | 3 | Radius of an obstacle circle. |
   | `ignored_obstacle_radius` | float | false | 3 | Radius of an ignored obstacle circle circle. |
   | `obstacle_with_photo_radius` | float | false | 3 | Radius of an obstacle with photo circle. |
   | `ignored_obstacle_with_photo_radius` | float | false | 3 | Radius of an ignored obstacle with photo circle. |
+  | `path_width` | float | false | 1 | Width of path line. |
 
 #### Attributes configuration
 

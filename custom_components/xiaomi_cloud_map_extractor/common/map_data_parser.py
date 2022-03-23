@@ -40,11 +40,11 @@ class MapDataParser:
                 ImageHandler.draw_ignored_obstacles_with_photo(map_data.image, map_data.ignored_obstacles_with_photo,
                                                                sizes, colors)
             if DRAWABLE_PATH == drawable and map_data.path is not None:
-                ImageHandler.draw_path(map_data.image, map_data.path, colors, scale)
+                ImageHandler.draw_path(map_data.image, map_data.path, sizes, colors, scale)
             if DRAWABLE_GOTO_PATH == drawable and map_data.goto_path is not None:
-                ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, colors, scale)
+                ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, sizes, colors, scale)
             if DRAWABLE_PREDICTED_PATH == drawable and map_data.predicted_path is not None:
-                ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, colors, scale)
+                ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, sizes, colors, scale)
             if DRAWABLE_NO_GO_AREAS == drawable and map_data.no_go_areas is not None:
                 ImageHandler.draw_no_go_areas(map_data.image, map_data.no_go_areas, colors)
             if DRAWABLE_NO_MOPPING_AREAS == drawable and map_data.no_mopping_areas is not None:

@@ -63,10 +63,8 @@ class MapDataParserDreame(MapDataParser):
             return
 
         if len(raw) >= MapDataParserDreame.HEADER_SIZE + header.image_width * header.image_height:
-            image_raw = raw[
-                        MapDataParserDreame.HEADER_SIZE:
-                        MapDataParserDreame.HEADER_SIZE + header.image_width * header.image_height
-                        ]
+            image_raw = raw[MapDataParserDreame.HEADER_SIZE:
+                            MapDataParserDreame.HEADER_SIZE + header.image_width * header.image_height]
             additional_data_raw = raw[MapDataParserDreame.HEADER_SIZE + header.image_width * header.image_height:]
             additional_data_json = json.loads(additional_data_raw.decode("utf8"))
             _LOGGER.debug(f'map additional_data: {additional_data_json}')

@@ -201,8 +201,9 @@ CONF_DEFAULT_ROOM_COLORS = [COLOR_ROOM_1, COLOR_ROOM_2, COLOR_ROOM_3, COLOR_ROOM
 
 AVAILABLE_APIS = {
     CONF_AVAILABLE_API_DREAME: ["dreame.vacuum."],
-    CONF_AVAILABLE_API_ROIDMI: ["roidmi.vacuum."],
-    CONF_AVAILABLE_API_VIOMI: ["viomi.vacuum."]
+    CONF_AVAILABLE_API_ROIDMI: ["roidmi.vacuum.", "zhimi.vacuum."],
+    CONF_AVAILABLE_API_VIOMI: ["viomi.vacuum."],
+    CONF_AVAILABLE_API_XIAOMI: ["roborock.vacuum", "rockrobo.vacuum"]
 }
 
 API_EXCEPTIONS = {

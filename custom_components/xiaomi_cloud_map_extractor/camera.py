@@ -26,6 +26,7 @@ from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector 
 from custom_components.xiaomi_cloud_map_extractor.const import *
 from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
 from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
+from custom_components.xiaomi_cloud_map_extractor.unsupported.vacuum import UnsupportedVacuum
 from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
 from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
 
@@ -363,21 +364,21 @@ class VacuumCamera(Camera):
             return RoidmiVacuum(self._connector, self._country, user_id, device_id, model)
         if self._used_api == CONF_AVAILABLE_API_DREAME:
             return DreameVacuum(self._connector, self._country, user_id, device_id, model)
-        return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
+        return UnsupportedVacuum(self._connector, self._country, user_id, device_id, model)
 
-    def _detect_api(self, model: str) -> str:
+    def _detect_api(self, model: str) -> Optional[str]:
         if self._forced_api is not None:
             return self._forced_api
         if model in API_EXCEPTIONS:
             return API_EXCEPTIONS[model]
 
-        def list_contains_model(prefixes):
-            return len(list(filter(lambda x: model.startswith(x), prefixes))) > 0
+        def list_contains_model(prefixes, model_to_check):
+            return len(list(filter(lambda x: model_to_check.startswith(x), prefixes))) > 0
 
-        filtered = list(filter(lambda x: list_contains_model(x[1]), AVAILABLE_APIS.items()))
+        filtered = list(filter(lambda x: list_contains_model(x[1], model), AVAILABLE_APIS.items()))
         if len(filtered) > 0:
             return filtered[0][0]
-        return CONF_AVAILABLE_API_XIAOMI
+        return None
 
     def _store_image(self):
         if self._store_map_image:

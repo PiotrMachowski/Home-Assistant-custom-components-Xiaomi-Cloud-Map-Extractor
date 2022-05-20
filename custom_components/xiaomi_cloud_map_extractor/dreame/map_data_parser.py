@@ -53,8 +53,8 @@ class MapDataParserDreame(MapDataParser):
 
     @staticmethod
     def parse(raw: bytes, colors, drawables, texts, sizes, image_config,
-              map_data_type: MapDataTypes) -> Optional[MapData]:
-        map_data = MapData()
+              map_data_type: MapDataTypes = MapDataTypes.REGULAR, *args, **kwargs) -> Optional[MapData]:
+        map_data = MapData(0, 100)
 
         header = MapDataParserDreame.parse_header(raw)
 

@@ -212,40 +212,7 @@ class VacuumCamera(Camera):
     def extra_state_attributes(self) -> Dict[str, Any]:
         attributes = {}
         if self._map_data is not None:
-            rooms = []
-            if self._map_data.rooms is not None:
-                rooms = dict(
-                    filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), self._map_data.rooms.items())))
-                if len(rooms) == 0:
-                    rooms = list(self._map_data.rooms.keys())
-            for name, value in {
-                ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
-                ATTRIBUTE_CHARGER: self._map_data.charger,
-                ATTRIBUTE_CLEANED_ROOMS: self._map_data.cleaned_rooms,
-                ATTRIBUTE_COUNTRY: self._country,
-                ATTRIBUTE_GOTO: self._map_data.goto,
-                ATTRIBUTE_GOTO_PATH: self._map_data.goto_path,
-                ATTRIBUTE_GOTO_PREDICTED_PATH: self._map_data.predicted_path,
-                ATTRIBUTE_IGNORED_OBSTACLES: self._map_data.ignored_obstacles,
-                ATTRIBUTE_IGNORED_OBSTACLES_WITH_PHOTO: self._map_data.ignored_obstacles_with_photo,
-                ATTRIBUTE_IMAGE: self._map_data.image,
-                ATTRIBUTE_IS_EMPTY: self._map_data.image.is_empty,
-                ATTRIBUTE_MAP_NAME: self._map_data.map_name,
-                ATTRIBUTE_NO_GO_AREAS: self._map_data.no_go_areas,
-                ATTRIBUTE_NO_MOPPING_AREAS: self._map_data.no_mopping_areas,
-                ATTRIBUTE_OBSTACLES: self._map_data.obstacles,
-                ATTRIBUTE_OBSTACLES_WITH_PHOTO: self._map_data.obstacles_with_photo,
-                ATTRIBUTE_PATH: self._map_data.path,
-                ATTRIBUTE_ROOM_NUMBERS: rooms,
-                ATTRIBUTE_ROOMS: self._map_data.rooms,
-                ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
-                ATTRIBUTE_VACUUM_ROOM: self._map_data.vacuum_room,
-                ATTRIBUTE_VACUUM_ROOM_NAME: self._map_data.vacuum_room_name,
-                ATTRIBUTE_WALLS: self._map_data.walls,
-                ATTRIBUTE_ZONES: self._map_data.zones
-            }.items():
-                if name in self._attributes:
-                    attributes[name] = value
+            attributes.update(self.extract_attributes(self._map_data, self._attributes, self._country))
         if self._store_map_raw:
             attributes[ATTRIBUTE_MAP_SAVED] = self._map_saved
         if self._device is not None:
@@ -256,6 +223,45 @@ class VacuumCamera(Camera):
     @property
     def should_poll(self) -> bool:
         return self._should_poll
+
+    @staticmethod
+    def extract_attributes(map_data: MapData, attributes_to_return: List[str], country) -> Dict[str, Any]:
+        attributes = {}
+        rooms = []
+        if map_data.rooms is not None:
+            rooms = dict(
+                filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), map_data.rooms.items())))
+            if len(rooms) == 0:
+                rooms = list(map_data.rooms.keys())
+        for name, value in {
+            ATTRIBUTE_CALIBRATION: map_data.calibration(),
+            ATTRIBUTE_CHARGER: map_data.charger,
+            ATTRIBUTE_CLEANED_ROOMS: map_data.cleaned_rooms,
+            ATTRIBUTE_COUNTRY: country,
+            ATTRIBUTE_GOTO: map_data.goto,
+            ATTRIBUTE_GOTO_PATH: map_data.goto_path,
+            ATTRIBUTE_GOTO_PREDICTED_PATH: map_data.predicted_path,
+            ATTRIBUTE_IGNORED_OBSTACLES: map_data.ignored_obstacles,
+            ATTRIBUTE_IGNORED_OBSTACLES_WITH_PHOTO: map_data.ignored_obstacles_with_photo,
+            ATTRIBUTE_IMAGE: map_data.image,
+            ATTRIBUTE_IS_EMPTY: map_data.image.is_empty,
+            ATTRIBUTE_MAP_NAME: map_data.map_name,
+            ATTRIBUTE_NO_GO_AREAS: map_data.no_go_areas,
+            ATTRIBUTE_NO_MOPPING_AREAS: map_data.no_mopping_areas,
+            ATTRIBUTE_OBSTACLES: map_data.obstacles,
+            ATTRIBUTE_OBSTACLES_WITH_PHOTO: map_data.obstacles_with_photo,
+            ATTRIBUTE_PATH: map_data.path,
+            ATTRIBUTE_ROOM_NUMBERS: rooms,
+            ATTRIBUTE_ROOMS: map_data.rooms,
+            ATTRIBUTE_VACUUM_POSITION: map_data.vacuum_position,
+            ATTRIBUTE_VACUUM_ROOM: map_data.vacuum_room,
+            ATTRIBUTE_VACUUM_ROOM_NAME: map_data.vacuum_room_name,
+            ATTRIBUTE_WALLS: map_data.walls,
+            ATTRIBUTE_ZONES: map_data.zones
+        }.items():
+            if name in attributes_to_return:
+                attributes[name] = value
+        return attributes
 
     def update(self):
         counter = 10

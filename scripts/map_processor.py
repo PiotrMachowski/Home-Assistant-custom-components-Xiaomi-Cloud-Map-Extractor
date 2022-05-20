@@ -3,6 +3,7 @@ import logging
 import os
 
 import yaml
+from homeassistant import config_entries  # to fix circular imports
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 
 from custom_components.xiaomi_cloud_map_extractor.camera import PLATFORM_SCHEMA, VacuumCamera
@@ -96,7 +97,8 @@ def parse_map_file(map_config, map_filename, api, suffix=""):
         map_data.image.data.save(f"{map_filename}{suffix}.png")
         print(f"Map image saved to \"{map_filename}{suffix}.png\"")
         attributes_output_file = open(f"{map_filename}{suffix}.yaml", "w")
-        yaml.dump(attributes_to_dict(map_data), attributes_output_file)
+        attributes = VacuumCamera.extract_attributes(map_data, CONF_AVAILABLE_ATTRIBUTES, "")
+        yaml.dump(attributes_to_dict(attributes), attributes_output_file)
         attributes_output_file.close()
         print(f"Map attributes saved to \"{map_filename}{suffix}.yaml\"")
     else:

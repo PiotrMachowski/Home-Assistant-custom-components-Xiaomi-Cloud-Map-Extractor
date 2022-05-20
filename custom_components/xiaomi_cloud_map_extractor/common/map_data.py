@@ -197,7 +197,7 @@ class Room(Zone):
             super_dict[ATTR_NAME] = self.name
         if self.pos_x is not None:
             super_dict[ATTR_X] = self.pos_x
-        if self.name is not None:
+        if self.pos_y is not None:
             super_dict[ATTR_Y] = self.pos_y
         return super_dict
 

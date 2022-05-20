@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 class MapDataParserRoidmi(MapDataParser):
 
     @staticmethod
-    def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:
+    def parse(raw: bytes, colors, drawables, texts, sizes, image_config, *args, **kwargs) -> MapData:
         scale = float(image_config[CONF_SCALE])
         map_image_size = raw.find(bytes([127, 123]))
         map_image = raw[16:map_image_size + 1]

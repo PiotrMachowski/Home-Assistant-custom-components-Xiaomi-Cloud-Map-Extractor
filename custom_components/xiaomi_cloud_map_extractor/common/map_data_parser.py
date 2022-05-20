@@ -19,7 +19,7 @@ class MapDataParser:
 
     @staticmethod
     def parse(raw: bytes, colors: Colors, drawables: Drawables, texts: Texts, sizes: Sizes,
-              image_config: ImageConfig) -> MapData:
+              image_config: ImageConfig, *args, **kwargs) -> MapData:
         pass
 
     @staticmethod

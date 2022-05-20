@@ -12,12 +12,12 @@ jobs:
       - run: bandit --recursive --skip B105,B108,B303,B304,B324,B311,B413,B506 .
       - run: black --check . || true
       - run: codespell --ignore-words-list="hass"
-      - run: flake8 . --count --ignore=B001,E241,E265,E302,E722,E731,F403,F405,F841,W504
+      - run: flake8 custom_components --count --ignore=B001,E241,E265,E302,E722,E731,F403,F405,F841,W504
                       --max-complexity=21 --max-line-length=184 --show-source --statistics
-      - run: isort --check-only --profile black . || true
+      - run: isort --check-only --profile black custom_components || true
       - run: pip install -r requirements.txt || pip install --editable . || true
       - run: mkdir --parents --verbose .mypy_cache
-      - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
+      - run: mypy --ignore-missing-imports --install-types --non-interactive custom_components || true
       - run: pytest . || true
       - run: pytest --doctest-modules . || true
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true

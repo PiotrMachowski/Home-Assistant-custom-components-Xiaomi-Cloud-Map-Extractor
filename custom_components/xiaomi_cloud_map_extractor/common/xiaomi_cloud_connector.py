@@ -199,12 +199,12 @@ class XiaomiCloudConnector:
 
     @staticmethod
     def generate_agent() -> str:
-        agent_id = "".join(map(lambda i: chr(i), [random.randint(65, 69) for _ in range(13)]))
+        agent_id = "".join((chr(random.randint(65, 69)) for _ in range(13)))
         return f"Android-7.1.1-1.0.0-ONEPLUS A3010-136-{agent_id} APP/xiaomi.smarthome APPV/62830"
 
     @staticmethod
     def generate_device_id() -> str:
-        return "".join(map(lambda i: chr(i), [random.randint(97, 122) for _ in range(6)]))
+        return "".join((chr(random.randint(97, 122)) for _ in range(6)))
 
     @staticmethod
     def generate_signature(url, signed_nonce: str, nonce: str, params: Dict[str, str]) -> str:

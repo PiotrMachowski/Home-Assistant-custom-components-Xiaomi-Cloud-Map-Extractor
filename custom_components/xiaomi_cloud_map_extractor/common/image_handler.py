@@ -110,7 +110,7 @@ class ImageHandler:
 
     @staticmethod
     def draw_zones(image: ImageData, zones: List[Zone], colors: Colors):
-        areas = list(map(lambda z: z.as_area(), zones))
+        areas = [z.as_area() for z in zones]
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_ZONES_OUTLINE, colors))

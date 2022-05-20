@@ -229,8 +229,7 @@ class VacuumCamera(Camera):
         attributes = {}
         rooms = []
         if map_data.rooms is not None:
-            rooms = dict(
-                filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), map_data.rooms.items())))
+            rooms = dict(filter(lambda x: x[0] is not None, ((x[0], x[1].name) for x in map_data.rooms.items())))
             if len(rooms) == 0:
                 rooms = list(map_data.rooms.keys())
         for name, value in {

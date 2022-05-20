@@ -92,7 +92,8 @@ class MapDataParserViomi(MapDataParser):
 
         buf.check_empty()
 
-        _LOGGER.debug('rooms: %s', [str(room) for number, room in map_data.rooms.items()])
+        if map_data.rooms is not None:
+            _LOGGER.debug('rooms: %s', [str(room) for number, room in map_data.rooms.items()])
         if not map_data.image.is_empty:
             MapDataParserViomi.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:

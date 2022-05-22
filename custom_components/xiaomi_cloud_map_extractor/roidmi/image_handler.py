@@ -1,11 +1,12 @@
 import logging
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 from PIL import Image
 from PIL.Image import Image as ImageType
 
 from custom_components.xiaomi_cloud_map_extractor.common.image_handler import ImageHandler
 from custom_components.xiaomi_cloud_map_extractor.const import *
+from custom_components.xiaomi_cloud_map_extractor.types import Colors, ImageConfig
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,7 +17,8 @@ class ImageHandlerRoidmi(ImageHandler):
     MAP_UNKNOWN = 255
 
     @staticmethod
-    def parse(raw_data, width, height, colors, image_config, room_numbers) \
+    def parse(raw_data: bytes, width: int, height: int, colors: Colors, image_config: ImageConfig,
+              room_numbers: List[int]) \
             -> Tuple[ImageType, Dict[int, Tuple[int, int, int, int]]]:
         rooms = {}
         scale = image_config[CONF_SCALE]

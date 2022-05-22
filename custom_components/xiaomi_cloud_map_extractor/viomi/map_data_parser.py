@@ -1,87 +1,16 @@
 import logging
 import math
-from struct import unpack_from
 from typing import Dict, List, Optional, Set, Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
     Wall, Zone
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
 from custom_components.xiaomi_cloud_map_extractor.const import *
+from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
 from custom_components.xiaomi_cloud_map_extractor.viomi.image_handler import ImageHandlerViomi
+from custom_components.xiaomi_cloud_map_extractor.viomi.parsing_buffer import ParsingBuffer
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class ParsingBuffer:
-    def __init__(self, name: str, data: bytes, start_offs: int, length: int):
-        self._name = name
-        self._data = data
-        self._offs = start_offs
-        self._length = length
-        self._image_beginning = None
-
-    def set_name(self, name: str):
-        self._name = name
-        _LOGGER.debug('SECTION %s: offset 0x%x', self._name, self._offs)
-
-    def mark_as_image_beginning(self):
-        self._image_beginning = self._offs
-
-    def get_at_image(self, offset):
-        return self._data[self._image_beginning + offset - 1]
-
-    def skip(self, field, n):
-        if self._length < n:
-            raise ValueError(f"error parsing {self._name}.{field} at offset {self._offs:#x}: buffer underrun")
-        self._offs += n
-        self._length -= n
-
-    def get_uint8(self, field):
-        if self._length < 1:
-            raise ValueError(f"error parsing {self._name}.{field} at offset {self._offs:#x}: buffer underrun")
-        self._offs += 1
-        self._length -= 1
-        return self._data[self._offs - 1]
-
-    def get_uint16(self, field):
-        if self._length < 2:
-            raise ValueError(f"error parsing {self._name}.{field} at offset {self._offs:#x}: buffer underrun")
-        self._offs += 2
-        self._length -= 2
-        return unpack_from('<H', self._data, self._offs - 2)[0]
-
-    def get_uint32(self, field):
-        if self._length < 4:
-            raise ValueError(f"error parsing {self._name}.{field} at offset {self._offs:#x}: buffer underrun")
-        self._offs += 4
-        self._length -= 4
-        return unpack_from('<L', self._data, self._offs - 4)[0]
-
-    def get_float32(self, field):
-        if self._length < 4:
-            raise ValueError(f"error parsing {self._name}.{field} at offset {self._offs:#x}: buffer underrun")
-        self._offs += 4
-        self._length -= 4
-        return unpack_from('<f', self._data, self._offs - 4)[0]
-
-    def get_string_len8(self, field):
-        n = self.get_uint8(field + '.len')
-        if self._length < n:
-            raise ValueError(f"error parsing {self._name}.{field} at offset {self._offs:#x}: buffer underrun")
-        self._offs += n
-        self._length -= n
-        return self._data[self._offs - n:self._offs].decode('UTF-8')
-
-    def peek_uint32(self, field):
-        if self._length < 4:
-            raise ValueError(f"error parsing {self._name}.{field} at offset {self._offs:#x}: buffer underrun")
-        return unpack_from('<L', self._data, self._offs)[0]
-
-    def check_empty(self):
-        if self._length == 0:
-            _LOGGER.debug('all of the data has been processed')
-        else:
-            _LOGGER.warning('%d bytes remained in the buffer', self._length)
 
 
 class MapDataParserViomi(MapDataParser):
@@ -98,7 +27,8 @@ class MapDataParserViomi(MapDataParser):
     POSITION_UNKNOWN = 1100
 
     @staticmethod
-    def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:
+    def parse(raw: bytes, colors: Colors, drawables: Drawables, texts: Texts, sizes: Sizes,
+              image_config: ImageConfig, *args, **kwargs) -> MapData:
         map_data = MapData(0, 1)
         buf = ParsingBuffer('header', raw, 0, len(raw))
         feature_flags = buf.get_uint32('feature_flags')
@@ -162,7 +92,8 @@ class MapDataParserViomi(MapDataParser):
 
         buf.check_empty()
 
-        _LOGGER.debug('rooms: %s', [str(room) for number, room in map_data.rooms.items()])
+        if map_data.rooms is not None:
+            _LOGGER.debug('rooms: %s', [str(room) for number, room in map_data.rooms.items()])
         if not map_data.image.is_empty:
             MapDataParserViomi.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
@@ -175,11 +106,11 @@ class MapDataParserViomi(MapDataParser):
         return map_data
 
     @staticmethod
-    def map_to_image(p: Point):
+    def map_to_image(p: Point) -> Point:
         return Point(p.x * 20 + 400, p.y * 20 + 400)
 
     @staticmethod
-    def image_to_map(x):
+    def image_to_map(x: float) -> float:
         return (x - 400) / 20
 
     @staticmethod
@@ -193,7 +124,7 @@ class MapDataParserViomi(MapDataParser):
         return None
 
     @staticmethod
-    def parse_image(buf: ParsingBuffer, colors: Dict, image_config: Dict, draw_cleaned_area: bool) \
+    def parse_image(buf: ParsingBuffer, colors: Colors, image_config: ImageConfig, draw_cleaned_area: bool) \
             -> Tuple[ImageData, Dict[int, Room], Set[int]]:
         buf.skip('unknown1', 0x08)
         image_top = 0
@@ -236,7 +167,7 @@ class MapDataParserViomi(MapDataParser):
         for _ in range(history_count):
             mode = buf.get_uint8('mode')  # 0: taxi, 1: working
             path_points.append(MapDataParserViomi.parse_position(buf, 'path'))
-        return Path(len(path_points), 1, 0, path_points)
+        return Path(len(path_points), 1, 0, [path_points])
 
     @staticmethod
     def parse_restricted_areas(buf: ParsingBuffer) -> Tuple[List[Wall], List[Area]]:

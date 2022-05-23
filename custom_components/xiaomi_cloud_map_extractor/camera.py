@@ -3,7 +3,11 @@ import logging
 import time
 from datetime import timedelta
 from enum import Enum
-from typing import Optional
+from typing import Any, Dict, List, Optional
+
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
+from custom_components.xiaomi_cloud_map_extractor.common.vacuum import XiaomiCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
 
 try:
     from miio import RoborockVacuum, DeviceException
@@ -22,6 +26,7 @@ from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector 
 from custom_components.xiaomi_cloud_map_extractor.const import *
 from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
 from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
+from custom_components.xiaomi_cloud_map_extractor.unsupported.vacuum import UnsupportedVacuum
 from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
 from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
 
@@ -37,12 +42,13 @@ DEFAULT_TRIMS = {
 }
 
 DEFAULT_SIZES = {
-    CONF_SIZE_VACUUM_RADIUS: 4,
+    CONF_SIZE_VACUUM_RADIUS: 6,
+    CONF_SIZE_PATH_WIDTH: 1,
     CONF_SIZE_IGNORED_OBSTACLE_RADIUS: 3,
     CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS: 3,
     CONF_SIZE_OBSTACLE_RADIUS: 3,
     CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS: 3,
-    CONF_SIZE_CHARGER_RADIUS: 4
+    CONF_SIZE_CHARGER_RADIUS: 6
 }
 
 COLOR_SCHEMA = vol.Or(
@@ -94,6 +100,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_SIZES, default=DEFAULT_SIZES): vol.Schema({
             vol.Optional(CONF_SIZE_VACUUM_RADIUS,
                          default=DEFAULT_SIZES[CONF_SIZE_VACUUM_RADIUS]): POSITIVE_FLOAT_SCHEMA,
+            vol.Optional(CONF_SIZE_PATH_WIDTH,
+                         default=DEFAULT_SIZES[CONF_SIZE_PATH_WIDTH]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_RADIUS,
                          default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS,
@@ -144,8 +152,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class VacuumCamera(Camera):
-    def __init__(self, entity_id, host, token, username, password, country, name, should_poll, image_config, colors,
-                 drawables, sizes, texts, attributes, store_map_raw, store_map_image, store_map_path, force_api):
+    def __init__(self, entity_id: str, host: str, token: str, username: str, password: str, country: str, name: str,
+                 should_poll: bool, image_config: ImageConfig, colors: Colors, drawables: Drawables, sizes: Sizes,
+                 texts: Texts, attributes: List[str], store_map_raw: bool, store_map_image: bool, store_map_path: str,
+                 force_api: str):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -178,14 +188,14 @@ class VacuumCamera(Camera):
         self.async_schedule_update_ha_state(True)
 
     @property
-    def frame_interval(self):
+    def frame_interval(self) -> float:
         return 1
 
     def camera_image(self, width: Optional[int] = None, height: Optional[int] = None) -> Optional[bytes]:
         return self._image
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     def turn_on(self):
@@ -195,57 +205,64 @@ class VacuumCamera(Camera):
         self._should_poll = False
 
     @property
-    def supported_features(self):
+    def supported_features(self) -> int:
         return SUPPORT_ON_OFF
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> Dict[str, Any]:
         attributes = {}
         if self._map_data is not None:
-            rooms = []
-            if self._map_data.rooms is not None:
-                rooms = dict(
-                    filter(lambda x: x[0] is not None, map(lambda x: (x[0], x[1].name), self._map_data.rooms.items())))
-                if len(rooms) == 0:
-                    rooms = list(self._map_data.rooms.keys())
-            for name, value in {
-                ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
-                ATTRIBUTE_CHARGER: self._map_data.charger,
-                ATTRIBUTE_CLEANED_ROOMS: self._map_data.cleaned_rooms,
-                ATTRIBUTE_COUNTRY: self._country,
-                ATTRIBUTE_GOTO: self._map_data.goto,
-                ATTRIBUTE_GOTO_PATH: self._map_data.goto_path,
-                ATTRIBUTE_GOTO_PREDICTED_PATH: self._map_data.predicted_path,
-                ATTRIBUTE_IGNORED_OBSTACLES: self._map_data.ignored_obstacles,
-                ATTRIBUTE_IGNORED_OBSTACLES_WITH_PHOTO: self._map_data.ignored_obstacles_with_photo,
-                ATTRIBUTE_IMAGE: self._map_data.image,
-                ATTRIBUTE_IS_EMPTY: self._map_data.image.is_empty,
-                ATTRIBUTE_MAP_NAME: self._map_data.map_name,
-                ATTRIBUTE_NO_GO_AREAS: self._map_data.no_go_areas,
-                ATTRIBUTE_NO_MOPPING_AREAS: self._map_data.no_mopping_areas,
-                ATTRIBUTE_OBSTACLES: self._map_data.obstacles,
-                ATTRIBUTE_OBSTACLES_WITH_PHOTO: self._map_data.obstacles_with_photo,
-                ATTRIBUTE_PATH: self._map_data.path,
-                ATTRIBUTE_ROOM_NUMBERS: rooms,
-                ATTRIBUTE_ROOMS: self._map_data.rooms,
-                ATTRIBUTE_VACUUM_POSITION: self._map_data.vacuum_position,
-                ATTRIBUTE_VACUUM_ROOM: self._map_data.vacuum_room,
-                ATTRIBUTE_VACUUM_ROOM_NAME: self._map_data.vacuum_room_name,
-                ATTRIBUTE_WALLS: self._map_data.walls,
-                ATTRIBUTE_ZONES: self._map_data.zones
-            }.items():
-                if name in self._attributes:
-                    attributes[name] = value
+            attributes.update(self.extract_attributes(self._map_data, self._attributes, self._country))
         if self._store_map_raw:
             attributes[ATTRIBUTE_MAP_SAVED] = self._map_saved
         if self._device is not None:
             attributes[ATTR_MODEL] = self._device.model
             attributes[ATTR_USED_API] = self._used_api
+        if self._connector.two_factor_auth_url is not None:
+            attributes[ATTR_TWO_FACTOR_AUTH] = self._connector.two_factor_auth_url
         return attributes
 
     @property
-    def should_poll(self):
+    def should_poll(self) -> bool:
         return self._should_poll
+
+    @staticmethod
+    def extract_attributes(map_data: MapData, attributes_to_return: List[str], country) -> Dict[str, Any]:
+        attributes = {}
+        rooms = []
+        if map_data.rooms is not None:
+            rooms = dict(filter(lambda x: x[0] is not None, ((x[0], x[1].name) for x in map_data.rooms.items())))
+            if len(rooms) == 0:
+                rooms = list(map_data.rooms.keys())
+        for name, value in {
+            ATTRIBUTE_CALIBRATION: map_data.calibration(),
+            ATTRIBUTE_CHARGER: map_data.charger,
+            ATTRIBUTE_CLEANED_ROOMS: map_data.cleaned_rooms,
+            ATTRIBUTE_COUNTRY: country,
+            ATTRIBUTE_GOTO: map_data.goto,
+            ATTRIBUTE_GOTO_PATH: map_data.goto_path,
+            ATTRIBUTE_GOTO_PREDICTED_PATH: map_data.predicted_path,
+            ATTRIBUTE_IGNORED_OBSTACLES: map_data.ignored_obstacles,
+            ATTRIBUTE_IGNORED_OBSTACLES_WITH_PHOTO: map_data.ignored_obstacles_with_photo,
+            ATTRIBUTE_IMAGE: map_data.image,
+            ATTRIBUTE_IS_EMPTY: map_data.image.is_empty,
+            ATTRIBUTE_MAP_NAME: map_data.map_name,
+            ATTRIBUTE_NO_GO_AREAS: map_data.no_go_areas,
+            ATTRIBUTE_NO_MOPPING_AREAS: map_data.no_mopping_areas,
+            ATTRIBUTE_OBSTACLES: map_data.obstacles,
+            ATTRIBUTE_OBSTACLES_WITH_PHOTO: map_data.obstacles_with_photo,
+            ATTRIBUTE_PATH: map_data.path,
+            ATTRIBUTE_ROOM_NUMBERS: rooms,
+            ATTRIBUTE_ROOMS: map_data.rooms,
+            ATTRIBUTE_VACUUM_POSITION: map_data.vacuum_position,
+            ATTRIBUTE_VACUUM_ROOM: map_data.vacuum_room,
+            ATTRIBUTE_VACUUM_ROOM_NAME: map_data.vacuum_room_name,
+            ATTRIBUTE_WALLS: map_data.walls,
+            ATTRIBUTE_ZONES: map_data.zones
+        }.items():
+            if name in attributes_to_return:
+                attributes[name] = value
+        return attributes
 
     def update(self):
         counter = 10
@@ -292,7 +309,7 @@ class VacuumCamera(Camera):
             _LOGGER.error("Failed to retrieve model")
             self._status = CameraStatus.FAILED_TO_RETRIEVE_DEVICE
 
-    def _handle_map_name(self, counter):
+    def _handle_map_name(self, counter: int) -> str:
         map_name = "retry"
         if self._device is not None and not self._device.should_get_map_from_vacuum():
             map_name = "0"
@@ -312,7 +329,7 @@ class VacuumCamera(Camera):
                 counter = counter - 1
         return map_name
 
-    def _handle_map_data(self, map_name):
+    def _handle_map_data(self, map_name: str):
         _LOGGER.debug("Retrieving map from Xiaomi cloud")
         store_map_path = self._store_map_path if self._store_map_raw else None
         map_data, map_stored = self._device.get_map(map_name, self._colors, self._drawables, self._texts,
@@ -321,13 +338,15 @@ class VacuumCamera(Camera):
             # noinspection PyBroadException
             try:
                 _LOGGER.debug("Map data retrieved")
-                self._set_map_data(map_data)
                 self._map_saved = map_stored
-                if self._map_data.image.is_empty:
+                if map_data.image.is_empty:
                     _LOGGER.debug("Map is empty")
                     self._status = CameraStatus.EMPTY_MAP
+                    if self._map_data is None or self._map_data.image.is_empty:
+                        self._set_map_data(map_data)
                 else:
                     _LOGGER.debug("Map is ok")
+                    self._set_map_data(map_data)
                     self._status = CameraStatus.OK
             except:
                 _LOGGER.warning("Unable to parse map data")
@@ -337,14 +356,14 @@ class VacuumCamera(Camera):
             _LOGGER.warning("Unable to retrieve map data")
             self._status = CameraStatus.UNABLE_TO_RETRIEVE_MAP
 
-    def _set_map_data(self, map_data):
+    def _set_map_data(self, map_data: MapData):
         img_byte_arr = io.BytesIO()
         map_data.image.data.save(img_byte_arr, format='PNG')
         self._image = img_byte_arr.getvalue()
         self._map_data = map_data
         self._store_image()
 
-    def _create_device(self, user_id, device_id, model):
+    def _create_device(self, user_id: str, device_id: str, model: str) -> XiaomiCloudVacuum:
         self._used_api = self._detect_api(model)
         if self._used_api == CONF_AVAILABLE_API_XIAOMI:
             return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
@@ -354,21 +373,21 @@ class VacuumCamera(Camera):
             return RoidmiVacuum(self._connector, self._country, user_id, device_id, model)
         if self._used_api == CONF_AVAILABLE_API_DREAME:
             return DreameVacuum(self._connector, self._country, user_id, device_id, model)
-        return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
+        return UnsupportedVacuum(self._connector, self._country, user_id, device_id, model)
 
-    def _detect_api(self, model: str):
+    def _detect_api(self, model: str) -> Optional[str]:
         if self._forced_api is not None:
             return self._forced_api
         if model in API_EXCEPTIONS:
             return API_EXCEPTIONS[model]
 
-        def list_contains_model(prefixes):
-            return len(list(filter(lambda x: model.startswith(x), prefixes))) > 0
+        def list_contains_model(prefixes, model_to_check):
+            return len(list(filter(lambda x: model_to_check.startswith(x), prefixes))) > 0
 
-        filtered = list(filter(lambda x: list_contains_model(x[1]), AVAILABLE_APIS.items()))
+        filtered = list(filter(lambda x: list_contains_model(x[1], model), AVAILABLE_APIS.items()))
         if len(filtered) > 0:
             return filtered[0][0]
-        return CONF_AVAILABLE_API_XIAOMI
+        return None
 
     def _store_image(self):
         if self._store_map_image:

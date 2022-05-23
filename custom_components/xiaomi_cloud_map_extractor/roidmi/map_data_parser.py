@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 from typing import Dict, List, Optional, Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
@@ -14,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 class MapDataParserRoidmi(MapDataParser):
 
     @staticmethod
-    def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:
+    def parse(raw: bytes, colors, drawables, texts, sizes, image_config, *args, **kwargs) -> MapData:
         scale = float(image_config[CONF_SCALE])
         map_image_size = raw.find(bytes([127, 123]))
         map_image = raw[16:map_image_size + 1]
@@ -67,7 +68,7 @@ class MapDataParserRoidmi(MapDataParser):
                     colors: Dict, image_config: Dict, rooms: Dict[int, Room]) -> ImageData:
         image_top = 0
         image_left = 0
-        room_numbers = rooms.keys()
+        room_numbers = list(rooms.keys())
         image, rooms_raw = ImageHandlerRoidmi.parse(map_image, width, height, colors, image_config, room_numbers)
         for number, room in rooms_raw.items():
             pf = lambda p: MapDataParserRoidmi.image_to_map(p, resolution, min_x, min_y)
@@ -88,23 +89,34 @@ class MapDataParserRoidmi(MapDataParser):
             for raw_point in raw_points:
                 point = Point(raw_point[0], raw_point[1])
                 path_points.append(point)
-        return Path(None, None, None, path_points)
+        return Path(None, None, None, [path_points])
 
     @staticmethod
     def parse_vacuum_position(map_info: dict) -> Point:
-        vacuum_position = None
-        if "robotPos" in map_info and "robotPhi" in map_info:
-            vacuum_position = Point(map_info["robotPos"][0], map_info["robotPos"][1], map_info["robotPhi"])
-        elif "posX" in map_info and "posY" in map_info and "posPhi" in map_info:
-            vacuum_position = Point(map_info["posX"], map_info["posY"], map_info["posPhi"])
+        vacuum_position = MapDataParserRoidmi.parse_position(map_info, "robotPos", "robotPos", "robotPhi")
+        if vacuum_position is None:
+            vacuum_position = MapDataParserRoidmi.parse_position(map_info, "posX", "posY", "posPhi")
         return vacuum_position
 
     @staticmethod
     def parse_charger_position(map_info: dict) -> Point:
-        charger_position = None
-        if "chargeHandlePos" in map_info:
-            charger_position = Point(map_info["chargeHandlePos"][0], map_info["chargeHandlePos"][1])
-        return charger_position
+        return MapDataParserRoidmi.parse_position(map_info, "chargeHandlePos", "chargeHandlePos", "chargeHandlePhi")
+
+    @staticmethod
+    def parse_position(map_info: dict, x_label: str, y_label: str, a_label: str) -> Optional[Point]:
+        position = None
+        if x_label not in map_info or y_label not in map_info:
+            return position
+        x = map_info[x_label]
+        y = map_info[y_label]
+        a = None
+        if x_label == y_label:
+            x = x[0]
+            y = y[1]
+        if a_label in map_info:
+            a = map_info[a_label] / 1000 * 180 / math.pi
+        position = Point(x, y, a)
+        return position
 
     @staticmethod
     def parse_rooms(map_info: dict) -> Dict[int, Room]:

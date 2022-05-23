@@ -218,6 +218,8 @@ class VacuumCamera(Camera):
         if self._device is not None:
             attributes[ATTR_MODEL] = self._device.model
             attributes[ATTR_USED_API] = self._used_api
+        if self._connector.two_factor_auth_url is not None:
+            attributes[ATTR_TWO_FACTOR_AUTH] = self._connector.two_factor_auth_url
         return attributes
 
     @property

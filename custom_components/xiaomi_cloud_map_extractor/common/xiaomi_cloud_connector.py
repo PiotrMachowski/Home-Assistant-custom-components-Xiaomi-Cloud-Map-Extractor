@@ -20,6 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class XiaomiCloudConnector:
 
     def __init__(self, username: str, password: str):
+        self.two_factor_auth_url = None
         self._username = username
         self._password = password
         self._agent = self.generate_agent()
@@ -82,6 +83,7 @@ class XiaomiCloudConnector:
                 self._passToken = json_resp["passToken"]
                 self._location = json_resp["location"]
                 self._code = json_resp["code"]
+                self.two_factor_auth_url = None
             else:
                 if "notificationUrl" in json_resp:
                     _LOGGER.error(
@@ -89,6 +91,7 @@ class XiaomiCloudConnector:
                         "Open following URL using device that has the same public IP, " +
                         "as your Home Assistant instance: %s ",
                         json_resp["notificationUrl"])
+                    self.two_factor_auth_url = json_resp["notificationUrl"]
                     successful = None
 
         return successful

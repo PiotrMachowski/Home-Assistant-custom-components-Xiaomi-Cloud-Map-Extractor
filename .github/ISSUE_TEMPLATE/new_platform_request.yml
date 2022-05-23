@@ -41,10 +41,10 @@ body:
       description: >-
         Please check if map appears when you use following APIs in `force_api` config
       options:
-        - label: `xiaomi`
-        - label: `viomi`
-        - label: `roidmi`
-        - label: `dreame`
+        - label: xiaomi
+        - label: viomi
+        - label: roidmi
+        - label: dreame
   - type: textarea
     attributes:
       label: Errors shown in the HA logs (if applicable)

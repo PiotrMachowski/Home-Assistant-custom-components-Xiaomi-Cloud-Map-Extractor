@@ -27,7 +27,7 @@
 
 # Xiaomi Cloud Map Extractor
 
-This custom integration provides a way to present a live view of a map for Xiaomi, Roborock, Viomi and Roidmi vacuums.
+This custom integration provides a way to present a live view of a map for Xiaomi, Roborock, Viomi, Roidmi and Dreame vacuums.
 ([Supported devices](#supported-devices))
 
 <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_no_rooms.png" width=48%>  <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_rooms.png" width=48%>
@@ -254,7 +254,7 @@ camera:
 | `store_map_raw` | boolean | false | default: `false` | Enables storing raw map data in `store_map_path` directory ([more info](#retrieving-map)). Xiaomi map can be opened with [RoboMapViewer](https://github.com/marcelrv/XiaomiRobotVacuumProtocol/tree/master/RRMapFile). |
 | `store_map_image` | boolean | false | default: `false` | Enables storing map image in `store_map_path` path with name `map_image_<device_model>.png` |
 | `store_map_path` | string | false | default: `/tmp` | Storing map data directory |
-| `force_api` | string | false | One of: `xiaomi`, `viomi`, `roidmi` | Forces usage of specific API. |
+| `force_api` | string | false | One of: `xiaomi`, `viomi`, `roidmi`, `dreame` | Forces usage of specific API. |
 
 #### Colors configuration
 
@@ -267,7 +267,7 @@ camera:
   | --- | --- |
   | `color_charger` | Charger fill |
   | `color_charger_outline` | Charger outline |
-  | `color_cleaned_area` | Fill of area that already has been cleaned (Viomi) |
+  | `color_cleaned_area` | Fill of area that already has been cleaned |
   | `color_goto_path` | Path for goto mode |
   | `color_grey_wall` | Obstacles (e.g. chairs, table legs) |
   | `color_ignored_obstacle_with_photo` | Ignored obstacle with photo mark on a map |
@@ -276,7 +276,7 @@ camera:
   | `color_map_outside` | Map outside |
   | `color_map_wall_v2` | Walls (for software with rooms support) |
   | `color_map_wall` | Walls (for software without rooms support) |
-  | `color_new_discovered_area` | Newly discovered areas (Viomi) |
+  | `color_new_discovered_area` | Newly discovered areas |
   | `color_no_go_zones_outline` | Outline of no-go zones |
   | `color_no_go_zones` | Fill of no-go zones |
   | `color_no_mop_zones_outline` | Outline of no-mopping zones |
@@ -426,6 +426,18 @@ This integration was tested on following vacuums:
  - Roidmi map format:
    - `roidmi.vacuum.v60` (Roidmi EVE Plus)
    - `viomi.vacuum.v18` (Viomi S9)
+   - `zhimi.vacuum.xa1` (Lydsto R1)
+ - Dreame map format:
+   - `dreame.vacuum.mc1808` (Xiaomi Mi Mop/Xiaomi Mijia 1C)
+   - `dreame.vacuum.p2008` (Dreame F9)
+   - `dreame.vacuum.p2009` (Dreame D9)
+   - `dreame.vacuum.p2028` (Dreame Z10 Pro)
+   - `dreame.vacuum.p2029` (Dreame L10 Pro)
+   - `dreame.vacuum.p2036` (Trouver LDS Cleaner)
+   - `dreame.vacuum.p2041o` (Xiaomi Mop 2 Pro+)
+   - `dreame.vacuum.p2140` (Mijia Robot Vacuum-Mop 2C)
+   - `dreame.vacuum.p2157` (MOVA L600)
+   - `dreame.vacuum.p2259` (Dreame D9 Max)
 
 ## Unsupported devices
 

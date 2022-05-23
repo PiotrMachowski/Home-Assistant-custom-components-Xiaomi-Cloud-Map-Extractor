@@ -338,13 +338,15 @@ class VacuumCamera(Camera):
             # noinspection PyBroadException
             try:
                 _LOGGER.debug("Map data retrieved")
-                self._set_map_data(map_data)
                 self._map_saved = map_stored
-                if self._map_data.image.is_empty:
+                if map_data.image.is_empty:
                     _LOGGER.debug("Map is empty")
                     self._status = CameraStatus.EMPTY_MAP
+                    if self._map_data is None or self._map_data.image.is_empty:
+                        self._set_map_data(map_data)
                 else:
                     _LOGGER.debug("Map is ok")
+                    self._set_map_data(map_data)
                     self._status = CameraStatus.OK
             except:
                 _LOGGER.warning("Unable to parse map data")

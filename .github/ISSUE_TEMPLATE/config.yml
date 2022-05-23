@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question/open a discussion
+    url: https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/discussions
+    about: To ask a question or open a discussion please use a dedicated section.
+  - name: Report a bug in the map card (Lovelace Vacuum Map card)
+    url: https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card/issues
+    about: This is the issue tracker for the Map Extractor. Please report issues with the card in its repository.

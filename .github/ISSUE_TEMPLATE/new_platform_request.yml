@@ -28,7 +28,7 @@ body:
       label: What vacuum model do you want to be supported?
       placeholder: roborock.vacuum.s5e
   - type: input
-    id: vacuum-model
+    id: vacuum-model-name
     validations:
       required: true
     attributes:

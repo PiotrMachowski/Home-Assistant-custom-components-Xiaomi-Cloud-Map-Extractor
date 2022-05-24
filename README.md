@@ -427,6 +427,7 @@ This integration was tested on following vacuums:
  - Roidmi map format:
    - `roidmi.vacuum.v60` (Roidmi EVE Plus)
    - `viomi.vacuum.v18` (Viomi S9)
+   - `viomi.vacuum.v38` (Viomi V5 Pro)
    - `zhimi.vacuum.xa1` (Lydsto R1)
  - Dreame map format:
    - `dreame.vacuum.mc1808` (Xiaomi Mi Mop/Xiaomi Mijia 1C)

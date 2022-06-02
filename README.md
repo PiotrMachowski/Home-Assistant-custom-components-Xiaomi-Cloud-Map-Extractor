@@ -440,11 +440,6 @@ This integration was tested on following vacuums:
    - `dreame.vacuum.p2157` (MOVA L600)
    - `dreame.vacuum.p2259` (Dreame D9 Max)
 
-## Unsupported devices
-
-At this moment this integration is known to not work with following vacuums:
- - Dreame ([#126](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/126)):
-
 ## Retrieving map
 
 When `store_map_raw: true` is added to your config this integration will store a raw map file in `/tmp` directory.

@@ -175,7 +175,7 @@ class VacuumCamera(Camera):
         self._store_map_image = store_map_image
         self._store_map_path = store_map_path
         self._forced_api = force_api
-        self._attr_unique_id = host
+        self._attr_unique_id = f"xiaomi-cloud-map-extractor-{host}"
         self._used_api = None
         self._map_saved = None
         self._image = None

@@ -16,7 +16,7 @@ except ImportError:
 import PIL.Image as Image
 import voluptuous as vol
 from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA, SUPPORT_ON_OFF
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_UNIQUE_ID, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.reload import async_setup_reload_service
@@ -116,8 +116,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_STORE_MAP_RAW, default=False): cv.boolean,
         vol.Optional(CONF_STORE_MAP_IMAGE, default=False): cv.boolean,
         vol.Optional(CONF_STORE_MAP_PATH, default="/tmp"): cv.string,
-        vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None)),
-        vol.Optional(CONF_UNIQUE_ID): cv.string,
+        vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
 
@@ -146,18 +145,17 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     store_map_image = config[CONF_STORE_MAP_IMAGE]
     store_map_path = config[CONF_STORE_MAP_PATH]
     force_api = config[CONF_FORCE_API]
-    unique_id = config.get(CONF_UNIQUE_ID)
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
                                      image_config, colors, drawables, sizes, texts, attributes, store_map_raw,
-                                     store_map_image, store_map_path, force_api, unique_id)])
+                                     store_map_image, store_map_path, force_api)])
 
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id: str, host: str, token: str, username: str, password: str, country: str, name: str,
                  should_poll: bool, image_config: ImageConfig, colors: Colors, drawables: Drawables, sizes: Sizes,
                  texts: Texts, attributes: List[str], store_map_raw: bool, store_map_image: bool, store_map_path: str,
-                 force_api: str, unique_id: str):
+                 force_api: str):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
@@ -177,7 +175,7 @@ class VacuumCamera(Camera):
         self._store_map_image = store_map_image
         self._store_map_path = store_map_path
         self._forced_api = force_api
-        self._attr_unique_id = unique_id
+        self._attr_unique_id = host
         self._used_api = None
         self._map_saved = None
         self._image = None

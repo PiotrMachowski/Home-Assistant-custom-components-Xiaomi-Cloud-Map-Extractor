@@ -429,6 +429,7 @@ This integration was tested on following vacuums:
    - `viomi.vacuum.v18` (Viomi S9)
    - `viomi.vacuum.v38` (Viomi V5 Pro)
    - `zhimi.vacuum.xa1` (Lydsto R1)
+   - `chuangmi.vacuum.hmi707` (IMILAB V1 Vacuum)
  - Dreame map format:
    - `dreame.vacuum.mc1808` (Xiaomi Mi Mop/Xiaomi Mijia 1C)
    - `dreame.vacuum.p2008` (Dreame F9)

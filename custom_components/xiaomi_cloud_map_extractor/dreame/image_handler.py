@@ -1,6 +1,5 @@
 import logging
 from enum import IntEnum
-from typing import Dict, Tuple
 
 from PIL import Image
 from PIL.Image import Image as ImageType
@@ -21,7 +20,7 @@ class ImageHandlerDreame(ImageHandler):
         WALL = 2
 
     @staticmethod
-    def parse(raw_data: bytes, header, colors, image_config, map_data_type: str) -> Tuple[ImageType, Dict[int, Room]]:
+    def parse(raw_data: bytes, header, colors, image_config, map_data_type: str) -> tuple[ImageType, dict[int, Room]]:
         scale = image_config[CONF_SCALE]
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * header.image_width / 100)
         trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * header.image_width / 100)

@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import io
 import logging
 import time
 from datetime import timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
 from custom_components.xiaomi_cloud_map_extractor.common.vacuum import XiaomiCloudVacuum
@@ -154,7 +156,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class VacuumCamera(Camera):
     def __init__(self, entity_id: str, host: str, token: str, username: str, password: str, country: str, name: str,
                  should_poll: bool, image_config: ImageConfig, colors: Colors, drawables: Drawables, sizes: Sizes,
-                 texts: Texts, attributes: List[str], store_map_raw: bool, store_map_image: bool, store_map_path: str,
+                 texts: Texts, attributes: list[str], store_map_raw: bool, store_map_image: bool, store_map_path: str,
                  force_api: str):
         super().__init__()
         self.entity_id = entity_id
@@ -191,7 +193,7 @@ class VacuumCamera(Camera):
     def frame_interval(self) -> float:
         return 1
 
-    def camera_image(self, width: Optional[int] = None, height: Optional[int] = None) -> Optional[bytes]:
+    def camera_image(self, width: int | None = None, height: int | None = None) -> bytes | None:
         return self._image
 
     @property
@@ -209,7 +211,7 @@ class VacuumCamera(Camera):
         return SUPPORT_ON_OFF
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attributes = {}
         if self._map_data is not None:
             attributes.update(self.extract_attributes(self._map_data, self._attributes, self._country))
@@ -227,7 +229,7 @@ class VacuumCamera(Camera):
         return self._should_poll
 
     @staticmethod
-    def extract_attributes(map_data: MapData, attributes_to_return: List[str], country) -> Dict[str, Any]:
+    def extract_attributes(map_data: MapData, attributes_to_return: list[str], country) -> dict[str, Any]:
         attributes = {}
         rooms = []
         if map_data.rooms is not None:
@@ -375,7 +377,7 @@ class VacuumCamera(Camera):
             return DreameVacuum(self._connector, self._country, user_id, device_id, model)
         return UnsupportedVacuum(self._connector, self._country, user_id, device_id, model)
 
-    def _detect_api(self, model: str) -> Optional[str]:
+    def _detect_api(self, model: str) -> str | None:
         if self._forced_api is not None:
             return self._forced_api
         if model in API_EXCEPTIONS:
@@ -411,5 +413,5 @@ class CameraStatus(Enum):
     UNABLE_TO_PARSE_MAP = 'Unable to parse map'
     UNABLE_TO_RETRIEVE_MAP = 'Unable to retrieve map'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._value_)

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional, Tuple
+from __future__ import annotations
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
@@ -23,7 +23,7 @@ class XiaomiCloudVacuum:
                 texts: Texts,
                 sizes: Sizes,
                 image_config: ImageConfig,
-                store_map_path: Optional[str] = None) -> Tuple[Optional[MapData], bool]:
+                store_map_path: str | None = None) -> tuple[MapData | None, bool]:
         response = self.get_raw_map_data(map_name)
         if response is None:
             return None, False
@@ -39,7 +39,7 @@ class XiaomiCloudVacuum:
         map_data.map_name = map_name
         return map_data, map_stored
 
-    def get_raw_map_data(self, map_name: Optional[str]) -> Optional[bytes]:
+    def get_raw_map_data(self, map_name: str | None) -> bytes | None:
         if map_name is None:
             return None
         map_url = self.get_map_url(map_name)
@@ -51,11 +51,11 @@ class XiaomiCloudVacuum:
                    drawables: Drawables,
                    texts: Texts,
                    sizes: Sizes,
-                   image_config: ImageConfig) -> Optional[MapData]:
+                   image_config: ImageConfig) -> MapData | None:
         return MapDataParser.create_empty(colors, f"Vacuum\n{self.model}\nis not supported")
 
     @abstractmethod
-    def get_map_url(self, map_name: str) -> Optional[str]:
+    def get_map_url(self, map_name: str) -> str | None:
         pass
 
     @abstractmethod

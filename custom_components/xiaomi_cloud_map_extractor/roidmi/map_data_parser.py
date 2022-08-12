@@ -1,7 +1,7 @@
+from __future__ import annotations
 import json
 import logging
 import math
-from typing import Dict, List, Optional, Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
     Wall
@@ -48,7 +48,7 @@ class MapDataParserRoidmi(MapDataParser):
         return map_data
 
     @staticmethod
-    def get_current_vacuum_room(map_image: bytes, map_data: MapData, original_width: int) -> Optional[int]:
+    def get_current_vacuum_room(map_image: bytes, map_data: MapData, original_width: int) -> int | None:
         p = map_data.image.dimensions.img_transformation(map_data.vacuum_position)
         room_number = map_image[int(p.x) + int(p.y) * original_width]
         if room_number in map_data.rooms:
@@ -65,7 +65,7 @@ class MapDataParserRoidmi(MapDataParser):
 
     @staticmethod
     def parse_image(map_image: bytes, width: int, height: int, min_x: float, min_y: float, resolution: float,
-                    colors: Dict, image_config: Dict, rooms: Dict[int, Room]) -> ImageData:
+                    colors: dict, image_config: dict, rooms: dict[int, Room]) -> ImageData:
         image_top = 0
         image_left = 0
         room_numbers = list(rooms.keys())
@@ -103,7 +103,7 @@ class MapDataParserRoidmi(MapDataParser):
         return MapDataParserRoidmi.parse_position(map_info, "chargeHandlePos", "chargeHandlePos", "chargeHandlePhi")
 
     @staticmethod
-    def parse_position(map_info: dict, x_label: str, y_label: str, a_label: str) -> Optional[Point]:
+    def parse_position(map_info: dict, x_label: str, y_label: str, a_label: str) -> Point | None:
         position = None
         if x_label not in map_info or y_label not in map_info:
             return position
@@ -119,7 +119,7 @@ class MapDataParserRoidmi(MapDataParser):
         return position
 
     @staticmethod
-    def parse_rooms(map_info: dict) -> Dict[int, Room]:
+    def parse_rooms(map_info: dict) -> dict[int, Room]:
         rooms = {}
         areas = []
         if "autoArea" in map_info:
@@ -135,7 +135,7 @@ class MapDataParserRoidmi(MapDataParser):
         return rooms
 
     @staticmethod
-    def parse_areas(map_info: dict) -> Tuple[List[Area], List[Area], List[Wall]]:
+    def parse_areas(map_info: dict) -> tuple[list[Area], list[Area], list[Wall]]:
         no_go_areas = []
         no_mopping_areas = []
         walls = []

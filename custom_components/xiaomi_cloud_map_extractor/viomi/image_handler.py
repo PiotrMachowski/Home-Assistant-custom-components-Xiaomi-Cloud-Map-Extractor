@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Dict, Optional, Set, Tuple
+from typing import Set
 
 from PIL import Image
 from PIL.Image import Image as ImageType
@@ -23,9 +25,9 @@ class ImageHandlerViomi(ImageHandler):
     MAP_SELECTED_ROOM_MAX = 109
 
     @staticmethod
-    def parse(buf: ParsingBuffer, width: int, height: int, colors: Colors, image_config: ImageConfig,
-              draw_cleaned_area: bool) \
-            -> Tuple[ImageType, Dict[int, Tuple[int, int, int, int]], Set[int], Optional[ImageType]]:
+    def parse(
+        buf: ParsingBuffer, width: int, height: int, colors: Colors, image_config: ImageConfig, draw_cleaned_area: bool
+        ) -> tuple[ImageType, dict[int, tuple[int, int, int, int]], Set[int], ImageType | None]:
         rooms = {}
         cleaned_areas = set()
         scale = image_config[CONF_SCALE]

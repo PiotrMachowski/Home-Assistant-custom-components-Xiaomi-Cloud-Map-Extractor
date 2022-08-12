@@ -1,5 +1,4 @@
 import logging
-from typing import Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import *
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
@@ -129,7 +128,7 @@ class MapDataParserXiaomi(MapDataParser):
 
     @staticmethod
     def parse_image(block_data_length: int, block_header_length: int, data: bytes, header: bytes, colors: Colors,
-                    image_config: ImageConfig) -> Tuple[ImageData, Dict[int, Room]]:
+                    image_config: ImageConfig) -> tuple[ImageData, dict[int, Room]]:
         image_size = block_data_length
         image_top = MapDataParserXiaomi.get_int32(header, block_header_length - 16)
         image_left = MapDataParserXiaomi.get_int32(header, block_header_length - 12)
@@ -178,7 +177,7 @@ class MapDataParserXiaomi(MapDataParser):
         return Point(x, y, a)
 
     @staticmethod
-    def parse_walls(data: bytes, header: bytes) -> List[Wall]:
+    def parse_walls(data: bytes, header: bytes) -> list[Wall]:
         wall_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
         walls = []
         for wall_start in range(0, wall_pairs * 8, 8):
@@ -190,7 +189,7 @@ class MapDataParserXiaomi(MapDataParser):
         return walls
 
     @staticmethod
-    def parse_obstacles(data: bytes, header: bytes) -> List[Obstacle]:
+    def parse_obstacles(data: bytes, header: bytes) -> list[Obstacle]:
         obstacle_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
         obstacles = []
         if obstacle_pairs == 0:
@@ -215,7 +214,7 @@ class MapDataParserXiaomi(MapDataParser):
         return obstacles
 
     @staticmethod
-    def parse_zones(data: bytes, header: bytes) -> List[Zone]:
+    def parse_zones(data: bytes, header: bytes) -> list[Zone]:
         zone_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
         zones = []
         for zone_start in range(0, zone_pairs * 8, 8):
@@ -241,7 +240,7 @@ class MapDataParserXiaomi(MapDataParser):
         return Path(point_length, point_size, angle, [path_points])
 
     @staticmethod
-    def parse_area(header: bytes, data: bytes) -> List[Area]:
+    def parse_area(header: bytes, data: bytes) -> list[Area]:
         area_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
         areas = []
         for area_start in range(0, area_pairs * 16, 16):

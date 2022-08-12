@@ -230,9 +230,7 @@ class XiaomiCloudConnector:
         return base64.b64encode(hashlib.sha1(signature_string.encode('utf-8')).digest()).decode()
 
     @staticmethod
-    def generate_enc_params(
-        url: str, method: str, signed_nonce: str, nonce: str, params: dict[str, str], ssecurity: str
-        ) -> dict[str, str]:
+    def generate_enc_params(url: str, method: str, signed_nonce: str, nonce: str, params: dict[str, str], ssecurity: str) -> dict[str, str]:
         params['rc4_hash__'] = XiaomiCloudConnector.generate_enc_signature(url, method, signed_nonce, params)
         for k, v in params.items():
             params[k] = XiaomiCloudConnector.encrypt_rc4(signed_nonce, v)

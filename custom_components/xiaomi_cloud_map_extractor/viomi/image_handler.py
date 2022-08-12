@@ -26,8 +26,8 @@ class ImageHandlerViomi(ImageHandler):
 
     @staticmethod
     def parse(
-        buf: ParsingBuffer, width: int, height: int, colors: Colors, image_config: ImageConfig, draw_cleaned_area: bool
-        ) -> tuple[ImageType, dict[int, tuple[int, int, int, int]], Set[int], ImageType | None]:
+            buf: ParsingBuffer, width: int, height: int, colors: Colors, image_config: ImageConfig, draw_cleaned_area: bool
+    ) -> tuple[ImageType, dict[int, tuple[int, int, int, int]], Set[int], ImageType | None]:
         rooms = {}
         cleaned_areas = set()
         scale = image_config[CONF_SCALE]

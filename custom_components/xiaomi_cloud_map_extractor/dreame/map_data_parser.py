@@ -19,7 +19,7 @@ class MapDataHeader:
         self.map_index: int | None = None
         self.frame_type: int | None = None
         self.vacuum_position: Point | None = None
-        self.charger_position: Point| None = None
+        self.charger_position: Point | None = None
         self.image_pixel_size: int | None = None
         self.image_width: int | None = None
         self.image_height: int | None = None

@@ -307,7 +307,7 @@ class MapData:
         self.walls: list[Wall] | None = None
         self.zones: list[Zone] | None = None
         self.cleaned_rooms: Set[int] | None = None
-        self.map_name: str| None = None
+        self.map_name: str | None = None
 
     def calibration(self) -> CalibrationPoints | None:
         if self.image.is_empty:

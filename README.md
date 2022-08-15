@@ -418,6 +418,7 @@ This integration was tested on following vacuums:
    - `roborock.vacuum.a08` (Roborock S6 Pure)
    - `roborock.vacuum.a10` (Roborock S6 MaxV)
    - `roborock.vacuum.a15` (Roborock S7)
+   - `roborock.vacuum.a19` (Roborocka S4 Max)
    - `roborock.vacuum.a27` (Roborock S7 MaxV)
  - Viomi map format:
    - `viomi.vacuum.v6` (Viomi Vacuum V2 Pro, Xiaomi Mijia STYJ02YM, Mi Robot Vacuum Mop Pro)
@@ -441,11 +442,6 @@ This integration was tested on following vacuums:
    - `dreame.vacuum.p2140` (Mijia Robot Vacuum-Mop 2C)
    - `dreame.vacuum.p2157` (MOVA L600)
    - `dreame.vacuum.p2259` (Dreame D9 Max)
-
-## Unsupported devices
-
-At this moment this integration is known to not work with following vacuums:
- - Dreame ([#126](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues/126)):
 
 ## Retrieving map
 

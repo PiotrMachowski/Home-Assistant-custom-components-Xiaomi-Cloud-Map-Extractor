@@ -1,3 +1,4 @@
+---
 name: lint_python
 on: [pull_request, push]
 jobs:

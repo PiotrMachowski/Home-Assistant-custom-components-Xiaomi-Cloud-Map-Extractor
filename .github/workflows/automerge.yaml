@@ -1,3 +1,4 @@
+---
 name: 'Automatically merge master -> dev'
 
 on:

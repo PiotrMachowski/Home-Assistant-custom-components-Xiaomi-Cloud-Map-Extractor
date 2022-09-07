@@ -35,7 +35,7 @@ body:
     validations:
       required: true
     attributes:
-      label: What version of am integration has described problem?
+      label: What version of an integration has described problem?
       placeholder: vX.X.X
   - type: input
     id: last-working-version

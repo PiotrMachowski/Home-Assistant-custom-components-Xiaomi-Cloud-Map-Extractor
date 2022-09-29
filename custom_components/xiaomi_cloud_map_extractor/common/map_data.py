@@ -183,7 +183,7 @@ class Zone:
 
 
 class Room(Zone):
-    def __init__(self, number: int, x0: float | None, y0: float | None, x1: float | None, y1: float | None,
+    def __init__(self, number: int, x0: float, y0: float, x1: float, y1: float,
                  name: str = None, pos_x: float = None, pos_y: float = None):
         super().__init__(x0, y0, x1, y1)
         self.number = number

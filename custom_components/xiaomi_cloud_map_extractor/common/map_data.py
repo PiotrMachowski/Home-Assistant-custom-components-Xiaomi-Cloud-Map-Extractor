@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Set
 
 from PIL.Image import Image as ImageType
 
@@ -25,7 +25,7 @@ class Point:
     def __eq__(self, other: Point) -> bool:
         return other is not None and self.x == other.x and self.y == other.y and self.a == other.a
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         if self.a is None:
             return {
                 ATTR_X: self.x,
@@ -64,11 +64,11 @@ class Point:
 
 
 class Obstacle(Point):
-    def __init__(self, x: float, y: float, details: Dict[str, Any]):
+    def __init__(self, x: float, y: float, details: dict[str, Any]):
         super().__init__(x, y)
         self.details = details
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {**super(Obstacle, self).as_dict(), **self.details}
 
     def __str__(self) -> str:
@@ -114,7 +114,7 @@ class ImageData:
         else:
             self.additional_layers = dict(filter(lambda l: l[1] is not None, additional_layers.items()))
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             ATTR_SIZE: self.size,
             ATTR_OFFSET_Y: self.dimensions.top,
@@ -141,14 +141,14 @@ class ImageData:
 
 
 class Path:
-    def __init__(self, point_length: Optional[int], point_size: Optional[int], angle: Optional[int],
-                 path: List[List[Point]]):
+    def __init__(self, point_length: int | None, point_size: int | None, angle: int | None,
+                 path: list[list[Point]]):
         self.point_length = point_length
         self.point_size = point_size
         self.angle = angle
         self.path = path
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             ATTR_POINT_LENGTH: self.point_length,
             ATTR_POINT_SIZE: self.point_size,
@@ -170,7 +170,7 @@ class Zone:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             ATTR_X0: self.x0,
             ATTR_Y0: self.y0,
@@ -183,7 +183,7 @@ class Zone:
 
 
 class Room(Zone):
-    def __init__(self, number: int, x0: Optional[float], y0: Optional[float], x1: Optional[float], y1: Optional[float],
+    def __init__(self, number: int, x0: float | None, y0: float | None, x1: float | None, y1: float | None,
                  name: str = None, pos_x: float = None, pos_y: float = None):
         super().__init__(x0, y0, x1, y1)
         self.number = number
@@ -191,7 +191,7 @@ class Room(Zone):
         self.pos_x = pos_x
         self.pos_y = pos_y
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         super_dict = {**super(Room, self).as_dict()}
         if self.name is not None:
             super_dict[ATTR_NAME] = self.name
@@ -207,7 +207,7 @@ class Room(Zone):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def point(self) -> Optional[Point]:
+    def point(self) -> Point | None:
         if self.pos_x is not None and self.pos_y is not None and self.name is not None:
             return Point(self.pos_x, self.pos_y)
         return None
@@ -226,7 +226,7 @@ class Wall:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             ATTR_X0: self.x0,
             ATTR_Y0: self.y0,
@@ -239,7 +239,7 @@ class Wall:
         p1 = Point(self.x1, self.y1).to_img(image_dimensions)
         return Wall(p0.x, p0.y, p1.x, p1.y)
 
-    def as_list(self) -> List[float]:
+    def as_list(self) -> list[float]:
         return [self.x0, self.y0, self.x1, self.y1]
 
 
@@ -260,7 +260,7 @@ class Area:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             ATTR_X0: self.x0,
             ATTR_Y0: self.y0,
@@ -272,7 +272,7 @@ class Area:
             ATTR_Y3: self.y3
         }
 
-    def as_list(self) -> List[float]:
+    def as_list(self) -> list[float]:
         return [self.x0, self.y0, self.x1, self.y1, self.x2, self.y2, self.x3, self.y3]
 
     def to_img(self, image_dimensions) -> Area:
@@ -288,28 +288,28 @@ class MapData:
         self._calibration_center = calibration_center
         self._calibration_diff = calibration_diff
         self.blocks = None
-        self.charger: Optional[Point] = None
-        self.goto: Optional[List[Point]] = None
-        self.goto_path: Optional[Path] = None
-        self.image: Optional[ImageData] = None
-        self.no_go_areas: Optional[List[Area]] = None
-        self.no_mopping_areas: Optional[List[Area]] = None
-        self.obstacles: Optional[List[Obstacle]] = None
-        self.ignored_obstacles: Optional[List[Obstacle]] = None
-        self.obstacles_with_photo: Optional[List[Obstacle]] = None
-        self.ignored_obstacles_with_photo: Optional[List[Obstacle]] = None
-        self.path: Optional[Path] = None
-        self.predicted_path: Optional[Path] = None
-        self.rooms: Optional[Dict[int, Room]] = None
-        self.vacuum_position: Optional[Point] = None
-        self.vacuum_room: Optional[int] = None
-        self.vacuum_room_name: Optional[str] = None
-        self.walls: Optional[List[Wall]] = None
-        self.zones: Optional[List[Zone]] = None
-        self.cleaned_rooms: Optional[Set[int]] = None
-        self.map_name: Optional[str] = None
+        self.charger: Point | None = None
+        self.goto: list[Point] | None = None
+        self.goto_path: Path | None = None
+        self.image: ImageData | None = None
+        self.no_go_areas: list[Area] | None = None
+        self.no_mopping_areas: list[Area] | None = None
+        self.obstacles: list[Obstacle] | None = None
+        self.ignored_obstacles: list[Obstacle] | None = None
+        self.obstacles_with_photo: list[Obstacle] | None = None
+        self.ignored_obstacles_with_photo: list[Obstacle] | None = None
+        self.path: Path | None = None
+        self.predicted_path: Path | None = None
+        self.rooms: dict[int, Room] | None = None
+        self.vacuum_position: Point | None = None
+        self.vacuum_room: int | None = None
+        self.vacuum_room_name: str | None = None
+        self.walls: list[Wall] | None = None
+        self.zones: list[Zone] | None = None
+        self.cleaned_rooms: Set[int] | None = None
+        self.map_name: str | None = None
 
-    def calibration(self) -> Optional[CalibrationPoints]:
+    def calibration(self) -> CalibrationPoints | None:
         if self.image.is_empty:
             return None
         calibration_points = []

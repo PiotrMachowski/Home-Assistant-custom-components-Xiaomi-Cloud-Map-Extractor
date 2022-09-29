@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 import math
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Set
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
     Wall, Zone
@@ -114,7 +116,7 @@ class MapDataParserViomi(MapDataParser):
         return (x - 400) / 20
 
     @staticmethod
-    def get_current_vacuum_room(buf: ParsingBuffer, vacuum_position: Point) -> Optional[int]:
+    def get_current_vacuum_room(buf: ParsingBuffer, vacuum_position: Point) -> int | None:
         vacuum_position_on_image = MapDataParserViomi.map_to_image(vacuum_position)
         pixel_type = buf.get_at_image(int(vacuum_position_on_image.y) * 800 + int(vacuum_position_on_image.x))
         if ImageHandlerViomi.MAP_ROOM_MIN <= pixel_type <= ImageHandlerViomi.MAP_ROOM_MAX:
@@ -125,7 +127,7 @@ class MapDataParserViomi(MapDataParser):
 
     @staticmethod
     def parse_image(buf: ParsingBuffer, colors: Colors, image_config: ImageConfig, draw_cleaned_area: bool) \
-            -> Tuple[ImageData, Dict[int, Room], Set[int]]:
+            -> tuple[ImageData, dict[int, Room], Set[int]]:
         buf.skip('unknown1', 0x08)
         image_top = 0
         image_left = 0
@@ -170,7 +172,7 @@ class MapDataParserViomi(MapDataParser):
         return Path(len(path_points), 1, 0, [path_points])
 
     @staticmethod
-    def parse_restricted_areas(buf: ParsingBuffer) -> Tuple[List[Wall], List[Area]]:
+    def parse_restricted_areas(buf: ParsingBuffer) -> tuple[list[Wall], list[Area]]:
         walls = []
         areas = []
         buf.skip('unknown1', 4)
@@ -190,7 +192,7 @@ class MapDataParserViomi(MapDataParser):
         return walls, areas
 
     @staticmethod
-    def parse_cleaning_areas(buf: ParsingBuffer) -> List[Zone]:
+    def parse_cleaning_areas(buf: ParsingBuffer) -> list[Zone]:
         buf.skip('unknown1', 4)
         area_count = buf.get_uint32('area_count')
         zones = []
@@ -205,7 +207,7 @@ class MapDataParserViomi(MapDataParser):
         return zones
 
     @staticmethod
-    def parse_rooms(buf: ParsingBuffer, map_data_rooms: Dict[int, Room]):
+    def parse_rooms(buf: ParsingBuffer, map_data_rooms: dict[int, Room]):
         map_name = buf.get_string_len8('map_name')
         map_arg = buf.get_uint32('map_arg')
         _LOGGER.debug('map#%d: %s', map_arg, map_name)
@@ -245,7 +247,7 @@ class MapDataParserViomi(MapDataParser):
                 f"Magic: {magic:#x}, Map ID: {map_id:#x}")
 
     @staticmethod
-    def parse_position(buf: ParsingBuffer, name: str, with_angle: bool = False) -> Optional[Point]:
+    def parse_position(buf: ParsingBuffer, name: str, with_angle: bool = False) -> Point | None:
         x = buf.get_float32(name + '.x')
         y = buf.get_float32(name + '.y')
         if x == MapDataParserViomi.POSITION_UNKNOWN or y == MapDataParserViomi.POSITION_UNKNOWN:

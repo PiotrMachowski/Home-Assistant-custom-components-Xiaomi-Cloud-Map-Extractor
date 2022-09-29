@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, List, Tuple
 
 from PIL import Image
 from PIL.Image import Image as ImageType
@@ -18,8 +17,8 @@ class ImageHandlerRoidmi(ImageHandler):
 
     @staticmethod
     def parse(raw_data: bytes, width: int, height: int, colors: Colors, image_config: ImageConfig,
-              room_numbers: List[int]) \
-            -> Tuple[ImageType, Dict[int, Tuple[int, int, int, int]]]:
+              room_numbers: list[int]) \
+            -> tuple[ImageType, dict[int, tuple[int, int, int, int]]]:
         rooms = {}
         scale = image_config[CONF_SCALE]
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)

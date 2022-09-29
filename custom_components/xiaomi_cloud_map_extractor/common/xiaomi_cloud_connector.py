@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import hashlib
 import hmac
@@ -6,7 +8,7 @@ import logging
 import os
 import random
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 from Crypto.Cipher import ARC4
 
 import requests
@@ -121,7 +123,7 @@ class XiaomiCloudConnector:
         self._session.cookies.set("deviceId", self._device_id, domain="xiaomi.com")
         return self.login_step_1() and self.login_step_2() and self.login_step_3()
 
-    def get_raw_map_data(self, map_url) -> Optional[bytes]:
+    def get_raw_map_data(self, map_url) -> bytes | None:
         if map_url is not None:
             try:
                 response = self._session.get(map_url, timeout=10)
@@ -132,7 +134,7 @@ class XiaomiCloudConnector:
         return None
 
     def get_device_details(self, token: str,
-                           country: str) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
+                           country: str) -> tuple[str | None, str | None, str | None, str | None]:
         countries_to_check = CONF_AVAILABLE_COUNTRIES
         if country is not None:
             countries_to_check = [country]
@@ -156,7 +158,7 @@ class XiaomiCloudConnector:
         }
         return self.execute_api_call_encrypted(url, params)
 
-    def execute_api_call_encrypted(self, url: str, params: Dict[str, str]) -> Any:
+    def execute_api_call_encrypted(self, url: str, params: dict[str, str]) -> Any:
         headers = {
             "Accept-Encoding": "identity",
             "User-Agent": self._agent,
@@ -210,7 +212,7 @@ class XiaomiCloudConnector:
         return "".join((chr(random.randint(97, 122)) for _ in range(6)))
 
     @staticmethod
-    def generate_signature(url, signed_nonce: str, nonce: str, params: Dict[str, str]) -> str:
+    def generate_signature(url, signed_nonce: str, nonce: str, params: dict[str, str]) -> str:
         signature_params = [url.split("com")[1], signed_nonce, nonce]
         for k, v in params.items():
             signature_params.append(f"{k}={v}")
@@ -219,7 +221,7 @@ class XiaomiCloudConnector:
         return base64.b64encode(signature.digest()).decode()
 
     @staticmethod
-    def generate_enc_signature(url, method: str, signed_nonce: str, params: Dict[str, str]) -> str:
+    def generate_enc_signature(url, method: str, signed_nonce: str, params: dict[str, str]) -> str:
         signature_params = [str(method).upper(), url.split("com")[1].replace("/app/", "/")]
         for k, v in params.items():
             signature_params.append(f"{k}={v}")
@@ -228,8 +230,8 @@ class XiaomiCloudConnector:
         return base64.b64encode(hashlib.sha1(signature_string.encode('utf-8')).digest()).decode()
 
     @staticmethod
-    def generate_enc_params(url: str, method: str, signed_nonce: str, nonce: str, params: Dict[str, str],
-                            ssecurity: str) -> Dict[str, str]:
+    def generate_enc_params(url: str, method: str, signed_nonce: str, nonce: str, params: dict[str, str],
+                            ssecurity: str) -> dict[str, str]:
         params['rc4_hash__'] = XiaomiCloudConnector.generate_enc_signature(url, method, signed_nonce, params)
         for k, v in params.items():
             params[k] = XiaomiCloudConnector.encrypt_rc4(signed_nonce, v)

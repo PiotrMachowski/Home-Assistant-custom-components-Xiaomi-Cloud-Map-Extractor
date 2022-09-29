@@ -1,9 +1,10 @@
-from typing import Any, Dict, List, Tuple, Union
+"""Types for integration."""
+from typing import Any, Union
 
-Color = Union[Tuple[int, int, int], Tuple[int, int, int, int]]
-Colors = Dict[str, Color]
-Drawables = List[str]
-Texts = List[Any]
-Sizes = Dict[str, float]
-ImageConfig = Dict[str, Any]
-CalibrationPoints = List[Dict[str, Dict[str, Union[float, int]]]]
+Color = Union[tuple[int, int, int], tuple[int, int, int, int]]
+Colors = dict[str, Color]
+Drawables = list[str]
+Texts = list[Any]
+Sizes = dict[str, float]
+ImageConfig = dict[str, Any]
+CalibrationPoints = list[dict[str, dict[str, Union[float, int]]]]

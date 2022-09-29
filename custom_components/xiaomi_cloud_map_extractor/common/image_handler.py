@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Callable, Dict, List
+from typing import Callable
 
 from PIL import Image, ImageDraw, ImageFont
 from PIL.Image import Image as ImageType
@@ -90,26 +90,26 @@ class ImageHandler:
         ImageHandler.__draw_path__(image, path, sizes, ImageHandler.__get_color__(COLOR_PREDICTED_PATH, colors), scale)
 
     @staticmethod
-    def draw_no_go_areas(image: ImageData, areas: List[Area], colors: Colors):
+    def draw_no_go_areas(image: ImageData, areas: list[Area], colors: Colors):
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_NO_GO_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_NO_GO_ZONES_OUTLINE, colors))
 
     @staticmethod
-    def draw_no_mopping_areas(image: ImageData, areas: List[Area], colors: Colors):
+    def draw_no_mopping_areas(image: ImageData, areas: list[Area], colors: Colors):
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_NO_MOPPING_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_NO_MOPPING_ZONES_OUTLINE, colors))
 
     @staticmethod
-    def draw_walls(image: ImageData, walls: List[Wall], colors: Colors):
+    def draw_walls(image: ImageData, walls: list[Wall], colors: Colors):
         draw = ImageDraw.Draw(image.data, 'RGBA')
         for wall in walls:
             draw.line(wall.to_img(image.dimensions).as_list(),
                       ImageHandler.__get_color__(COLOR_VIRTUAL_WALLS, colors), width=2)
 
     @staticmethod
-    def draw_zones(image: ImageData, zones: List[Zone], colors: Colors):
+    def draw_zones(image: ImageData, zones: list[Zone], colors: Colors):
         areas = [z.as_area() for z in zones]
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_ZONES, colors),
@@ -129,25 +129,25 @@ class ImageHandler:
         ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
 
     @staticmethod
-    def draw_ignored_obstacles(image: ImageData, obstacles: List[Obstacle], sizes: Sizes, colors: Colors):
+    def draw_ignored_obstacles(image: ImageData, obstacles: list[Obstacle], sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_IGNORED_OBSTACLE, colors)
         radius = sizes[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]
         ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
 
     @staticmethod
-    def draw_obstacles_with_photo(image: ImageData, obstacles: List[Obstacle], sizes: Sizes, colors: Colors):
+    def draw_obstacles_with_photo(image: ImageData, obstacles: list[Obstacle], sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_OBSTACLE_WITH_PHOTO, colors)
         radius = sizes[CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS]
         ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
 
     @staticmethod
-    def draw_ignored_obstacles_with_photo(image: ImageData, obstacles: List[Obstacle], sizes: Sizes, colors: Colors):
+    def draw_ignored_obstacles_with_photo(image: ImageData, obstacles: list[Obstacle], sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_IGNORED_OBSTACLE_WITH_PHOTO, colors)
         radius = sizes[CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS]
         ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
 
     @staticmethod
-    def draw_all_obstacles(image: ImageData, obstacles: List[Obstacle], radius: float, color: Color):
+    def draw_all_obstacles(image: ImageData, obstacles: list[Obstacle], radius: float, color: Color):
         for obstacle in obstacles:
             ImageHandler.__draw_circle__(image, obstacle, radius, color, color)
 
@@ -159,7 +159,7 @@ class ImageHandler:
         ImageHandler.__draw_vacuum__(image, vacuum_position, radius, outline, color)
 
     @staticmethod
-    def draw_room_names(image: ImageData, rooms: Dict[int, Room], colors: Colors):
+    def draw_room_names(image: ImageData, rooms: dict[int, Room], colors: Colors):
         color = ImageHandler.__get_color__(COLOR_ROOM_NAMES, colors)
         for room in rooms.values():
             p = room.point()
@@ -261,7 +261,7 @@ class ImageHandler:
         ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(outline, fill))
 
     @staticmethod
-    def __draw_areas__(image: ImageData, areas: List[Area], fill: Color, outline: Color):
+    def __draw_areas__(image: ImageData, areas: list[Area], fill: Color, outline: Color):
         if len(areas) == 0:
             return
 

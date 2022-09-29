@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import base64
 import json
 import logging
 import re
 import zlib
 from enum import Enum, IntEnum
-from typing import Dict, List, Optional, Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, MapData, Path, Point, Room, \
     Wall
@@ -16,15 +17,15 @@ _LOGGER = logging.getLogger(__name__)
 
 class MapDataHeader:
     def __init__(self):
-        self.map_index: Optional[int] = None
-        self.frame_type: Optional[int] = None
-        self.vacuum_position: Optional[Point] = None
-        self.charger_position: Optional[Point] = None
-        self.image_pixel_size: Optional[int] = None
-        self.image_width: Optional[int] = None
-        self.image_height: Optional[int] = None
-        self.image_left: Optional[int] = None
-        self.image_top: Optional[int] = None
+        self.map_index: int | None = None
+        self.frame_type: int | None = None
+        self.vacuum_position: Point | None = None
+        self.charger_position: Point | None = None
+        self.image_pixel_size: int | None = None
+        self.image_width: int | None = None
+        self.image_height: int | None = None
+        self.image_left: int | None = None
+        self.image_top: int | None = None
 
 
 class MapDataParserDreame(MapDataParser):
@@ -53,7 +54,7 @@ class MapDataParserDreame(MapDataParser):
 
     @staticmethod
     def parse(raw: bytes, colors, drawables, texts, sizes, image_config,
-              map_data_type: MapDataTypes = MapDataTypes.REGULAR, *args, **kwargs) -> Optional[MapData]:
+              map_data_type: MapDataTypes = MapDataTypes.REGULAR, *args, **kwargs) -> MapData | None:
         map_data = MapData(0, 1000)
 
         header = MapDataParserDreame.parse_header(raw)
@@ -148,7 +149,7 @@ class MapDataParserDreame(MapDataParser):
 
     @staticmethod
     def parse_image(image_raw: bytes, header: MapDataHeader, colors, image_config,
-                    additional_data_json, map_data_type: MapDataTypes) -> Tuple[ImageData, Dict[int, Room]]:
+                    additional_data_json, map_data_type: MapDataTypes) -> tuple[ImageData, dict[int, Room]]:
 
         _LOGGER.debug(f"parse image for map {map_data_type}")
         image, image_rooms = ImageHandlerDreame.parse(image_raw, header, colors, image_config, map_data_type)
@@ -208,7 +209,7 @@ class MapDataParserDreame(MapDataParser):
         return Path(None, None, None, path_points)
 
     @staticmethod
-    def parse_areas(areas: list) -> List[Area]:
+    def parse_areas(areas: list) -> list[Area]:
         parsed_areas = []
         for area in areas:
             x_coords = sorted([area[0], area[2]])
@@ -224,7 +225,7 @@ class MapDataParserDreame(MapDataParser):
         return parsed_areas
 
     @staticmethod
-    def parse_virtual_walls(virtual_walls: list) -> List[Wall]:
+    def parse_virtual_walls(virtual_walls: list) -> list[Wall]:
         return [Wall(virtual_wall[0], virtual_wall[1], virtual_wall[2], virtual_wall[3])
                 for virtual_wall in virtual_walls]
 

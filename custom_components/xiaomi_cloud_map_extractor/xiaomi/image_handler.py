@@ -1,5 +1,4 @@
 import logging
-from typing import Tuple
 
 from PIL import Image
 from PIL.Image import Image as ImageType
@@ -19,7 +18,7 @@ class ImageHandlerXiaomi(ImageHandler):
 
     @staticmethod
     def parse(raw_data: bytes, width: int, height: int, colors: Colors,
-              image_config: ImageConfig) -> Tuple[ImageType, dict]:
+              image_config: ImageConfig) -> tuple[ImageType, dict]:
         rooms = {}
         scale = image_config[CONF_SCALE]
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)

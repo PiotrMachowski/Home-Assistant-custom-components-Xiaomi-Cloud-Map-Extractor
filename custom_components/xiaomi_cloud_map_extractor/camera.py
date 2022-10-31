@@ -97,6 +97,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                          default=DEFAULT_SIZES[CONF_SIZE_VACUUM_RADIUS]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_PATH_WIDTH,
                          default=DEFAULT_SIZES[CONF_SIZE_PATH_WIDTH]): POSITIVE_FLOAT_SCHEMA,
+            vol.Optional(CONF_SIZE_MOP_PATH_WIDTH,
+                         default=DEFAULT_SIZES[CONF_SIZE_VACUUM_RADIUS]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_RADIUS,
                          default=DEFAULT_SIZES[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]): POSITIVE_FLOAT_SCHEMA,
             vol.Optional(CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS,
@@ -213,6 +215,7 @@ class VacuumCamera(Camera):
                     rooms = list(self._map_data.rooms.keys())
             for name, value in {
                 ATTRIBUTE_CALIBRATION: self._map_data.calibration(),
+                ATTRIBUTE_CARPET_MAP: self._map_data.carpet_map,
                 ATTRIBUTE_CHARGER: self._map_data.charger,
                 ATTRIBUTE_CLEANED_ROOMS: self._map_data.cleaned_rooms,
                 ATTRIBUTE_COUNTRY: self._country,
@@ -224,6 +227,7 @@ class VacuumCamera(Camera):
                 ATTRIBUTE_IMAGE: self._map_data.image,
                 ATTRIBUTE_IS_EMPTY: self._map_data.image.is_empty,
                 ATTRIBUTE_MAP_NAME: self._map_data.map_name,
+                ATTRIBUTE_MOP_PATH: self._map_data.mop_path,
                 ATTRIBUTE_NO_GO_AREAS: self._map_data.no_go_areas,
                 ATTRIBUTE_NO_MOPPING_AREAS: self._map_data.no_mopping_areas,
                 ATTRIBUTE_OBSTACLES: self._map_data.obstacles,

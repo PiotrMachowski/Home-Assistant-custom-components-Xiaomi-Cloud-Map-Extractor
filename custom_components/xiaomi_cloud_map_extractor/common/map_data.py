@@ -274,12 +274,14 @@ class MapData:
         self.image: Optional[ImageData] = None
         self.no_go_areas: Optional[List[Area]] = None
         self.no_mopping_areas: Optional[List[Area]] = None
+        self.carpet_map: Optional[List[Area]] = None
         self.obstacles: Optional[List[Obstacle]] = None
         self.ignored_obstacles: Optional[List[Obstacle]] = None
         self.obstacles_with_photo: Optional[List[Obstacle]] = None
         self.ignored_obstacles_with_photo: Optional[List[Obstacle]] = None
         self.path: Optional[List[Point]] = None
         self.predicted_path: Optional[List[Point]] = None
+        self.mop_path: Optional[List[Point]] = None
         self.rooms: Optional[Dict[int, Room]] = None
         self.vacuum_position: Optional[Point] = None
         self.vacuum_room: Optional[int] = None

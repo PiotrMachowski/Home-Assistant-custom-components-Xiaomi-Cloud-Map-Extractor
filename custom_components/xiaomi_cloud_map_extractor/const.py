@@ -108,6 +108,7 @@ ATTR_POINT_SIZE = "point_size"
 ATTR_ROTATION = "rotation"
 ATTR_SCALE = "scale"
 ATTR_SIZE = "size"
+ATTR_TWO_FACTOR_AUTH = "url_2fa"
 ATTR_TYPE = "type"
 ATTR_USED_API = "used_api"
 ATTR_WIDTH = "width"
@@ -213,12 +214,15 @@ CONF_DEFAULT_ROOM_COLORS = [COLOR_ROOM_1, COLOR_ROOM_2, COLOR_ROOM_3, COLOR_ROOM
 
 AVAILABLE_APIS = {
     CONF_AVAILABLE_API_DREAME: ["dreame.vacuum."],
-    CONF_AVAILABLE_API_ROIDMI: ["roidmi.vacuum."],
-    CONF_AVAILABLE_API_VIOMI: ["viomi.vacuum."]
+    CONF_AVAILABLE_API_ROIDMI: ["roidmi.vacuum.", "zhimi.vacuum.", "chuangmi.vacuum."],
+    CONF_AVAILABLE_API_VIOMI: ["viomi.vacuum."],
+    CONF_AVAILABLE_API_XIAOMI: ["roborock.vacuum", "rockrobo.vacuum"]
 }
 
 API_EXCEPTIONS = {
-    "viomi.vacuum.v18": CONF_AVAILABLE_API_ROIDMI
+    "viomi.vacuum.v18": CONF_AVAILABLE_API_ROIDMI,
+    "viomi.vacuum.v23": CONF_AVAILABLE_API_ROIDMI,
+    "viomi.vacuum.v38": CONF_AVAILABLE_API_ROIDMI,
 }
 
 MM = 50

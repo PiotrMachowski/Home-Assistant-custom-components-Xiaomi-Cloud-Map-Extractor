@@ -1,14 +1,17 @@
 import logging
 import math
-from typing import Callable
+from typing import Callable, Dict, List
 
 from PIL import Image, ImageDraw, ImageFont
 from PIL.Image import Image as ImageType
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import ImageData
+from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, ImageData, Obstacle, Path, Point, Room, \
+    Wall, Zone
 from custom_components.xiaomi_cloud_map_extractor.const import *
+from custom_components.xiaomi_cloud_map_extractor.types import Color, Colors, Sizes, Texts
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class ImageHandler:
     COLORS = {
@@ -63,7 +66,7 @@ class ImageHandler:
                    COLOR_ROOM_14, COLOR_ROOM_15, COLOR_ROOM_16]
 
     @staticmethod
-    def create_empty_map_image(colors, text="NO MAP") -> ImageType:
+    def create_empty_map_image(colors: Colors, text: str = "NO MAP") -> ImageType:
         color = ImageHandler.__get_color__(COLOR_MAP_OUTSIDE, colors)
         image = Image.new('RGBA', (300, 200), color=color)
         if sum(color[0:3]) > 382:
@@ -76,98 +79,98 @@ class ImageHandler:
         return image
 
     @staticmethod
-    def draw_path(image: ImageData, path, sizes, colors, scale):
+    def draw_path(image: ImageData, path: Path, sizes: Sizes, colors: Colors, scale: float):
         ImageHandler.__draw_path__(image, path, sizes[CONF_SIZE_PATH_WIDTH], ImageHandler.__get_color__(COLOR_PATH, colors), scale)
 
     @staticmethod
-    def draw_goto_path(image: ImageData, path, sizes, colors, scale):
+    def draw_goto_path(image: ImageData, path: Path, sizes: Sizes, colors: Colors, scale: float):
         ImageHandler.__draw_path__(image, path, sizes[CONF_SIZE_PATH_WIDTH], ImageHandler.__get_color__(COLOR_GOTO_PATH, colors), scale)
 
     @staticmethod
-    def draw_predicted_path(image: ImageData, path, sizes, colors, scale):
+    def draw_predicted_path(image: ImageData, path: Path, sizes: Sizes, colors: Colors, scale: float):
         ImageHandler.__draw_path__(image, path, sizes[CONF_SIZE_PATH_WIDTH], ImageHandler.__get_color__(COLOR_PREDICTED_PATH, colors), scale)
 
     @staticmethod
-    def draw_mop_path(image: ImageData, path, sizes, colors, scale):
+    def draw_mop_path(image: ImageData, path: Path, sizes: Sizes, colors: Colors, scale: float):
         ImageHandler.__draw_path__(image, path, sizes[CONF_SIZE_MOP_PATH_WIDTH], ImageHandler.__get_color__(COLOR_MOP_PATH, colors), scale)
 
     @staticmethod
-    def draw_no_carpet_areas(image: ImageData, areas, colors):
+    def draw_no_carpet_areas(image: ImageData, areas: List[Area], colors: Colors):
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_NO_CARPET_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_NO_CARPET_ZONES_OUTLINE, colors))
 
     @staticmethod
-    def draw_no_go_areas(image: ImageData, areas, colors):
+    def draw_no_go_areas(image: ImageData, areas: List[Area], colors: Colors):
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_NO_GO_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_NO_GO_ZONES_OUTLINE, colors))
 
     @staticmethod
-    def draw_no_mopping_areas(image: ImageData, areas, colors):
+    def draw_no_mopping_areas(image: ImageData, areas: List[Area], colors: Colors):
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_NO_MOPPING_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_NO_MOPPING_ZONES_OUTLINE, colors))
 
     @staticmethod
-    def draw_walls(image: ImageData, walls, colors):
+    def draw_walls(image: ImageData, walls: List[Wall], colors: Colors):
         draw = ImageDraw.Draw(image.data, 'RGBA')
         for wall in walls:
             draw.line(wall.to_img(image.dimensions).as_list(),
                       ImageHandler.__get_color__(COLOR_VIRTUAL_WALLS, colors), width=2)
 
     @staticmethod
-    def draw_zones(image: ImageData, zones, colors):
-        areas = list(map(lambda z: z.as_area(), zones))
+    def draw_zones(image: ImageData, zones: List[Zone], colors: Colors):
+        areas = [z.as_area() for z in zones]
         ImageHandler.__draw_areas__(image, areas,
                                     ImageHandler.__get_color__(COLOR_ZONES, colors),
                                     ImageHandler.__get_color__(COLOR_ZONES_OUTLINE, colors))
 
     @staticmethod
-    def draw_charger(image: ImageData, charger, sizes, colors):
+    def draw_charger(image: ImageData, charger: Point, sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_CHARGER, colors)
         outline = ImageHandler.__get_color__(COLOR_CHARGER_OUTLINE, colors)
         radius = sizes[CONF_SIZE_CHARGER_RADIUS]
         ImageHandler.__draw_pieslice__(image, charger, radius, outline, color)
 
     @staticmethod
-    def draw_obstacles(image: ImageData, obstacles, sizes, colors):
+    def draw_obstacles(image: ImageData, obstacles, sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_OBSTACLE, colors)
         radius = sizes[CONF_SIZE_OBSTACLE_RADIUS]
         ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
 
     @staticmethod
-    def draw_ignored_obstacles(image: ImageData, obstacles, sizes, colors):
+    def draw_ignored_obstacles(image: ImageData, obstacles: List[Obstacle], sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_IGNORED_OBSTACLE, colors)
         radius = sizes[CONF_SIZE_IGNORED_OBSTACLE_RADIUS]
         ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
 
     @staticmethod
-    def draw_obstacles_with_photo(image: ImageData, obstacles, sizes, colors):
+    def draw_obstacles_with_photo(image: ImageData, obstacles: List[Obstacle], sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_OBSTACLE_WITH_PHOTO, colors)
         radius = sizes[CONF_SIZE_OBSTACLE_WITH_PHOTO_RADIUS]
         ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
 
     @staticmethod
-    def draw_ignored_obstacles_with_photo(image: ImageData, obstacles, sizes, colors):
+    def draw_ignored_obstacles_with_photo(image: ImageData, obstacles: List[Obstacle], sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_IGNORED_OBSTACLE_WITH_PHOTO, colors)
         radius = sizes[CONF_SIZE_IGNORED_OBSTACLE_WITH_PHOTO_RADIUS]
         ImageHandler.draw_all_obstacles(image, obstacles, radius, color)
 
     @staticmethod
-    def draw_all_obstacles(image: ImageData, obstacles, radius, color):
+    def draw_all_obstacles(image: ImageData, obstacles: List[Obstacle], radius: float, color: Color):
         for obstacle in obstacles:
             ImageHandler.__draw_circle__(image, obstacle, radius, color, color)
 
     @staticmethod
-    def draw_vacuum_position(image: ImageData, vacuum_position, sizes, colors):
+    def draw_vacuum_position(image: ImageData, vacuum_position: Point, sizes: Sizes, colors: Colors):
         color = ImageHandler.__get_color__(COLOR_ROBO, colors)
         outline = ImageHandler.__get_color__(COLOR_ROBO_OUTLINE, colors)
         radius = sizes[CONF_SIZE_VACUUM_RADIUS]
         ImageHandler.__draw_vacuum__(image, vacuum_position, radius, outline, color)
 
     @staticmethod
-    def draw_room_names(image: ImageData, rooms, colors):
+    def draw_room_names(image: ImageData, rooms: Dict[int, Room], colors: Colors):
         color = ImageHandler.__get_color__(COLOR_ROOM_NAMES, colors)
         for room in rooms.values():
             p = room.point()
@@ -185,7 +188,7 @@ class ImageHandler:
             image.data = image.data.transpose(Image.ROTATE_270)
 
     @staticmethod
-    def draw_texts(image: ImageData, texts):
+    def draw_texts(image: ImageData, texts: Texts):
         for text_config in texts:
             x = text_config[CONF_X] * image.data.size[0] / 100
             y = text_config[CONF_Y] * image.data.size[1] / 100
@@ -193,7 +196,7 @@ class ImageHandler:
                                        text_config[CONF_FONT], text_config[CONF_FONT_SIZE])
 
     @staticmethod
-    def draw_layer(image: ImageData, layer_name):
+    def draw_layer(image: ImageData, layer_name: str):
         ImageHandler.__draw_layer__(image, image.additional_layers[layer_name])
 
     @staticmethod
@@ -203,30 +206,38 @@ class ImageHandler:
     @staticmethod
     def __draw_vacuum__(image: ImageData, vacuum_pos, r, outline, fill):
         def draw_func(draw: ImageDraw):
+            if vacuum_pos.a is None:
+                vacuum_pos.a = 0
             point = vacuum_pos.to_img(image.dimensions)
+            r_scaled = r / 16
+            # main outline
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
             draw.ellipse(coords, outline=outline, fill=fill)
-            r_scaled = r / 16
-            r2 = r_scaled * 14
-            x = point.x
-            y = point.y
-            coords = [x - r2, y - r2, x + r2, y + r2]
-            draw.ellipse(coords, outline=outline, fill=None)
+            if r >= 8:
+                # secondary outline
+                r2 = r_scaled * 14
+                x = point.x
+                y = point.y
+                coords = [x - r2, y - r2, x + r2, y + r2]
+                draw.ellipse(coords, outline=outline, fill=None)
+            # bin cover
             a1 = (vacuum_pos.a + 104) / 180 * math.pi
             a2 = (vacuum_pos.a - 104) / 180 * math.pi
             r2 = r_scaled * 13
-            x1 = x + r2 * math.cos(a1)
-            y1 = y - r2 * math.sin(a1)
-            x2 = x + r2 * math.cos(a2)
-            y2 = y - r2 * math.sin(a2)
-            draw.line([x1,y1,x2,y2], width=1, fill=outline)
+            x1 = point.x - r2 * math.cos(a1)
+            y1 = point.y + r2 * math.sin(a1)
+            x2 = point.x - r2 * math.cos(a2)
+            y2 = point.y + r2 * math.sin(a2)
+            draw.line([x1, y1, x2, y2], width=1, fill=outline)
+            # lidar
             angle = vacuum_pos.a / 180 * math.pi
             r2 = r_scaled * 3
-            x = point.x - r2 * math.cos(angle)
-            y = point.y + r2 * math.sin(angle)
+            x = point.x + r2 * math.cos(angle)
+            y = point.y - r2 * math.sin(angle)
             r2 = r_scaled * 4
             coords = [x - r2, y - r2, x + r2, y + r2]
             draw.ellipse(coords, outline=outline, fill=fill)
+            # button
             half_color = (
                 (outline[0] + fill[0]) // 2,
                 (outline[1] + fill[1]) // 2,
@@ -242,7 +253,7 @@ class ImageHandler:
         ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(outline, fill))
 
     @staticmethod
-    def __draw_circle__(image: ImageData, center, r, outline, fill):
+    def __draw_circle__(image: ImageData, center: Point, r: float, outline: Color, fill: Color):
         def draw_func(draw: ImageDraw):
             point = center.to_img(image.dimensions)
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
@@ -254,14 +265,14 @@ class ImageHandler:
     def __draw_pieslice__(image: ImageData, position, r, outline, fill):
         def draw_func(draw: ImageDraw):
             point = position.to_img(image.dimensions)
-            angle = -position.a
+            angle = -position.a if position.a is not None else 0
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
-            draw.pieslice(coords, angle+90, angle-90, outline="black", fill=fill)
+            draw.pieslice(coords, angle + 90, angle - 90, outline="black", fill=fill)
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(outline, fill))
 
     @staticmethod
-    def __draw_areas__(image: ImageData, areas, fill, outline):
+    def __draw_areas__(image: ImageData, areas: List[Area], fill: Color, outline: Color):
         if len(areas) == 0:
             return
 
@@ -273,33 +284,35 @@ class ImageHandler:
             ImageHandler.__draw_on_new_layer__(image, draw_func, 1, use_transparency)
 
     @staticmethod
-    def __draw_path__(image: ImageData, path, path_width, color, scale):
-        if len(path.path) < 2:
+    def __draw_path__(image: ImageData, path: Path, path_width: int, color: Color, scale: float):
+        if len(path.path) < 1:
             return
 
         def draw_func(draw: ImageDraw):
-            s = path.path[0].to_img(image.dimensions)
-            coords = None    
-            for point in path.path[1:]:
-                e = point.to_img(image.dimensions)
-                sx = s.x * scale
-                sy = s.y * scale
-                ex = e.x * scale
-                ey = e.y * scale
-                draw.line([sx, sy, ex, ey], width=int(scale * path_width), fill=color)
-                if path_width > 4:
-                    r = scale * path_width / 2
-                    if not coords:
-                        coords = [sx - r, sy - r, sx + r, sy + r]
-                        draw.pieslice(coords, 0, 360, outline=color, fill=color)
-                    coords = [ex - r, ey - r, ex + r, ey + r]
-                    draw.pieslice(coords, 0, 360, outline=color, fill=color)
-                s = e
+            for current_path in path.path:
+                if len(current_path) > 1:
+                    s = current_path[0].to_img(image.dimensions)
+                    coords = None
+                    for point in current_path[1:]:
+                        e = point.to_img(image.dimensions)
+                        sx = s.x * scale
+                        sy = s.y * scale
+                        ex = e.x * scale
+                        ey = e.y * scale
+                        draw.line([sx, sy, ex, ey], width=int(scale * path_width), fill=color)
+                        if path_width > 4:
+                            r = scale * path_width / 2
+                            if not coords:
+                                coords = [sx - r, sy - r, sx + r, sy + r]
+                                draw.pieslice(coords, 0, 360, outline=color, fill=color)
+                            coords = [ex - r, ey - r, ex + r, ey + r]
+                            draw.pieslice(coords, 0, 360, outline=color, fill=color)
+                        s = e
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, scale, ImageHandler.__use_transparency__(color))
 
     @staticmethod
-    def __draw_text__(image: ImageData, text, x, y, color, font_file=None, font_size=None):
+    def __draw_text__(image: ImageData, text: str, x: float, y: float, color: Color, font_file=None, font_size=None):
         def draw_func(draw: ImageDraw):
             font = ImageFont.load_default()
             try:
@@ -316,7 +329,7 @@ class ImageHandler:
         ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(color))
 
     @staticmethod
-    def __get_color__(name, colors, default_name=None):
+    def __get_color__(name, colors: Colors, default_name: str = None) -> Color:
         if name in colors:
             return colors[name]
         if default_name is None:
@@ -324,9 +337,8 @@ class ImageHandler:
         return ImageHandler.COLORS[default_name]
 
     @staticmethod
-    def __draw_on_new_layer__(image: ImageData, draw_function: Callable, scale=1, use_transparency=False):
+    def __draw_on_new_layer__(image: ImageData, draw_function: Callable, scale: float = 1, use_transparency=False):
         if scale == 1 and not use_transparency:
-            size = image.data.size
             draw = ImageDraw.Draw(image.data, "RGBA")
             draw_function(draw)
         else:

@@ -3,6 +3,7 @@ import logging
 from custom_components.xiaomi_cloud_map_extractor.common.image_handler import ImageHandler
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import ImageData, MapData
 from custom_components.xiaomi_cloud_map_extractor.const import *
+from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -10,18 +11,19 @@ _LOGGER = logging.getLogger(__name__)
 class MapDataParser:
 
     @staticmethod
-    def create_empty(colors, text) -> MapData:
+    def create_empty(colors: Colors, text: str) -> MapData:
         map_data = MapData()
         empty_map = ImageHandler.create_empty_map_image(colors, text)
         map_data.image = ImageData.create_empty(empty_map)
         return map_data
 
     @staticmethod
-    def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:
+    def parse(raw: bytes, colors: Colors, drawables: Drawables, texts: Texts, sizes: Sizes,
+              image_config: ImageConfig, *args, **kwargs) -> MapData:
         pass
 
     @staticmethod
-    def draw_elements(colors, drawables, sizes, map_data: MapData, image_config):
+    def draw_elements(colors: Colors, drawables: Drawables, sizes: Sizes, map_data: MapData, image_config: ImageConfig):
         scale = float(image_config[CONF_SCALE])
 
         for drawable in drawables:

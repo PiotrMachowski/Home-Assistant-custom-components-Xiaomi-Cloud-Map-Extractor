@@ -1,7 +1,9 @@
 import logging
+from typing import Tuple
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import *
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
+from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, Sizes, Texts
 from custom_components.xiaomi_cloud_map_extractor.xiaomi.image_handler import ImageHandlerXiaomi
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,7 +41,8 @@ class MapDataParserXiaomi(MapDataParser):
     }
 
     @staticmethod
-    def parse(raw: bytes, colors, drawables, texts, sizes, image_config) -> MapData:
+    def parse(raw: bytes, colors: Colors, drawables: Drawables, texts: Texts, sizes: Sizes,
+              image_config: ImageConfig, *args, **kwargs) -> MapData:
         map_data = MapData(25500, 1000)
         map_header_length = MapDataParserXiaomi.get_int16(raw, 0x02)
         map_data.major_version = MapDataParserXiaomi.get_int16(raw, 0x08)
@@ -126,15 +129,15 @@ class MapDataParserXiaomi(MapDataParser):
         return map_data
 
     @staticmethod
-    def map_to_image(p: Point):
+    def map_to_image(p: Point) -> Point:
         return Point(p.x / MM, p.y / MM)
 
     @staticmethod
-    def image_to_map(x):
+    def image_to_map(x: float) -> float:
         return x * MM
 
     @staticmethod
-    def get_current_vacuum_room(block_start_position, raw, vacuum_position):
+    def get_current_vacuum_room(block_start_position: int, raw: bytes, vacuum_position: Point) -> int:
         block_header_length = MapDataParserXiaomi.get_int16(raw, block_start_position + 0x02)
         header = MapDataParserXiaomi.get_bytes(raw, block_start_position, block_header_length)
         block_data_length = MapDataParserXiaomi.get_int32(header, 0x04)
@@ -148,7 +151,8 @@ class MapDataParserXiaomi(MapDataParser):
         return room
 
     @staticmethod
-    def parse_image(block_data_length, block_header_length, data, header, carpet_map, colors, image_config):
+    def parse_image(block_data_length: int, block_header_length: int, data: bytes, header: bytes, carpet_map: List[int],
+                    colors: Colors, image_config: ImageConfig) -> Tuple[ImageData, Dict[int, Room]]:
         image_size = block_data_length
         image_top = MapDataParserXiaomi.get_int32(header, block_header_length - 16)
         image_left = MapDataParserXiaomi.get_int32(header, block_header_length - 12)
@@ -180,7 +184,7 @@ class MapDataParserXiaomi(MapDataParser):
                          image, MapDataParserXiaomi.map_to_image), rooms
 
     @staticmethod
-    def parse_carpet_map(data, image_config):
+    def parse_carpet_map(data: bytes, image_config: ImageConfig) -> List[int]:
         carpet_map = []
 
         for i, v in enumerate(data):
@@ -189,13 +193,13 @@ class MapDataParserXiaomi(MapDataParser):
         return carpet_map
 
     @staticmethod
-    def parse_goto_target(data):
+    def parse_goto_target(data: bytes) -> Point:
         x = MapDataParserXiaomi.get_int16(data, 0x00)
         y = MapDataParserXiaomi.get_int16(data, 0x02)
         return Point(x, y)
 
     @staticmethod
-    def parse_object_position(block_data_length, data):
+    def parse_object_position(block_data_length: int, data: bytes) -> Point:
         x = MapDataParserXiaomi.get_int32(data, 0x00)
         y = MapDataParserXiaomi.get_int32(data, 0x04)
         a = None
@@ -206,7 +210,7 @@ class MapDataParserXiaomi(MapDataParser):
         return Point(x, y, a)
 
     @staticmethod
-    def parse_walls(data, header):
+    def parse_walls(data: bytes, header: bytes) -> List[Wall]:
         wall_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
         walls = []
         for wall_start in range(0, wall_pairs * 8, 8):
@@ -218,7 +222,7 @@ class MapDataParserXiaomi(MapDataParser):
         return walls
 
     @staticmethod
-    def parse_obstacles(data, header):
+    def parse_obstacles(data: bytes, header: bytes) -> List[Obstacle]:
         obstacle_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
         obstacles = []
         if obstacle_pairs == 0:
@@ -243,7 +247,7 @@ class MapDataParserXiaomi(MapDataParser):
         return obstacles
 
     @staticmethod
-    def parse_zones(data, header):
+    def parse_zones(data: bytes, header: bytes) -> List[Zone]:
         zone_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
         zones = []
         for zone_start in range(0, zone_pairs * 8, 8):
@@ -255,7 +259,7 @@ class MapDataParserXiaomi(MapDataParser):
         return zones
 
     @staticmethod
-    def parse_path(block_start_position, header, raw):
+    def parse_path(block_start_position: int, header: bytes, raw: bytes) -> Path:
         path_points = []
         end_pos = MapDataParserXiaomi.get_int32(header, 0x04)
         point_length = MapDataParserXiaomi.get_int32(header, 0x08)
@@ -266,10 +270,10 @@ class MapDataParserXiaomi(MapDataParser):
             x = MapDataParserXiaomi.get_int16(raw, pos)
             y = MapDataParserXiaomi.get_int16(raw, pos + 2)
             path_points.append(Point(x, y))
-        return Path(point_length, point_size, angle, path_points)
+        return Path(point_length, point_size, angle, [path_points])
 
     @staticmethod
-    def parse_mop_path(path, mask):
+    def parse_mop_path(path:Path, mask: bytes) -> Path:
         mop_path_points = []
 
         for i, point in enumerate(path.path):
@@ -278,7 +282,7 @@ class MapDataParserXiaomi(MapDataParser):
         return Path(len(mop_path_points), path.point_size, path.angle, mop_path_points)
 
     @staticmethod
-    def parse_area(header, data):
+    def parse_area(header: bytes, data: bytes) -> List[Area]:
         area_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
         areas = []
         for area_start in range(0, area_pairs * 16, 16):
@@ -294,21 +298,21 @@ class MapDataParserXiaomi(MapDataParser):
         return areas
 
     @staticmethod
-    def get_bytes(data: bytes, start_index: int, size: int):
-        return data[start_index:  start_index + size]
+    def get_bytes(data: bytes, start_index: int, size: int) -> bytes:
+        return data[start_index: start_index + size]
 
     @staticmethod
-    def get_int8(data: bytes, address: int):
+    def get_int8(data: bytes, address: int) -> int:
         return data[address] & 0xFF
 
     @staticmethod
-    def get_int16(data: bytes, address: int):
+    def get_int16(data: bytes, address: int) -> int:
         return \
             ((data[address + 0] << 0) & 0xFF) | \
             ((data[address + 1] << 8) & 0xFFFF)
 
     @staticmethod
-    def get_int32(data: bytes, address: int):
+    def get_int32(data: bytes, address: int) -> int:
         return \
             ((data[address + 0] << 0) & 0xFF) | \
             ((data[address + 1] << 8) & 0xFFFF) | \

@@ -1,0 +1,55 @@
+---
+name: Request for support of a new vacuum/platform
+description: Request for support of a new vacuum/platform
+labels:
+  - new platform
+  - enhancement
+assignees: 'PiotrMachowski'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Using this form you can create a request for a new supported vacuum/platform.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have updated the integration to the latest version available
+          required: true
+        - label: I have checked if the vacuum/platform is already requested
+          required: true
+        - label: I have sent raw map file to `piotr.machowski.dev [at] gmail.com` ([Retrieving map](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor#retrieving-map); please provide your GitHub username in the email)
+          required: false
+  - type: input
+    id: vacuum-model
+    validations:
+      required: true
+    attributes:
+      label: What vacuum model do you want to be supported?
+      placeholder: roborock.vacuum.s5e
+  - type: input
+    id: vacuum-model-name
+    validations:
+      required: true
+    attributes:
+      label: What is its name?
+      placeholder: Roborock S5 Max
+  - type: checkboxes
+    id: available-apis
+    attributes:
+      label: Available APIs
+      description: >-
+        Please check if map appears when you use following APIs in `force_api` config
+      options:
+        - label: xiaomi
+        - label: viomi
+        - label: roidmi
+        - label: dreame
+  - type: textarea
+    attributes:
+      label: Errors shown in the HA logs (if applicable)
+      render: shell
+  - type: textarea
+    attributes:
+      label: Other info

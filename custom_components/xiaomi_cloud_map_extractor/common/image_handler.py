@@ -272,7 +272,7 @@ class ImageHandler:
 
         def draw_func(draw: ImageDraw):
             s = path.path[0].to_img(image.dimensions)
-            coords = None    
+            coords = None
             for point in path.path[1:]:
                 e = point.to_img(image.dimensions)
                 sx = s.x * scale

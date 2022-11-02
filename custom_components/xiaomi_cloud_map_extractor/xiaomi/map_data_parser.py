@@ -24,9 +24,7 @@ class MapDataParserXiaomi(MapDataParser):
     IGNORED_OBSTACLES = 14
     OBSTACLES_WITH_PHOTO = 15
     IGNORED_OBSTACLES_WITH_PHOTO = 16
-    CARPET_MAP = 17
     MOP_PATH = 18
-    CARPET_FORBIDDEN_AREA = 19
     DIGEST = 1024
     SIZE = 1024
     KNOWN_OBSTACLE_TYPES = {
@@ -98,10 +96,6 @@ class MapDataParserXiaomi(MapDataParser):
                 points_mask = MapDataParserXiaomi.get_bytes(raw, block_data_start, block_data_length)
                 # only the map_data.path points where points_mask == 1 are in mop_path
                 map_data.mop_path = MapDataParserXiaomi.parse_mop_path(map_data.path, points_mask)
-            elif block_type == MapDataParserXiaomi.CARPET_MAP:
-                map_data.carpet_map = MapDataParserXiaomi.get_bytes(raw, block_data_start, block_data_length)
-                # _LOGGER.debug("CARPET_MAP BLOCK TYPE: %s %s %s", block_type, block_header_length, block_data_length)
-                # print("CARPET_MAP DATA: {}".format(map_data.carpet_map))
             else:
                 _LOGGER.debug("UNKNOWN BLOCK TYPE: %s, header length %s, data length %s", block_type, block_header_length, block_data_length)
             block_start_position = block_start_position + block_data_length + MapDataParserXiaomi.get_int8(header, 2)

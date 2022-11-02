@@ -6,6 +6,7 @@ from PIL.Image import Image as ImageType
 
 from custom_components.xiaomi_cloud_map_extractor.common.image_handler import ImageHandler
 from custom_components.xiaomi_cloud_map_extractor.const import *
+from custom_components.xiaomi_cloud_map_extractor.types import Colors, ImageConfig
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +18,8 @@ class ImageHandlerXiaomi(ImageHandler):
     MAP_SCAN = 0x07
 
     @staticmethod
-    def parse(raw_data: bytes, width, height, colors, image_config) -> Tuple[ImageType, dict]:
+    def parse(raw_data: bytes, width: int, height: int, colors: Colors,
+              image_config: ImageConfig) -> Tuple[ImageType, dict]:
         rooms = {}
         scale = image_config[CONF_SCALE]
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
@@ -69,7 +71,7 @@ class ImageHandlerXiaomi(ImageHandler):
         return image, rooms
 
     @staticmethod
-    def get_room_at_pixel(raw_data: bytes, width, x, y):
+    def get_room_at_pixel(raw_data: bytes, width: int, x: int, y: int) -> int:
         room_number = None
         pixel_type = raw_data[x + width * y]
         if pixel_type not in [ImageHandlerXiaomi.MAP_INSIDE, ImageHandlerXiaomi.MAP_SCAN]:

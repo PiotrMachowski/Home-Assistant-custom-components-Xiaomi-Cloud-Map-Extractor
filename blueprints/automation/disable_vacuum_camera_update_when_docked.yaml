@@ -1,3 +1,4 @@
+---
 blueprint:
   name: Disable vacuum camera update when docked
   description: Disable the automatic update of the vacuum camera when the robot is docked.

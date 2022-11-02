@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple
+from typing import List, Tuple
 
 from PIL import Image
 from PIL.Image import Image as ImageType

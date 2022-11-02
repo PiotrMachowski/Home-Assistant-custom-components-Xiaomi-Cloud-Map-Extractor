@@ -17,7 +17,7 @@ class ImageHandlerXiaomi(ImageHandler):
     MAP_SCAN = 0x07
 
     @staticmethod
-    def parse(raw_data: bytes, width, height, colors, image_config) -> Tuple[ImageType, dict]:
+    def parse(raw_data: bytes, width, height, carpet_map, colors, image_config) -> Tuple[ImageType, dict]:
         rooms = {}
         scale = image_config[CONF_SCALE]
         trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * width / 100)
@@ -32,10 +32,13 @@ class ImageHandlerXiaomi(ImageHandler):
         pixels = image.load()
         for img_y in range(trimmed_height):
             for img_x in range(trimmed_width):
-                pixel_type = raw_data[img_x + trim_left + width * (img_y + trim_bottom)]
+                idx = img_x + trim_left + width * (img_y + trim_bottom)
+                pixel_type = raw_data[idx]
                 x = img_x
                 y = trimmed_height - img_y - 1
-                if pixel_type == ImageHandlerXiaomi.MAP_OUTSIDE:
+                if idx in carpet_map and (x+y) % 2:
+                    pixels[x, y] = ImageHandler.__get_color__(COLOR_CARPETS, colors)
+                elif pixel_type == ImageHandlerXiaomi.MAP_OUTSIDE:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_OUTSIDE, colors)
                 elif pixel_type == ImageHandlerXiaomi.MAP_WALL:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_WALL, colors)

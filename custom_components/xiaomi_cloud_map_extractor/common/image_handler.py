@@ -25,6 +25,7 @@ class ImageHandler:
         COLOR_ZONES_OUTLINE: (0xAD, 0xD8, 0xFF),
         COLOR_VIRTUAL_WALLS: (255, 0, 0),
         COLOR_NEW_DISCOVERED_AREA: (64, 64, 64),
+        COLOR_CARPETS: (0xA9, 0xF7, 0xA9),
         COLOR_NO_GO_ZONES: (255, 33, 55, 127),
         COLOR_NO_GO_ZONES_OUTLINE: (255, 0, 0),
         COLOR_NO_MOPPING_ZONES: (163, 130, 211, 127),
@@ -89,6 +90,12 @@ class ImageHandler:
     @staticmethod
     def draw_mop_path(image: ImageData, path, sizes, colors, scale):
         ImageHandler.__draw_path__(image, path, sizes[CONF_SIZE_MOP_PATH_WIDTH], ImageHandler.__get_color__(COLOR_MOP_PATH, colors), scale)
+
+    @staticmethod
+    def draw_no_carpet_areas(image: ImageData, areas, colors):
+        ImageHandler.__draw_areas__(image, areas,
+                                    ImageHandler.__get_color__(COLOR_NO_CARPET_ZONES, colors),
+                                    ImageHandler.__get_color__(COLOR_NO_CARPET_ZONES_OUTLINE, colors))
 
     @staticmethod
     def draw_no_go_areas(image: ImageData, areas, colors):

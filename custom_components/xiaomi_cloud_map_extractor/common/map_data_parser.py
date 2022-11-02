@@ -23,6 +23,7 @@ class MapDataParser:
     @staticmethod
     def draw_elements(colors, drawables, sizes, map_data: MapData, image_config):
         scale = float(image_config[CONF_SCALE])
+
         for drawable in drawables:
             if DRAWABLE_CHARGER == drawable and map_data.charger is not None:
                 ImageHandler.draw_charger(map_data.image, map_data.charger, sizes, colors)
@@ -45,6 +46,8 @@ class MapDataParser:
                 ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, sizes, colors, scale)
             if DRAWABLE_PREDICTED_PATH == drawable and map_data.predicted_path is not None:
                 ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, sizes, colors, scale)
+            if DRAWABLE_NO_CARPET_AREAS == drawable and map_data.no_carpet_areas is not None:
+                ImageHandler.draw_no_carpet_areas(map_data.image, map_data.no_carpet_areas, colors)
             if DRAWABLE_NO_GO_AREAS == drawable and map_data.no_go_areas is not None:
                 ImageHandler.draw_no_go_areas(map_data.image, map_data.no_go_areas, colors)
             if DRAWABLE_NO_MOPPING_AREAS == drawable and map_data.no_mopping_areas is not None:

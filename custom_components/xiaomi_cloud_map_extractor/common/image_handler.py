@@ -278,7 +278,7 @@ class ImageHandler:
 
     @staticmethod
     def __draw_path__(image: ImageData, path: Path, path_width: int, color: Color, scale: float):
-        if len(path.path) < 2:
+        if len(path.path) < 1:
             return
 
         def draw_func(draw: ImageDraw):

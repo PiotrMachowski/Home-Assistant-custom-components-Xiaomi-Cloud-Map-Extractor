@@ -238,7 +238,7 @@ class VacuumCamera(Camera):
                 rooms = list(map_data.rooms.keys())
         for name, value in {
             ATTRIBUTE_CALIBRATION: map_data.calibration(),
-            ATTRIBUTE_CARPET_MAP: self._map_data.carpet_map,
+            ATTRIBUTE_CARPET_MAP: map_data.carpet_map,
             ATTRIBUTE_CHARGER: map_data.charger,
             ATTRIBUTE_CLEANED_ROOMS: map_data.cleaned_rooms,
             ATTRIBUTE_COUNTRY: country,
@@ -250,8 +250,8 @@ class VacuumCamera(Camera):
             ATTRIBUTE_IMAGE: map_data.image,
             ATTRIBUTE_IS_EMPTY: map_data.image.is_empty,
             ATTRIBUTE_MAP_NAME: map_data.map_name,
-            ATTRIBUTE_MOP_PATH: self._map_data.mop_path,
-            ATTRIBUTE_NO_CARPET_AREAS: self._map_data.no_carpet_areas,
+            ATTRIBUTE_MOP_PATH: map_data.mop_path,
+            ATTRIBUTE_NO_CARPET_AREAS: map_data.no_carpet_areas,
             ATTRIBUTE_NO_GO_AREAS: map_data.no_go_areas,
             ATTRIBUTE_NO_MOPPING_AREAS: map_data.no_mopping_areas,
             ATTRIBUTE_OBSTACLES: map_data.obstacles,

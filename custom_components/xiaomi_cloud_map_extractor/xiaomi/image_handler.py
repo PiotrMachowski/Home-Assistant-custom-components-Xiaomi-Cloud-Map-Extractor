@@ -38,7 +38,7 @@ class ImageHandlerXiaomi(ImageHandler):
                 pixel_type = raw_data[idx]
                 x = img_x
                 y = trimmed_height - img_y - 1
-                if idx in carpet_map and (x+y) % 2:
+                if idx in carpet_map and (x + y) % 2:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_CARPETS, colors)
                 elif pixel_type == ImageHandlerXiaomi.MAP_OUTSIDE:
                     pixels[x, y] = ImageHandler.__get_color__(COLOR_MAP_OUTSIDE, colors)

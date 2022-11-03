@@ -205,6 +205,7 @@ camera:
       ignored_obstacle_with_photo_radius: 3
     attributes:
       - calibration_points
+      - carpet_map
       - charger
       - cleaned_rooms
       - country
@@ -214,6 +215,7 @@ camera:
       - image
       - is_empty
       - map_name
+      - mop_path
       - no_carpet_areas
       - no_go_areas
       - no_mopping_areas
@@ -381,6 +383,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   Available values:
   - `calibration_points` - Calculated calibration points for [Lovelace Xiaomi Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card).
      <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_card.gif" width=50%>
+  - `carpet_map`
   - `charger`
   - `cleaned_rooms`
   - `country`
@@ -392,6 +395,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `image`
   - `is_empty`
   - `map_name`
+  - `mop_path`
   - `no_carpet_areas`
   - `no_go_areas`
   - `no_mopping_areas`

@@ -373,7 +373,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   | `obstacle_with_photo_radius` | float | false | 3 | Radius of an obstacle with photo circle. |
   | `ignored_obstacle_with_photo_radius` | float | false | 3 | Radius of an ignored obstacle with photo circle. |
   | `path_width` | float | false | 1 | Width of path line. |
-  | `mop_path_width` | float | false | equal to vacuum radius | Width of path line. |
+  | `mop_path_width` | float | false | equal to vacuum radius | Width of mop path line. |
 
 #### Attributes configuration
 

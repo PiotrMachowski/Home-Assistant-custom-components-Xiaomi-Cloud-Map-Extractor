@@ -275,13 +275,15 @@ class MapDataParserXiaomi(MapDataParser):
     @staticmethod
     def parse_mop_path(path: Path, mask: bytes) -> Path:
         mop_paths = []
+        points_num = 0
         for each_path in path.path:
             mop_path_points = []
             for i, point in enumerate(each_path):
                 if mask[i]:
                     mop_path_points.append(point)
+            points_num += len(mop_path_points)
             mop_paths.append(mop_path_points)
-        return Path(len(mop_path_points), path.point_size, path.angle, mop_paths)
+        return Path(points_num, path.point_size, path.angle, mop_paths)
 
     @staticmethod
     def parse_area(header: bytes, data: bytes) -> List[Area]:

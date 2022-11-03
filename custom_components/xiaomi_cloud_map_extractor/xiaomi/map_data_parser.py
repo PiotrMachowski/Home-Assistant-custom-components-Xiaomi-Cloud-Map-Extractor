@@ -247,7 +247,7 @@ class MapDataParserXiaomi(MapDataParser):
         return Path(point_length, point_size, angle, [path_points])
 
     @staticmethod
-    def parse_mop_path(path:Path, mask: bytes) -> Path:
+    def parse_mop_path(path: Path, mask: bytes) -> Path:
         mop_paths = []
         for each_path in path.path:
             mop_path_points = []

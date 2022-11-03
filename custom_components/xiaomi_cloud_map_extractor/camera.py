@@ -249,7 +249,7 @@ class VacuumCamera(Camera):
             ATTRIBUTE_IMAGE: map_data.image,
             ATTRIBUTE_IS_EMPTY: map_data.image.is_empty,
             ATTRIBUTE_MAP_NAME: map_data.map_name,
-            ATTRIBUTE_MOP_PATH: self._map_data.mop_path,
+            ATTRIBUTE_MOP_PATH: map_data.mop_path,
             ATTRIBUTE_NO_GO_AREAS: map_data.no_go_areas,
             ATTRIBUTE_NO_MOPPING_AREAS: map_data.no_mopping_areas,
             ATTRIBUTE_OBSTACLES: map_data.obstacles,

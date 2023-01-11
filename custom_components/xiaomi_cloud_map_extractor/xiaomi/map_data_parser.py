@@ -281,7 +281,7 @@ class MapDataParserXiaomi(MapDataParser):
             for i, point in enumerate(each_path):
                 if mask[i]:
                     mop_path_points.append(point)
-                    if (i+1) < len(mask) and not mask[i+1]:
+                    if (i + 1) < len(mask) and not mask[i + 1]:
                         points_num += len(mop_path_points)
                         mop_paths.append(mop_path_points)
                         mop_path_points = []

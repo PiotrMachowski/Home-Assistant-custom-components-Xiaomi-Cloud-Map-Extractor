@@ -1,5 +1,5 @@
 import logging
-from typing import List, Tuple
+from typing import Set, Tuple
 
 from PIL import Image
 from PIL.Image import Image as ImageType
@@ -18,7 +18,7 @@ class ImageHandlerXiaomi(ImageHandler):
     MAP_SCAN = 0x07
 
     @staticmethod
-    def parse(raw_data: bytes, width: int, height: int, carpet_map: List[int], colors: Colors,
+    def parse(raw_data: bytes, width: int, height: int, carpet_map: Set[int], colors: Colors,
               image_config: ImageConfig) -> Tuple[ImageType, dict]:
         rooms = {}
         scale = image_config[CONF_SCALE]

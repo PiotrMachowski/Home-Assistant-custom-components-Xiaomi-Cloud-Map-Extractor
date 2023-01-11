@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple
+from typing import Tuple, List, Set
 
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import *
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
@@ -151,7 +151,7 @@ class MapDataParserXiaomi(MapDataParser):
         return room
 
     @staticmethod
-    def parse_image(block_data_length: int, block_header_length: int, data: bytes, header: bytes, carpet_map: List[int],
+    def parse_image(block_data_length: int, block_header_length: int, data: bytes, header: bytes, carpet_map: Set[int],
                     colors: Colors, image_config: ImageConfig) -> Tuple[ImageData, Dict[int, Room]]:
         image_size = block_data_length
         image_top = MapDataParserXiaomi.get_int32(header, block_header_length - 16)
@@ -184,12 +184,12 @@ class MapDataParserXiaomi(MapDataParser):
                          image, MapDataParserXiaomi.map_to_image), rooms
 
     @staticmethod
-    def parse_carpet_map(data: bytes, image_config: ImageConfig) -> List[int]:
-        carpet_map = []
+    def parse_carpet_map(data: bytes, image_config: ImageConfig) -> Set[int]:
+        carpet_map = set()
 
         for i, v in enumerate(data):
             if v:
-                carpet_map.append(i)
+                carpet_map.add(i)
         return carpet_map
 
     @staticmethod

@@ -295,7 +295,7 @@ class MapData:
         self.no_go_areas: Optional[List[Area]] = None
         self.no_mopping_areas: Optional[List[Area]] = None
         self.no_carpet_areas: Optional[List[Area]] = None
-        self.carpet_map: Optional[List[int]] = []
+        self.carpet_map: Optional[Set[int]] = []
         self.obstacles: Optional[List[Obstacle]] = None
         self.ignored_obstacles: Optional[List[Obstacle]] = None
         self.obstacles_with_photo: Optional[List[Obstacle]] = None

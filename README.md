@@ -127,6 +127,9 @@ camera:
       color_zones: [0xAD, 0xD8, 0xFF, 0x8F]
       color_zones_outline: [0xAD, 0xD8, 0xFF]
       color_virtual_walls: [255, 0, 0]
+      color_carpets: [0xA9, 0xF7, 0xA9 ]
+      color_no_carpet_zones: [255, 33, 55, 0x5F]
+      color_no_carpet_zones_outline: [255, 0, 0]
       color_new_discovered_area: [64, 64, 64]
       color_no_go_zones: [255, 33, 55, 127]
       color_no_go_zones_outline: [255, 0, 0]
@@ -161,6 +164,7 @@ camera:
       - ignored_obstacles
       - ignored_obstacles_with_photo
       - mop_path
+      - no_carpet_zones
       - no_go_zones
       - no_mopping_zones
       - obstacles
@@ -201,6 +205,7 @@ camera:
       ignored_obstacle_with_photo_radius: 3
     attributes:
       - calibration_points
+      - carpet_map
       - charger
       - cleaned_rooms
       - country
@@ -210,6 +215,8 @@ camera:
       - image
       - is_empty
       - map_name
+      - mop_path
+      - no_carpet_areas
       - no_go_areas
       - no_mopping_areas
       - obstacles
@@ -268,6 +275,7 @@ camera:
 
   | Color name | Description |
   | --- | --- |
+  | `color_carpets` | Carpets fill, in checkboard pattern |
   | `color_charger` | Charger fill |
   | `color_charger_outline` | Charger outline |
   | `color_cleaned_area` | Fill of area that already has been cleaned |
@@ -280,6 +288,8 @@ camera:
   | `color_map_wall_v2` | Walls (for software with rooms support) |
   | `color_map_wall` | Walls (for software without rooms support) |
   | `color_new_discovered_area` | Newly discovered areas |
+  | `color_no_carpet_zones_outline` | Outline of no-carpet zones |
+  | `color_no_carpet_zones` | Fill of no-carpet zones |
   | `color_no_go_zones_outline` | Outline of no-go zones |
   | `color_no_go_zones` | Fill of no-go zones |
   | `color_no_mop_zones_outline` | Outline of no-mopping zones |
@@ -317,6 +327,7 @@ camera:
   - `ignored_obstacles_with_photo`
   - `ignored_obstacles`
   - `mop_path`
+  - `no_carpet_zones`
   - `no_go_zones`
   - `no_mopping_zones`
   - `obstacles_with_photo`
@@ -372,6 +383,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   Available values:
   - `calibration_points` - Calculated calibration points for [Lovelace Xiaomi Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card).
      <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_card.gif" width=50%>
+  - `carpet_map`
   - `charger`
   - `cleaned_rooms`
   - `country`
@@ -383,6 +395,8 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `image`
   - `is_empty`
   - `map_name`
+  - `mop_path`
+  - `no_carpet_areas`
   - `no_go_areas`
   - `no_mopping_areas`
   - `obstacles_with_photo`

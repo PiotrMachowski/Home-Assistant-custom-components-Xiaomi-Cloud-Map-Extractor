@@ -120,6 +120,7 @@ camera:
       color_obstacle: [0, 0, 0, 127]
       color_obstacle_with_photo: [0, 0, 0, 127]
       color_path: [147, 194, 238]
+      color_mop_path: [255, 255, 255, 0x5F]
       color_goto_path: [0, 255, 0]
       color_predicted_path: [255, 255, 0, 0]
       color_cleaned_area: [127, 127, 127, 127]
@@ -159,6 +160,7 @@ camera:
       - goto_path
       - ignored_obstacles
       - ignored_obstacles_with_photo
+      - mop_path
       - no_go_zones
       - no_mopping_zones
       - obstacles
@@ -192,6 +194,7 @@ camera:
       charger_radius: 4
       vacuum_radius: 6.5
       path_width: 1
+      mop_path_width: 16
       obstacle_radius: 3
       ignored_obstacle_radius: 3
       obstacle_with_photo_radius: 3
@@ -284,6 +287,7 @@ camera:
   | `color_obstacle_with_photo` | Obstacle with photo mark on a map |
   | `color_obstacle` | Obstacle mark on a map |
   | `color_path` | Path of a vacuum |
+  | `color_mop_path` | Mopped path of a vacuum (for vacuums that support mopping) |
   | `color_predicted_path` | Predicted path to a point in goto mode |
   | `color_robo` | Vacuum fill |
   | `color_robo_outline` | Vacuum outline |
@@ -312,6 +316,7 @@ camera:
   - `goto_path`
   - `ignored_obstacles_with_photo`
   - `ignored_obstacles`
+  - `mop_path`
   - `no_go_zones`
   - `no_mopping_zones`
   - `obstacles_with_photo`
@@ -359,6 +364,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   | `obstacle_with_photo_radius` | float | false | 3 | Radius of an obstacle with photo circle. |
   | `ignored_obstacle_with_photo_radius` | float | false | 3 | Radius of an ignored obstacle with photo circle. |
   | `path_width` | float | false | 1 | Width of path line. |
+  | `mop_path_width` | float | false | equal to vacuum radius | Width of mop path line. |
 
 #### Attributes configuration
 

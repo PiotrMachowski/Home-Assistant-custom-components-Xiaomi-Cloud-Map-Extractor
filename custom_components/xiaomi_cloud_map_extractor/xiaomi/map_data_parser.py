@@ -26,7 +26,7 @@ class MapDataParserXiaomi(MapDataParser):
     IGNORED_OBSTACLES = 14
     OBSTACLES_WITH_PHOTO = 15
     IGNORED_OBSTACLES_WITH_PHOTO = 16
-    CARPET_MAP = 17
+    MOP_PATH = 18
     DIGEST = 1024
     SIZE = 1024
     KNOWN_OBSTACLE_TYPES = {
@@ -95,6 +95,12 @@ class MapDataParserXiaomi(MapDataParser):
             elif block_type == MapDataParserXiaomi.BLOCKS:
                 block_pairs = MapDataParserXiaomi.get_int16(header, 0x08)
                 map_data.blocks = MapDataParserXiaomi.get_bytes(data, 0, block_pairs)
+            elif block_type == MapDataParserXiaomi.MOP_PATH:
+                points_mask = MapDataParserXiaomi.get_bytes(raw, block_data_start, block_data_length)
+                # only the map_data.path points where points_mask == 1 are in mop_path
+                map_data.mop_path = MapDataParserXiaomi.parse_mop_path(map_data.path, points_mask)
+            else:
+                _LOGGER.debug("UNKNOWN BLOCK TYPE: %s, header length %s, data length %s", block_type, block_header_length, block_data_length)
             block_start_position = block_start_position + block_data_length + MapDataParserXiaomi.get_int8(header, 2)
         if not map_data.image.is_empty:
             MapDataParserXiaomi.draw_elements(colors, drawables, sizes, map_data, image_config)
@@ -239,6 +245,24 @@ class MapDataParserXiaomi(MapDataParser):
             y = MapDataParserXiaomi.get_int16(raw, pos + 2)
             path_points.append(Point(x, y))
         return Path(point_length, point_size, angle, [path_points])
+
+    @staticmethod
+    def parse_mop_path(path: Path, mask: bytes) -> Path:
+        mop_paths = []
+        points_num = 0
+        for each_path in path.path:
+            mop_path_points = []
+            for i, point in enumerate(each_path):
+                if mask[i]:
+                    mop_path_points.append(point)
+                    if (i+1) < len(mask) and not mask[i+1]:
+                        points_num += len(mop_path_points)
+                        mop_paths.append(mop_path_points)
+                        mop_path_points = []
+
+            points_num += len(mop_path_points)
+            mop_paths.append(mop_path_points)
+        return Path(points_num, path.point_size, path.angle, mop_paths)
 
     @staticmethod
     def parse_area(header: bytes, data: bytes) -> List[Area]:

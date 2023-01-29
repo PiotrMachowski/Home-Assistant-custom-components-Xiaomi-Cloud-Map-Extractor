@@ -39,6 +39,8 @@ class MapDataParser:
             if DRAWABLE_IGNORED_OBSTACLES_WITH_PHOTO == drawable and map_data.ignored_obstacles_with_photo is not None:
                 ImageHandler.draw_ignored_obstacles_with_photo(map_data.image, map_data.ignored_obstacles_with_photo,
                                                                sizes, colors)
+            if DRAWABLE_MOP_PATH == drawable and map_data.mop_path is not None:
+                ImageHandler.draw_mop_path(map_data.image, map_data.mop_path, sizes, colors, scale)
             if DRAWABLE_PATH == drawable and map_data.path is not None:
                 ImageHandler.draw_path(map_data.image, map_data.path, sizes, colors, scale)
             if DRAWABLE_GOTO_PATH == drawable and map_data.goto_path is not None:

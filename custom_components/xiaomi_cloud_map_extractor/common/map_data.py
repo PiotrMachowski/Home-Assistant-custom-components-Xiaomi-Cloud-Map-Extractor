@@ -300,6 +300,7 @@ class MapData:
         self.ignored_obstacles_with_photo: Optional[List[Obstacle]] = None
         self.path: Optional[Path] = None
         self.predicted_path: Optional[Path] = None
+        self.mop_path: Optional[Path] = None
         self.rooms: Optional[Dict[int, Room]] = None
         self.vacuum_position: Optional[Point] = None
         self.vacuum_room: Optional[int] = None

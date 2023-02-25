@@ -1,15 +1,15 @@
 from abc import abstractmethod
 from typing import Optional, Tuple
 
+from custom_components.xiaomi_cloud_map_extractor.common.connector import Connector
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
-from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
 from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
 
 
 class XiaomiCloudVacuum:
 
-    def __init__(self, connector: XiaomiCloudConnector, country: str, user_id: str, device_id: str, model: str):
+    def __init__(self, connector: Connector, country: str, user_id: str, device_id: str, model: str):
         self._connector = connector
         self._country = country
         self._user_id = user_id

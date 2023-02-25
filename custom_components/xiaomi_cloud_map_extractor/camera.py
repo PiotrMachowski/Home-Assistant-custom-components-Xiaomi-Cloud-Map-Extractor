@@ -5,9 +5,13 @@ from datetime import timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from homeassistant.core import HomeAssistant
+
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
 from custom_components.xiaomi_cloud_map_extractor.common.vacuum import XiaomiCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.common.valetudo_connector import ValetudoConnector
 from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
+from custom_components.xiaomi_cloud_map_extractor.valetudo.vacuum import ValetudoVacuum
 
 try:
     from miio import RoborockVacuum, DeviceException
@@ -62,10 +66,20 @@ POSITIVE_FLOAT_SCHEMA = vol.All(vol.Coerce(float), vol.Range(min=0))
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
-        vol.Required(CONF_HOST): cv.string,
-        vol.Required(CONF_TOKEN): vol.All(str, vol.Length(min=32, max=32)),
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Required(CONF_PASSWORD): cv.string,
+        vol.Required(CONF_CONNECTOR):
+            vol.Any(
+                vol.Schema({
+                    vol.Required(CONF_CONNECTORTYPE): CONF_CONNECTORTYPE_VALETUDO,
+                    vol.Required(CONF_VALETUDO_VACUUM): cv.entity_domain("camera")
+                }),
+                vol.Schema({
+                    vol.Required(CONF_CONNECTORTYPE): CONF_CONNECTORTYPE_XIAOMI,
+                    vol.Required(CONF_HOST): cv.string,
+                    vol.Required(CONF_TOKEN): vol.All(str, vol.Length(min=32, max=32)),
+                    vol.Required(CONF_USERNAME): cv.string,
+                    vol.Required(CONF_PASSWORD): cv.string,
+                })
+            ),
         vol.Optional(CONF_COUNTRY, default=None): vol.Or(vol.In(CONF_AVAILABLE_COUNTRIES), vol.Equal(None)),
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_AUTO_UPDATE, default=True): cv.boolean,
@@ -125,12 +139,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
 
-    host = config[CONF_HOST]
-    token = config[CONF_TOKEN]
-    username = config[CONF_USERNAME]
-    password = config[CONF_PASSWORD]
-    country = config[CONF_COUNTRY]
+    connector_config = config[CONF_CONNECTOR]
     name = config[CONF_NAME]
+    country = config[CONF_COUNTRY]
     should_poll = config[CONF_AUTO_UPDATE]
     image_config = config[CONF_MAP_TRANSFORM]
     colors = config[CONF_COLORS]
@@ -148,21 +159,33 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     store_map_path = config[CONF_STORE_MAP_PATH]
     force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
-    async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map_raw,
-                                     store_map_image, store_map_path, force_api)])
+    async_add_entities([VacuumCamera(entity_id, connector_config, name, country, should_poll, image_config, colors,
+                                     drawables, sizes, texts, attributes, store_map_raw, store_map_image,
+                                     store_map_path, force_api, hass)])
 
 
 class VacuumCamera(Camera):
-    def __init__(self, entity_id: str, host: str, token: str, username: str, password: str, country: str, name: str,
+    def __init__(self, entity_id: str, connector_config: dict, name: str, country: str,
                  should_poll: bool, image_config: ImageConfig, colors: Colors, drawables: Drawables, sizes: Sizes,
                  texts: Texts, attributes: List[str], store_map_raw: bool, store_map_image: bool, store_map_path: str,
-                 force_api: str):
+                 force_api: str, hass: HomeAssistant):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
-        self._vacuum = RoborockVacuum(host, token)
-        self._connector = XiaomiCloudConnector(username, password)
+
+        if connector_config[CONF_CONNECTORTYPE] == CONF_CONNECTORTYPE_VALETUDO:
+            self._vacuum = None
+            self._connector = ValetudoConnector(hass, connector_config[CONF_VALETUDO_VACUUM])
+        elif connector_config[CONF_CONNECTORTYPE] == CONF_CONNECTORTYPE_XIAOMI:
+            host = connector_config[CONF_HOST]
+            token = connector_config[CONF_TOKEN]
+            username = connector_config[CONF_USERNAME]
+            password = connector_config[CONF_PASSWORD]
+            self._vacuum = RoborockVacuum(host, token)
+            self._connector = XiaomiCloudConnector(username, password)
+
+        self._country = country
+        self._name = name
         self._status = CameraStatus.INITIALIZING
         self._device = None
         self._name = name
@@ -184,7 +207,6 @@ class VacuumCamera(Camera):
         self._logged_in = False
         self._logged_in_previously = True
         self._received_map_name_previously = True
-        self._country = country
 
     async def async_added_to_hass(self) -> None:
         self.async_schedule_update_ha_state(True)
@@ -304,7 +326,10 @@ class VacuumCamera(Camera):
 
     def _handle_device(self):
         _LOGGER.debug("Retrieving device info, country: %s", self._country)
-        country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.token, self._country)
+        token = None
+        if self._vacuum is not None:
+            token = self._vacuum.token
+        country, user_id, device_id, model = self._connector.get_device_details(token, self._country)
         if model is not None:
             self._country = country
             _LOGGER.debug("Retrieved device model: %s", model)
@@ -378,6 +403,8 @@ class VacuumCamera(Camera):
             return RoidmiVacuum(self._connector, self._country, user_id, device_id, model)
         if self._used_api == CONF_AVAILABLE_API_DREAME:
             return DreameVacuum(self._connector, self._country, user_id, device_id, model)
+        if self._used_api == CONF_AVAILABLE_API_VALETUDO:
+            return ValetudoVacuum(self._connector, self._country, user_id, device_id, model)
         return UnsupportedVacuum(self._connector, self._country, user_id, device_id, model)
 
     def _detect_api(self, model: str) -> Optional[str]:

@@ -11,13 +11,14 @@ from Crypto.Cipher import ARC4
 
 import requests
 
+from custom_components.xiaomi_cloud_map_extractor.common.connector import Connector
 from custom_components.xiaomi_cloud_map_extractor.const import *
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # noinspection PyBroadException
-class XiaomiCloudConnector:
+class XiaomiCloudConnector(Connector):
 
     def __init__(self, username: str, password: str):
         self.two_factor_auth_url = None

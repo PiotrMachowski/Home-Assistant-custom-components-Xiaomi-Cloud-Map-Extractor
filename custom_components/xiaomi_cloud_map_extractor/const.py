@@ -6,6 +6,7 @@ CONF_AUTO_UPDATE = "auto_update"
 CONF_AVAILABLE_API_DREAME = "dreame"
 CONF_AVAILABLE_API_ROIDMI = "roidmi"
 CONF_AVAILABLE_API_VIOMI = "viomi"
+CONF_AVAILABLE_API_VALETUDO = "valetudo"
 CONF_AVAILABLE_API_XIAOMI = "xiaomi"
 CONF_AVAILABLE_COUNTRIES = ["cn", "de", "us", "ru", "tw", "sg", "in", "i2"]
 CONF_BOTTOM = "bottom"
@@ -223,6 +224,7 @@ API_EXCEPTIONS = {
     "viomi.vacuum.v18": CONF_AVAILABLE_API_ROIDMI,
     "viomi.vacuum.v23": CONF_AVAILABLE_API_ROIDMI,
     "viomi.vacuum.v38": CONF_AVAILABLE_API_ROIDMI,
+    "valetudo": CONF_AVAILABLE_API_VALETUDO
 }
 
 MM = 50

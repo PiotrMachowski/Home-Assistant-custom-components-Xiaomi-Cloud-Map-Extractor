@@ -12,7 +12,8 @@
     "pybase64",
     "python-miio",
     "requests",
-    "pycryptodome"
+    "pycryptodome",
+    "numpy"
   ],
   "version": "v2.2.0",
   "iot_class": "cloud_polling"

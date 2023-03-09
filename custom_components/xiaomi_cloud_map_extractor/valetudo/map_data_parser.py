@@ -106,7 +106,7 @@ class MapDataParserValetudo(MapDataParser):
             elif entity["type"] == "charger_location":
                 map_data.charger = MapDataParserValetudo.parse_point_map_entity(entity)
                 # Fix for common\map_data_parser drawing symbol rotated by -90°
-                map_data.vacuum_position.a = map_data.vacuum_position.a - 90
+                map_data.charger.a = map_data.charger.a - 90
             elif entity["type"] == "no_go_area":
                 map_data.no_go_areas.append(MapDataParserValetudo.parse_polygon_map_entity(entity))
             elif entity["type"] == "no_mop_area":

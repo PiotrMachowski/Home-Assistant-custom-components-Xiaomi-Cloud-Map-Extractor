@@ -29,22 +29,29 @@ class ImageHandlerValetudo(ImageHandler):
         image[y_start:y_end, x_start:x_end] = room_color
 
     @staticmethod
-    def draw(walls: list[int], rooms: list[Tuple[Room, list[int]]], image_width, image_height, colors, image_config,
-             pixel_size) -> Image:
+    def draw(walls: list[int],
+             rooms: list[Tuple[Room, list[int]]],
+             image_width: int,
+             image_height: int,
+             colors,
+             image_config,
+             pixel_size: int,
+             left: int,
+             top: int) -> (Image, int, int):
         scale = image_config[CONF_SCALE]
-        trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * image_width / 100)
-        trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * image_width / 100)
-        trim_top = int(image_config[CONF_TRIM][CONF_TOP] * image_height / 100)
-        trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * image_height / 100)
-        trimmed_height = image_height - trim_top - trim_bottom
-        trimmed_width = image_width - trim_left - trim_right
-        image = Image.new("RGBA", (trimmed_width, trimmed_height))
+        conf_trim_left = int(image_config[CONF_TRIM][CONF_LEFT] * image_width / 100)
+        conf_trim_right = int(image_config[CONF_TRIM][CONF_RIGHT] * image_width / 100)
+        conf_trim_top = int(image_config[CONF_TRIM][CONF_TOP] * image_height / 100)
+        conf_trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * image_height / 100)
+        trimmed_height = image_height - conf_trim_top - conf_trim_bottom
+        trimmed_width = image_width - conf_trim_left - conf_trim_right
+        image = Image.new("RGBA", (trimmed_width * pixel_size, trimmed_height * pixel_size))
         image_data = numpy.array(image)
         if image_width == 0 or image_height == 0:
-            return ImageHandler.create_empty_map_image(colors)
+            return ImageHandler.create_empty_map_image(colors), left + conf_trim_left, top + conf_trim_top
 
-        trimmed_x_max = trim_left + trimmed_width
-        trimmed_y_max = trim_top + trimmed_height
+        trim_left = conf_trim_left + left
+        trim_top = conf_trim_top + top
 
         for room in rooms:
             room_data, px_room = room
@@ -54,24 +61,24 @@ class ImageHandlerValetudo(ImageHandler):
                 room_color = (room_color + (255,))
 
             for i in range(0, len(px_room), 2):
-                x = px_room[i]
-                y = px_room[i + 1]
-                if trim_left <= x <= trimmed_x_max and trim_top <= y <= trimmed_y_max:
-                    ImageHandlerValetudo.draw_pixel(image_data, x - trim_left, y + trim_top, pixel_size, room_color)
+                x = px_room[i] - trim_left
+                y = px_room[i + 1] - trim_top
+                if 0 <= x <= trimmed_width and 0 <= y <= trimmed_height:
+                    ImageHandlerValetudo.draw_pixel(image_data, x, y, pixel_size, room_color)
 
         wall_color = ImageHandler.__get_color__(COLOR_MAP_WALL, colors)
         if len(wall_color) == 3:
             wall_color = (wall_color + (255,))
 
         for i in range(0, len(walls), 2):
-            x = walls[i]
-            y = walls[i + 1]
-            if trim_left <= x <= trimmed_x_max and trim_top <= y <= trimmed_y_max:
-                ImageHandlerValetudo.draw_pixel(image_data, x - trim_left, y + trim_top, pixel_size, wall_color)
+            x = walls[i] - trim_left
+            y = walls[i + 1] - trim_top
+            if 0 <= x <= trimmed_width and 0 <= y <= trimmed_height:
+                ImageHandlerValetudo.draw_pixel(image_data, x, y, pixel_size, wall_color)
 
         image = Image.fromarray(image_data, "RGBA")
 
         if scale != 1 and image_width != 0 and image_height != 0:
             image = image.resize((int(trimmed_width * scale), int(trimmed_height * scale)), resample=Image.NEAREST)
 
-        return image
+        return image, trim_left, trim_top

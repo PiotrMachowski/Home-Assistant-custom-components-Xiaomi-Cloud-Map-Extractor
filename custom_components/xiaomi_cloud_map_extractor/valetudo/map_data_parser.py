@@ -2,12 +2,10 @@ import json
 import logging
 from typing import Tuple
 
-from custom_components.xiaomi_cloud_map_extractor.valetudo.image_handler import ImageHandlerValetudo
-
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import Area, MapData, Path, Point, Room, Wall, \
     ImageData
 from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
-from custom_components.xiaomi_cloud_map_extractor.const import CONF_TRIM, CONF_TOP, CONF_BOTTOM
+from custom_components.xiaomi_cloud_map_extractor.valetudo.image_handler import ImageHandlerValetudo
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -118,39 +116,48 @@ class MapDataParserValetudo(MapDataParser):
 
         map_data.path = Path(None, None, None, paths)
 
-        walls = []
+        walls = None
         rooms = []
+        x_min = 0
+        x_max = 0
+        y_min = 0
+        y_max = 0
+
         for layer in map_object["layers"]:
             if layer["type"] == "wall":
-                walls = MapDataParserValetudo.parse_walls(layer)
+                if walls is not None:
+                    _LOGGER.warning("Multiple wall layers detected in map data!")
+                else:
+                    walls = MapDataParserValetudo.parse_walls(layer)
+                    x_min = layer["dimensions"]["x"]["min"]
+                    x_max = layer["dimensions"]["x"]["max"]
+                    y_min = layer["dimensions"]["y"]["min"]
+                    y_max = layer["dimensions"]["y"]["max"]
+
             elif layer["type"] == "segment":
                 rooms.append(MapDataParserValetudo.parse_room(layer, pixel_size))
 
         map_data.rooms = dict(map(lambda x: (x[0].number, x[0]), rooms))
 
-        width = map_object["size"]["x"]
-        height = map_object["size"]["y"]
+        original_width = map_object["size"]["x"]
+        original_height = map_object["size"]["y"]
 
-        image = ImageHandlerValetudo.draw(walls, rooms, width, height, colors, image_config, pixel_size)
+        left = x_min
+        width = x_max - x_min
+        top = y_min
+        height = y_max - y_min
 
-        box = image.getbbox()
-        image = image.crop(box)
-
-        cropped_width, cropped_height = image.size
-
-        trim_top = int(image_config[CONF_TRIM][CONF_TOP] * height / 100)
-        trim_bottom = int(image_config[CONF_TRIM][CONF_BOTTOM] * height / 100)
-        actual_height = cropped_height - trim_top - trim_bottom
+        image, left, top = ImageHandlerValetudo.draw(walls, rooms, width, height, colors, image_config, pixel_size, left, top)
 
         map_data.image = ImageData(
-            cropped_width * cropped_height,
-            -box[1],
-            box[0],
-            cropped_height,
-            cropped_width,
+            image.width * image.height,
+            -top,
+            left,
+            image.height,
+            image.width,
             image_config,
             image,
-            lambda p: MapDataParserValetudo.map_to_image(p, actual_height))
+            lambda p: MapDataParserValetudo.map_to_image(p, image.height))
 
         MapDataParserValetudo.draw_elements(colors, drawables, sizes, map_data, image_config)
 

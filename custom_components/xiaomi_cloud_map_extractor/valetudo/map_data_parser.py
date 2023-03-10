@@ -147,12 +147,20 @@ class MapDataParserValetudo(MapDataParser):
         top = y_min
         height = y_max - y_min
 
-        image, left, top = ImageHandlerValetudo.draw(walls, rooms, width, height, colors, image_config, pixel_size, left, top)
+        image, left, top = ImageHandlerValetudo.draw(walls,
+                                                     rooms,
+                                                     width,
+                                                     height,
+                                                     colors,
+                                                     image_config,
+                                                     pixel_size,
+                                                     left,
+                                                     top)
 
         map_data.image = ImageData(
             image.width * image.height,
-            -top,
-            left,
+            -top * pixel_size,
+            left * pixel_size,
             image.height,
             image.width,
             image_config,

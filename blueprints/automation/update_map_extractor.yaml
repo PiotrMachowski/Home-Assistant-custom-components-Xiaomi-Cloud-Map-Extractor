@@ -6,7 +6,7 @@ blueprint:
     
     There are 4 modes available:
       - Two intervals - automation controls camera updates both when vacuum is cleaning or docked. To use with `auto_update: false` in camera's configuration.
-      - Turn off when docked - completly turns off vacuum updates when the vacuum is docked. Uses default interval when cleaning.
+      - Turn off when docked - completely turns off vacuum updates when the vacuum is docked. Uses default interval when cleaning.
       - Default when docked - automation controls camera updates when vacuum is cleaning, default interval is used when vacuum is docked. To use with long `scan_interval` set up in camera's configuration.
       - Default when cleaning - automation controls camera updates when vacuum is docked, default interval is used when vacuum is cleaning. To use with short/default `scan_interval` set up in camera's configuration.
   domain: automation
@@ -60,6 +60,13 @@ blueprint:
           min: 1
           unit_of_measurement: s
       default: 10
+    update_once_after_docking:
+      name: Update once after docking
+      description: |-
+        Update the camera image after the vacuum is docked for 10 seconds.
+      selector:
+        boolean:
+      default: True
 
 mode: single
 
@@ -67,6 +74,7 @@ variables:
   interval_docked: !input interval_docked
   interval_cleaning: !input interval_cleaning
   mode_to_handle: !input mode_to_handle
+  update_once_after_docking: !input update_once_after_docking
   vacuum_entity: !input vacuum
   camera_entity: !input camera
   is_vacuum_docked: "{{ states(vacuum_entity) in ['unavailable', 'unknown', 'docked'] }}"
@@ -89,6 +97,10 @@ variables:
       mode_to_handle in ['turn_off_when_docked', 'default_when_cleaning', 'default_when_docked']
       and trigger.id == 'vacuum_changed'
     }}
+  is_vacuum_docked_trigger: |-
+    {{
+      trigger.id == 'vacuum_docked' and update_once_after_docking
+    }}
 
 trigger:
   - platform: state
@@ -97,6 +109,12 @@ trigger:
   - platform: time_pattern
     seconds: /1
     id: time_pattern
+  - platform: state
+    entity_id: !input vacuum
+    to: docked
+    for:
+      seconds: 10
+    id: vacuum_docked
 
 condition:
   - condition: or
@@ -107,10 +125,12 @@ condition:
         value_template: "{{ is_interval_cleaning_trigger }}"
       - condition: template
         value_template: "{{ is_vacuum_state_trigger }}"
+      - condition: template
+        value_template: "{{ is_vacuum_docked_trigger }}"
 
 action:
   - choose:
-      - conditions: "{{ is_interval_docked_trigger or is_interval_cleaning_trigger }}"
+      - conditions: "{{ is_interval_docked_trigger or is_interval_cleaning_trigger or is_vacuum_docked_trigger }}"
         sequence:
           - service: homeassistant.update_entity
             entity_id: !input camera

@@ -77,7 +77,7 @@ variables:
   update_once_after_docking: !input update_once_after_docking
   vacuum_entity: !input vacuum
   camera_entity: !input camera
-  is_vacuum_docked: "{{ states(vacuum_entity) in ['unavailable', 'unknown', 'docked'] }}"
+  is_vacuum_docked: "{{ states(vacuum_entity) in ['unavailable', 'unknown', 'docked', 'sleeping'] }}"
   is_interval_docked_trigger: |-
     {{ 
       mode_to_handle in ['two_intervals', 'default_when_cleaning'] 

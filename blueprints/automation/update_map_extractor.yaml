@@ -4,11 +4,12 @@ blueprint:
   description: |-
     Controls update interval of a Map Extractor camera.
     
-    There are 4 modes available:
+    There are 5 modes available:
       - Two intervals - automation controls camera updates both when vacuum is cleaning or docked. To use with `auto_update: false` in camera's configuration.
       - Turn off when docked - completely turns off vacuum updates when the vacuum is docked. Uses default interval when cleaning.
       - Default when docked - automation controls camera updates when vacuum is cleaning, default interval is used when vacuum is docked. To use with long `scan_interval` set up in camera's configuration.
       - Default when cleaning - automation controls camera updates when vacuum is docked, default interval is used when vacuum is cleaning. To use with short/default `scan_interval` set up in camera's configuration.
+      - Only when card visible - completely turns off vacuum updates when the card is not visible. Uses default interval when visible. Requires configured view path (below) and installed [browser mod](https://github.com/thomasloven/hass-browser_mod) with "Auto-register" enabled to work properly.
   domain: automation
   source_url: https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/blob/master/blueprints/automation/update_map_extractor.yaml
   input:
@@ -38,6 +39,8 @@ blueprint:
               label: Default when docked
             - value: default_when_cleaning
               label: Default when cleaning
+            - value: browser_mod_path
+              label: Only when card visible
     interval_docked:
       name: Interval docked
       description: |-
@@ -67,6 +70,13 @@ blueprint:
       selector:
         boolean:
       default: True
+    browser_mod_path:
+      name: Path to the view that contains the map card.
+      description: |-
+        Used only in `Only when card visible` mode
+      selector:
+        text:
+      default: "/lovelace/vacuum"
 
 mode: single
 
@@ -77,6 +87,7 @@ variables:
   update_once_after_docking: !input update_once_after_docking
   vacuum_entity: !input vacuum
   camera_entity: !input camera
+  browser_mod_path: !input browser_mod_path
   is_vacuum_docked: "{{ states(vacuum_entity) in ['unavailable', 'unknown', 'docked', 'sleeping'] }}"
   is_interval_docked_trigger: |-
     {{ 
@@ -97,6 +108,11 @@ variables:
       mode_to_handle in ['turn_off_when_docked', 'default_when_cleaning', 'default_when_docked']
       and trigger.id == 'vacuum_changed'
     }}
+  is_browser_mod_template_trigger: |-
+    {{
+      mode_to_handle in ['browser_mod_path']
+      and trigger.id == 'browser_mod_template'
+    }}
   is_vacuum_docked_trigger: |-
     {{
       trigger.id == 'vacuum_docked' and update_once_after_docking
@@ -109,6 +125,17 @@ trigger:
   - platform: time_pattern
     seconds: /1
     id: time_pattern
+  - platform: template
+    value_template: |-
+      {{ 
+        states.sensor 
+        | selectattr('attributes.pathSegments', 'defined') 
+        | selectattr('attributes.type', '==', 'browser_mod') 
+        | selectattr('state', '==', browser_mod_path) 
+        | list 
+        | count > 0
+      }}
+    id: browser_mod_template
   - platform: state
     entity_id: !input vacuum
     to: docked
@@ -126,6 +153,8 @@ condition:
       - condition: template
         value_template: "{{ is_vacuum_state_trigger }}"
       - condition: template
+        value_template: "{{ is_browser_mod_template_trigger }}"
+      - condition: template
         value_template: "{{ is_vacuum_docked_trigger }}"
 
 action:
@@ -139,7 +168,7 @@ action:
           - choose:
               - conditions: |-
                   {{
-                    mode_to_handle in ['turn_off_when_docked', 'default_when_cleaning']
+                    mode_to_handle in ['turn_off_when_docked', 'default_when_cleaning', 'browser_mod_path']
                   }}
                 sequence:
                   - service: "camera.{{ is_vacuum_docked | iif('turn_off', 'turn_on') }}"

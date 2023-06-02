@@ -111,7 +111,7 @@ variables:
   is_browser_mod_template_trigger: |-
     {{
       mode_to_handle in ['browser_mod_path']
-      and trigger.id == 'browser_mod_template'
+      and trigger.id in ['browser_mod_template_on', 'browser_mod_template_off']
     }}
   is_vacuum_docked_trigger: |-
     {{
@@ -135,7 +135,18 @@ trigger:
         | list 
         | count > 0
       }}
-    id: browser_mod_template
+    id: browser_mod_template_on
+  - platform: template
+    value_template: |-
+      {{ 
+        states.sensor 
+        | selectattr('attributes.pathSegments', 'defined') 
+        | selectattr('attributes.type', '==', 'browser_mod') 
+        | selectattr('state', '==', browser_mod_path) 
+        | list 
+        | count == 0
+      }}
+    id: browser_mod_template_off
   - platform: state
     entity_id: !input vacuum
     to: docked
@@ -168,7 +179,7 @@ action:
           - choose:
               - conditions: |-
                   {{
-                    mode_to_handle in ['turn_off_when_docked', 'default_when_cleaning', 'browser_mod_path']
+                    mode_to_handle in ['turn_off_when_docked', 'default_when_cleaning']
                   }}
                 sequence:
                   - service: "camera.{{ is_vacuum_docked | iif('turn_off', 'turn_on') }}"
@@ -180,3 +191,7 @@ action:
                 sequence:
                   - service: "camera.{{ is_vacuum_docked | iif('turn_on', 'turn_off') }}"
                     entity_id: !input camera
+      - conditions: "{{ is_browser_mod_template_trigger }}"
+        sequence:
+          - service: "camera.{{ (trigger.id == 'browser_mod_template_on') | iif('turn_on', 'turn_off') }}"
+            entity_id: !input camera

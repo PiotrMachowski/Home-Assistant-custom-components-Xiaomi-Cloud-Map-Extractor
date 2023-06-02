@@ -23,7 +23,6 @@ blueprint:
       selector:
         entity:
           domain: camera
-          integration: xiaomi_cloud_map_extractor
     mode_to_handle:
       name: Mode
       description: |-
@@ -78,7 +77,7 @@ blueprint:
         text:
       default: "/lovelace/vacuum"
 
-mode: single
+mode: parallel
 
 variables:
   interval_docked: !input interval_docked
@@ -111,42 +110,40 @@ variables:
   is_browser_mod_template_trigger: |-
     {{
       mode_to_handle in ['browser_mod_path']
-      and trigger.id in ['browser_mod_template_on', 'browser_mod_template_off']
+      and trigger.id == 'state_changed'
+      and (
+          trigger.event.data.new_state != None 
+          and trigger.event.data.new_state.attributes != None 
+          and "pathSegments" in trigger.event.data.new_state.attributes
+          and browser_mod_path == trigger.event.data.new_state.state
+        or
+          trigger.event.data.old_state != None 
+          and trigger.event.data.old_state.attributes != None 
+          and "pathSegments" in trigger.event.data.old_state.attributes
+          and browser_mod_path in trigger.event.data.old_state.state
+        )
     }}
   is_vacuum_docked_trigger: |-
     {{
       trigger.id == 'vacuum_docked' and update_once_after_docking
     }}
+  active_browsers: |-
+    {{
+      states.sensor 
+      | selectattr('attributes.pathSegments', 'defined')
+      | selectattr('attributes.type', '==', 'browser_mod')
+      | selectattr('state', '==', browser_mod_path)
+      | list
+      | count
+    }}
 
 trigger:
+  - platform: event
+    event_type: state_changed
+    id: state_changed
   - platform: state
     entity_id: !input vacuum
     id: vacuum_changed
-  - platform: time_pattern
-    seconds: /1
-    id: time_pattern
-  - platform: template
-    value_template: |-
-      {{ 
-        states.sensor 
-        | selectattr('attributes.pathSegments', 'defined') 
-        | selectattr('attributes.type', '==', 'browser_mod') 
-        | selectattr('state', '==', browser_mod_path) 
-        | list 
-        | count > 0
-      }}
-    id: browser_mod_template_on
-  - platform: template
-    value_template: |-
-      {{ 
-        states.sensor 
-        | selectattr('attributes.pathSegments', 'defined') 
-        | selectattr('attributes.type', '==', 'browser_mod') 
-        | selectattr('state', '==', browser_mod_path) 
-        | list 
-        | count == 0
-      }}
-    id: browser_mod_template_off
   - platform: state
     entity_id: !input vacuum
     to: docked
@@ -193,5 +190,5 @@ action:
                     entity_id: !input camera
       - conditions: "{{ is_browser_mod_template_trigger }}"
         sequence:
-          - service: "camera.{{ (trigger.id == 'browser_mod_template_on') | iif('turn_on', 'turn_off') }}"
+          - service: "camera.{{ (active_browsers > 0) | iif('turn_on', 'turn_off') }}"
             entity_id: !input camera

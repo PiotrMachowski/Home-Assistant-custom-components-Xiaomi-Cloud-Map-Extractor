@@ -201,7 +201,8 @@ class MapDataParserViomi(MapDataParser):
             p3 = MapDataParserViomi.parse_position(buf, 'p3')
             p4 = MapDataParserViomi.parse_position(buf, 'p4')
             buf.skip('area.unknown2', 48)
-            zones.append(Zone(p1.x, p1.y, p3.x, p3.y))
+            if p1 is not None and p3 is not None:
+                zones.append(Zone(p1.x, p1.y, p3.x, p3.y))
         return zones
 
     @staticmethod

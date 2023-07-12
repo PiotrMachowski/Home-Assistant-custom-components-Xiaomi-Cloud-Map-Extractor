@@ -25,6 +25,7 @@ class MapDataParser:
     @staticmethod
     def draw_elements(colors: Colors, drawables: Drawables, sizes: Sizes, map_data: MapData, image_config: ImageConfig):
         scale = float(image_config[CONF_SCALE])
+
         for drawable in drawables:
             if DRAWABLE_CHARGER == drawable and map_data.charger is not None:
                 ImageHandler.draw_charger(map_data.image, map_data.charger, sizes, colors)
@@ -39,12 +40,16 @@ class MapDataParser:
             if DRAWABLE_IGNORED_OBSTACLES_WITH_PHOTO == drawable and map_data.ignored_obstacles_with_photo is not None:
                 ImageHandler.draw_ignored_obstacles_with_photo(map_data.image, map_data.ignored_obstacles_with_photo,
                                                                sizes, colors)
+            if DRAWABLE_MOP_PATH == drawable and map_data.mop_path is not None:
+                ImageHandler.draw_mop_path(map_data.image, map_data.mop_path, sizes, colors, scale)
             if DRAWABLE_PATH == drawable and map_data.path is not None:
                 ImageHandler.draw_path(map_data.image, map_data.path, sizes, colors, scale)
             if DRAWABLE_GOTO_PATH == drawable and map_data.goto_path is not None:
                 ImageHandler.draw_goto_path(map_data.image, map_data.goto_path, sizes, colors, scale)
             if DRAWABLE_PREDICTED_PATH == drawable and map_data.predicted_path is not None:
                 ImageHandler.draw_predicted_path(map_data.image, map_data.predicted_path, sizes, colors, scale)
+            if DRAWABLE_NO_CARPET_AREAS == drawable and map_data.no_carpet_areas is not None:
+                ImageHandler.draw_no_carpet_areas(map_data.image, map_data.no_carpet_areas, colors)
             if DRAWABLE_NO_GO_AREAS == drawable and map_data.no_go_areas is not None:
                 ImageHandler.draw_no_go_areas(map_data.image, map_data.no_go_areas, colors)
             if DRAWABLE_NO_MOPPING_AREAS == drawable and map_data.no_mopping_areas is not None:

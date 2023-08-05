@@ -73,7 +73,8 @@ class ImageHandler:
         else:
             text_color = (255, 255, 255)
         draw = ImageDraw.Draw(image, "RGBA")
-        w, h = draw.textsize(text)
+        l, t, r, b = draw.textbbox((0, 0), text)
+        w, h = r - l, b - t
         draw.text(((image.size[0] - w) / 2, (image.size[1] - h) / 2), text, fill=text_color)
         return image
 
@@ -256,7 +257,7 @@ class ImageHandler:
             point = position.to_img(image.dimensions)
             angle = -position.a if position.a is not None else 0
             coords = [point.x - r, point.y - r, point.x + r, point.y + r]
-            draw.pieslice(coords, angle + 90, angle - 90, outline="black", fill=fill)
+            draw.pieslice(coords, angle + 90, angle - 90, outline=outline, fill=fill)
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(outline, fill))
 
@@ -303,7 +304,8 @@ class ImageHandler:
             except ImportError:
                 _LOGGER.warning("Unable to open font: %s", font_file)
             finally:
-                w, h = draw.textsize(text, font)
+                l, t, r, b = draw.textbbox((0, 0), text, font)
+                w, h = r - l, b - t
                 draw.text((x - w / 2, y - h / 2), text, font=font, fill=color)
 
         ImageHandler.__draw_on_new_layer__(image, draw_func, 1, ImageHandler.__use_transparency__(color))

@@ -5,6 +5,7 @@ from datetime import timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from custom_components.xiaomi_cloud_map_extractor.common.backoff import Backoff
 from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
 from custom_components.xiaomi_cloud_map_extractor.common.vacuum import XiaomiCloudVacuum
 from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
@@ -154,6 +155,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class VacuumCamera(Camera):
+    _map_name: Optional[str] = None
+
     def __init__(self, entity_id: str, host: str, token: str, username: str, password: str, country: str, name: str,
                  should_poll: bool, image_config: ImageConfig, colors: Colors, drawables: Drawables, sizes: Sizes,
                  texts: Texts, attributes: List[str], store_map_raw: bool, store_map_image: bool, store_map_path: str,
@@ -183,7 +186,6 @@ class VacuumCamera(Camera):
         self._map_data = None
         self._logged_in = False
         self._logged_in_previously = True
-        self._received_map_name_previously = True
         self._country = country
 
     async def async_added_to_hass(self) -> None:
@@ -275,15 +277,21 @@ class VacuumCamera(Camera):
             self._handle_login()
         if self._device is None and self._logged_in:
             self._handle_device()
-        map_name = self._handle_map_name(counter)
-        if map_name == "retry" and self._device is not None:
+
+        new_map_name = self._handle_map_name(counter)
+        if new_map_name != "retry":
+            # sometimes this fails for no reason, so try and mitigate that by
+            # falling back to the previous map name if we have one
+            self._map_name = new_map_name
+
+        if self._map_name is None and self._device is not None:
             self._status = CameraStatus.FAILED_TO_RETRIEVE_MAP_FROM_VACUUM
-        self._received_map_name_previously = map_name != "retry"
-        if self._logged_in and map_name != "retry" and self._device is not None:
-            self._handle_map_data(map_name)
+
+        if self._logged_in and self._map_name is not None and self._device is not None:
+            self._handle_map_data(self._map_name)
         else:
             _LOGGER.debug("Unable to retrieve map, reasons: Logged in - %s, map name - %s, device retrieved - %s",
-                          self._logged_in, map_name, self._device is not None)
+                          self._logged_in, new_map_name, self._device is not None)
             self._set_map_data(MapDataParser.create_empty(self._colors, str(self._status)))
         self._logged_in_previously = self._logged_in
 
@@ -315,23 +323,37 @@ class VacuumCamera(Camera):
             self._status = CameraStatus.FAILED_TO_RETRIEVE_DEVICE
 
     def _handle_map_name(self, counter: int) -> str:
+        """
+        Downloads the map name from the vacuum. Sometimes the vacuum will just return
+        "retry" as the map for reasons unknown, so we'll try a few times before giving up.
+
+        We use exponential backoff to give the vacuum a chance to do whatever internal
+        processing it needs to do to get us a map name.
+
+        Pure speculation: perhaps the vacuum is busy trying to get a server connection
+        to be able to upload a map? When I run this command multiple times, there's an
+        incrementing number in the map names returned.
+        """
         map_name = "retry"
         if self._device is not None and not self._device.should_get_map_from_vacuum():
             map_name = "0"
-        while map_name == "retry" and counter > 0:
-            _LOGGER.debug("Retrieving map name from device")
-            time.sleep(0.1)
+
+        i = 1
+        backoff = Backoff(min_sleep=0.1, max_sleep=15)
+        while map_name == "retry" and i <= counter:
+            _LOGGER.debug("Asking device for map name... (%s/%s)", i, counter)
             try:
                 map_name = self._vacuum.map()[0]
-                _LOGGER.debug("Map name %s", map_name)
+                if map_name != "retry":
+                    _LOGGER.debug("Map name %s", map_name)
+                    return map_name
             except OSError as exc:
                 _LOGGER.error("Got OSError while fetching the state: %s", exc)
             except DeviceException as exc:
-                if self._received_map_name_previously:
-                    _LOGGER.warning("Got exception while fetching the state: %s", exc)
-                self._received_map_name_previously = False
-            finally:
-                counter = counter - 1
+                _LOGGER.warning("Got exception while fetching the state: %s", exc)
+
+            i += 1
+            time.sleep(backoff.backoff())
         return map_name
 
     def _handle_map_data(self, map_name: str):

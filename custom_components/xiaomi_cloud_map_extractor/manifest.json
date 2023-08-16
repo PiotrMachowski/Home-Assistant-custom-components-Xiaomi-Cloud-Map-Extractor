@@ -8,12 +8,17 @@
     "@PiotrMachowski"
   ],
   "requirements": [
-    "pillow",
+    "Pillow",
     "pybase64",
     "python-miio",
     "requests",
-    "pycryptodome"
+    "pycryptodome",
+    "vacuum-map-parser-base",
+    "vacuum-map-parser-roborock",
+    "vacuum-map-parser-viomi",
+    "vacuum-map-parser-roidmi",
+    "vacuum-map-parser-dreame"
   ],
-  "version": "v2.2.0",
+  "version": "v3.0.0-beta",
   "iot_class": "cloud_polling"
 }

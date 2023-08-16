@@ -1,18 +1,14 @@
 import io
 import logging
-import time
 from datetime import timedelta
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from enum import StrEnum
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data import MapData
-from custom_components.xiaomi_cloud_map_extractor.common.vacuum import XiaomiCloudVacuum
-from custom_components.xiaomi_cloud_map_extractor.types import Colors, Drawables, ImageConfig, Sizes, Texts
+from vacuum_map_parser_base.config.color import ColorsPalette
+from vacuum_map_parser_base.config.drawable import Drawable
+from vacuum_map_parser_base.config.image_config import ImageConfig
+from vacuum_map_parser_base.config.size import Sizes
+from vacuum_map_parser_base.config.text import Text
 
-try:
-    from miio import RoborockVacuum, DeviceException
-except ImportError:
-    from miio import Vacuum as RoborockVacuum, DeviceException
 import PIL.Image as Image
 import voluptuous as vol
 from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA, SUPPORT_ON_OFF
@@ -21,14 +17,16 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.reload import async_setup_reload_service
 
-from custom_components.xiaomi_cloud_map_extractor.common.map_data_parser import MapDataParser
-from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector import XiaomiCloudConnector
-from custom_components.xiaomi_cloud_map_extractor.const import *
-from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
-from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
-from custom_components.xiaomi_cloud_map_extractor.unsupported.vacuum import UnsupportedVacuum
-from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
-from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
+from vacuum_map_parser_base.map_data import MapData
+
+from .vacuum_platforms.xiaomi_cloud_connector import XiaomiCloudConnector
+from .vacuum_platforms.vacuum_base import XiaomiCloudVacuum, VacuumConfig
+from .vacuum_platforms.vacuum_dreame import DreameCloudVacuum
+from .vacuum_platforms.vacuum_roborock import RoborockCloudVacuum
+from .vacuum_platforms.vacuum_roidmi import RoidmiCloudVacuum
+from .vacuum_platforms.vacuum_viomi import ViomiCloudVacuum
+from .vacuum_platforms.vacuum_unsupported import UnsupportedCloudVacuum
+from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -155,16 +153,17 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class VacuumCamera(Camera):
     def __init__(self, entity_id: str, host: str, token: str, username: str, password: str, country: str, name: str,
-                 should_poll: bool, image_config: ImageConfig, colors: Colors, drawables: Drawables, sizes: Sizes,
-                 texts: Texts, attributes: List[str], store_map_raw: bool, store_map_image: bool, store_map_path: str,
-                 force_api: str):
+                 should_poll: bool, image_config: ImageConfig, colors: ColorsPalette, drawables: list[Drawable],
+                 sizes: Sizes, texts: list[Text], attributes: list[str], store_map_raw: bool, store_map_image: bool,
+                 store_map_path: str, force_api: str):
         super().__init__()
         self.entity_id = entity_id
         self.content_type = CONTENT_TYPE
-        self._vacuum = RoborockVacuum(host, token)
+        self._host = host
+        self._token = token
         self._connector = XiaomiCloudConnector(username, password)
         self._status = CameraStatus.INITIALIZING
-        self._device = None
+        self._device: XiaomiCloudVacuum | None = None
         self._name = name
         self._should_poll = should_poll
         self._image_config = image_config
@@ -183,7 +182,6 @@ class VacuumCamera(Camera):
         self._map_data = None
         self._logged_in = False
         self._logged_in_previously = True
-        self._received_map_name_previously = True
         self._country = country
 
     async def async_added_to_hass(self) -> None:
@@ -193,7 +191,7 @@ class VacuumCamera(Camera):
     def frame_interval(self) -> float:
         return 1
 
-    def camera_image(self, width: Optional[int] = None, height: Optional[int] = None) -> Optional[bytes]:
+    def camera_image(self, width: int | None = None, height: int | None = None) -> bytes | None:
         return self._image
 
     @property
@@ -211,7 +209,7 @@ class VacuumCamera(Camera):
         return SUPPORT_ON_OFF
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, any]:
         attributes = {}
         if self._map_data is not None:
             attributes.update(self.extract_attributes(self._map_data, self._attributes, self._country))
@@ -229,18 +227,17 @@ class VacuumCamera(Camera):
         return self._should_poll
 
     @staticmethod
-    def extract_attributes(map_data: MapData, attributes_to_return: List[str], country) -> Dict[str, Any]:
+    def extract_attributes(map_data: MapData, attributes_to_return: list[str], country) -> dict[str, any]:
         attributes = {}
         rooms = []
         if map_data.rooms is not None:
-            rooms = dict(filter(lambda x: x[0] is not None, ((x[0], x[1].name) for x in map_data.rooms.items())))
+            rooms = dict(filter(lambda x: x[1] is not None, ((x[0], x[1].name) for x in map_data.rooms.items())))
             if len(rooms) == 0:
                 rooms = list(map_data.rooms.keys())
         for name, value in {
             ATTRIBUTE_CALIBRATION: map_data.calibration(),
-            ATTRIBUTE_CARPET_MAP: map_data.carpet_map,
             ATTRIBUTE_CHARGER: map_data.charger,
-            ATTRIBUTE_CLEANED_ROOMS: map_data.cleaned_rooms,
+            ATTRIBUTE_CLEANED_ROOMS: [*(map_data.cleaned_rooms or [])],
             ATTRIBUTE_COUNTRY: country,
             ATTRIBUTE_GOTO: map_data.goto,
             ATTRIBUTE_GOTO_PATH: map_data.goto_path,
@@ -270,24 +267,20 @@ class VacuumCamera(Camera):
         return attributes
 
     def update(self):
-        counter = 10
         if self._status != CameraStatus.TWO_FACTOR_AUTH_REQUIRED and not self._logged_in:
-            self._handle_login()
+            self._login()
         if self._device is None and self._logged_in:
-            self._handle_device()
-        map_name = self._handle_map_name(counter)
-        if map_name == "retry" and self._device is not None:
-            self._status = CameraStatus.FAILED_TO_RETRIEVE_MAP_FROM_VACUUM
-        self._received_map_name_previously = map_name != "retry"
-        if self._logged_in and map_name != "retry" and self._device is not None:
-            self._handle_map_data(map_name)
+            self._initialize_device()
+        if self._logged_in and self._device is not None:
+            self._download_map_data()
         else:
-            _LOGGER.debug("Unable to retrieve map, reasons: Logged in - %s, map name - %s, device retrieved - %s",
-                          self._logged_in, map_name, self._device is not None)
-            self._set_map_data(MapDataParser.create_empty(self._colors, str(self._status)))
+            _LOGGER.debug("Unable to retrieve map, reasons: Logged in - %s, device retrieved - %s",
+                          self._logged_in, self._device is not None)
+            if self._device is not None:
+                self._set_map_data(self._device.map_data_parser.create_empty(str(self._status)))
         self._logged_in_previously = self._logged_in
 
-    def _handle_login(self):
+    def _login(self):
         _LOGGER.debug("Logging in...")
         self._logged_in = self._connector.login()
         if self._logged_in is None:
@@ -302,9 +295,9 @@ class VacuumCamera(Camera):
             if self._logged_in_previously:
                 _LOGGER.error("Unable to log in, check credentials")
 
-    def _handle_device(self):
+    def _initialize_device(self):
         _LOGGER.debug("Retrieving device info, country: %s", self._country)
-        country, user_id, device_id, model = self._connector.get_device_details(self._vacuum.token, self._country)
+        country, user_id, device_id, model = self._connector.get_device_details(self._token, self._country)
         if model is not None:
             self._country = country
             _LOGGER.debug("Retrieved device model: %s", model)
@@ -314,31 +307,9 @@ class VacuumCamera(Camera):
             _LOGGER.error("Failed to retrieve model")
             self._status = CameraStatus.FAILED_TO_RETRIEVE_DEVICE
 
-    def _handle_map_name(self, counter: int) -> str:
-        map_name = "retry"
-        if self._device is not None and not self._device.should_get_map_from_vacuum():
-            map_name = "0"
-        while map_name == "retry" and counter > 0:
-            _LOGGER.debug("Retrieving map name from device")
-            time.sleep(0.1)
-            try:
-                map_name = self._vacuum.map()[0]
-                _LOGGER.debug("Map name %s", map_name)
-            except OSError as exc:
-                _LOGGER.error("Got OSError while fetching the state: %s", exc)
-            except DeviceException as exc:
-                if self._received_map_name_previously:
-                    _LOGGER.warning("Got exception while fetching the state: %s", exc)
-                self._received_map_name_previously = False
-            finally:
-                counter = counter - 1
-        return map_name
-
-    def _handle_map_data(self, map_name: str):
+    def _download_map_data(self):
         _LOGGER.debug("Retrieving map from Xiaomi cloud")
-        store_map_path = self._store_map_path if self._store_map_raw else None
-        map_data, map_stored = self._device.get_map(map_name, self._colors, self._drawables, self._texts,
-                                                    self._sizes, self._image_config, store_map_path)
+        map_data, map_stored = self._device.get_map()
         if map_data is not None:
             # noinspection PyBroadException
             try:
@@ -370,17 +341,33 @@ class VacuumCamera(Camera):
 
     def _create_device(self, user_id: str, device_id: str, model: str) -> XiaomiCloudVacuum:
         self._used_api = self._detect_api(model)
+        store_map_path = self._store_map_path if self._store_map_raw else None
+        vacuum_config = VacuumConfig(
+            self._connector,
+            self._country,
+            user_id,
+            device_id,
+            self._host,
+            self._token,
+            model,
+            self._colors,
+            self._drawables,
+            self._image_config,
+            self._sizes,
+            self._texts,
+            store_map_path
+        )
         if self._used_api == CONF_AVAILABLE_API_XIAOMI:
-            return XiaomiVacuum(self._connector, self._country, user_id, device_id, model)
+            return RoborockCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_VIOMI:
-            return ViomiVacuum(self._connector, self._country, user_id, device_id, model)
+            return ViomiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_ROIDMI:
-            return RoidmiVacuum(self._connector, self._country, user_id, device_id, model)
+            return RoidmiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_DREAME:
-            return DreameVacuum(self._connector, self._country, user_id, device_id, model)
-        return UnsupportedVacuum(self._connector, self._country, user_id, device_id, model)
+            return DreameCloudVacuum(vacuum_config)
+        return UnsupportedCloudVacuum(vacuum_config)
 
-    def _detect_api(self, model: str) -> Optional[str]:
+    def _detect_api(self, model: str) -> str | None:
         if self._forced_api is not None:
             return self._forced_api
         if model in API_EXCEPTIONS:
@@ -403,7 +390,7 @@ class VacuumCamera(Camera):
                 _LOGGER.warning("Error while saving image")
 
 
-class CameraStatus(Enum):
+class CameraStatus(StrEnum):
     EMPTY_MAP = 'Empty map'
     FAILED_LOGIN = 'Failed to login'
     FAILED_TO_RETRIEVE_DEVICE = 'Failed to retrieve device'

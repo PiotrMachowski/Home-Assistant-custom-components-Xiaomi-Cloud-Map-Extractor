@@ -6,12 +6,21 @@ import yaml
 from homeassistant import config_entries  # to fix circular imports
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 
+from vacuum_map_parser_base.config.color import ColorsPalette, SupportedColor
+from vacuum_map_parser_base.config.drawable import Drawable
+from vacuum_map_parser_base.config.image_config import ImageConfig, TrimConfig
+from vacuum_map_parser_base.config.size import Size, Sizes
+from vacuum_map_parser_base.config.text import Text
+
 from custom_components.xiaomi_cloud_map_extractor.camera import PLATFORM_SCHEMA, VacuumCamera
 from custom_components.xiaomi_cloud_map_extractor.const import *
-from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
-from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
-from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
-from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
+from custom_components.xiaomi_cloud_map_extractor.vacuum_platforms.vacuum_base import VacuumConfig
+from custom_components.xiaomi_cloud_map_extractor.vacuum_platforms.vacuum_dreame import DreameCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.vacuum_platforms.vacuum_roidmi import RoidmiCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.vacuum_platforms.vacuum_unsupported import UnsupportedCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.vacuum_platforms.vacuum_viomi import ViomiCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.vacuum_platforms.vacuum_roborock import RoborockCloudVacuum
+from custom_components.xiaomi_cloud_map_extractor.vacuum_platforms.xiaomi_cloud_connector import XiaomiCloudConnector
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.WARNING)
@@ -75,34 +84,55 @@ def parse_map_file(map_config, map_filename, api, suffix=""):
     texts = map_config[CONF_TEXTS]
     sizes = map_config[CONF_SIZES]
     transform = map_config[CONF_MAP_TRANSFORM]
-    for room, color in room_colors.items():
-        colors[f"{COLOR_ROOM_PREFIX}{room}"] = color
     drawables = map_config[CONF_DRAW]
     if DRAWABLE_ALL in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
 
+    image_config = ImageConfig(**{**transform, "trim": TrimConfig(**transform["trim"])})
+
+    vacuum_config = VacuumConfig(
+        XiaomiCloudConnector("", ""),
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        palette=ColorsPalette(colors_dict=colors, room_colors={str(k): v for k, v in room_colors.items()}),
+        drawables=drawables,
+        texts=[Text(**t) for t in texts],
+        sizes=Sizes(sizes),
+        image_config=image_config,
+        store_map_path=None
+    )
+
     map_data = None
     try:
         if api == CONF_AVAILABLE_API_XIAOMI:
-            map_data = XiaomiVacuum.decode_map(None, map_file, colors, drawables, texts, sizes, transform)
+            vacuum = RoborockCloudVacuum(vacuum_config)
         elif api == CONF_AVAILABLE_API_VIOMI:
-            map_data = ViomiVacuum.decode_map(None, map_file, colors, drawables, texts, sizes, transform)
+            vacuum = ViomiCloudVacuum(vacuum_config)
         elif api == CONF_AVAILABLE_API_ROIDMI:
-            map_data = RoidmiVacuum.decode_map(None, map_file, colors, drawables, texts, sizes, transform)
+            vacuum = RoidmiCloudVacuum(vacuum_config)
         elif api == CONF_AVAILABLE_API_DREAME:
-            map_data = DreameVacuum.decode_map(None, map_file, colors, drawables, texts, sizes, transform)
+            vacuum = DreameCloudVacuum(vacuum_config)
+        else:
+            vacuum = UnsupportedCloudVacuum(vacuum_config)
+        map_data = vacuum.decode_and_parse(map_file)
+    except AttributeError as ae:
+        print(f"  Failed to parse map data! {ae}")
     except Exception as e:
-        print(f"Failed to parse map data! {e}")
-    if map_data is not None:
+        print(f"  Failed to parse map data! {e}")
+    if map_data is not None and map_data.image is not None:
         map_data.image.data.save(f"{map_filename}{suffix}.png")
-        print(f"Map image saved to \"{map_filename}{suffix}.png\"")
+        print(f"  Map image saved to \"{map_filename}{suffix}.png\"")
         attributes_output_file = open(f"{map_filename}{suffix}.yaml", "w")
         attributes = VacuumCamera.extract_attributes(map_data, CONF_AVAILABLE_ATTRIBUTES, "")
         yaml.dump(attributes_to_dict(attributes), attributes_output_file)
         attributes_output_file.close()
-        print(f"Map attributes saved to \"{map_filename}{suffix}.yaml\"")
+        print(f"  Map attributes saved to \"{map_filename}{suffix}.yaml\"")
     else:
-        print("Failed to parse map data!")
+        print("  Failed to parse map data!")
 
 
 def run_download(map_config, data_output_dir):
@@ -123,7 +153,6 @@ def run_test(map_config, test_dir):
         print(api)
         for file in filter(lambda ff: os.path.isfile(ff),
                            map(lambda f: f"{test_dir}/{api}/{f}", os.listdir(f"{test_dir}/{api}"))):
-            print("  " + file)
             output = file + "_output"
             if not os.path.exists(output):
                 os.mkdir(output)

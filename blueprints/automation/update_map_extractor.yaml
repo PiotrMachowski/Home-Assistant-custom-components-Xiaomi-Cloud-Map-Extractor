@@ -141,6 +141,7 @@ trigger:
   - platform: event
     event_type: state_changed
     id: state_changed
+    entity_id: !input vacuum
   - platform: state
     entity_id: !input vacuum
     id: vacuum_changed

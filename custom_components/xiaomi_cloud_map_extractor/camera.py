@@ -25,8 +25,10 @@ from .vacuum_platforms.vacuum_dreame import DreameCloudVacuum
 from .vacuum_platforms.vacuum_roborock import RoborockCloudVacuum
 from .vacuum_platforms.vacuum_roidmi import RoidmiCloudVacuum
 from .vacuum_platforms.vacuum_viomi import ViomiCloudVacuum
+from .vacuum_platforms.vacuum_ijai import IjaiCloudVacuum
 from .vacuum_platforms.vacuum_unsupported import UnsupportedCloudVacuum
 from .const import *
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -297,11 +299,11 @@ class VacuumCamera(Camera):
 
     def _initialize_device(self):
         _LOGGER.debug("Retrieving device info, country: %s", self._country)
-        country, user_id, device_id, model = self._connector.get_device_details(self._token, self._country)
+        country, user_id, device_id, model, mac = self._connector.get_device_details(self._vacuum.token, self._country)
         if model is not None:
             self._country = country
             _LOGGER.debug("Retrieved device model: %s", model)
-            self._device = self._create_device(user_id, device_id, model)
+            self._device = self._create_device(user_id, device_id, model, mac)
             _LOGGER.debug("Created device, used api: %s", self._used_api)
         else:
             _LOGGER.error("Failed to retrieve model")
@@ -339,7 +341,7 @@ class VacuumCamera(Camera):
         self._map_data = map_data
         self._store_image()
 
-    def _create_device(self, user_id: str, device_id: str, model: str) -> XiaomiCloudVacuum:
+    def _create_device(self, user_id: str, device_id: str, model: str, mac: str) -> XiaomiCloudVacuum:
         self._used_api = self._detect_api(model)
         store_map_path = self._store_map_path if self._store_map_raw else None
         vacuum_config = VacuumConfig(
@@ -361,6 +363,8 @@ class VacuumCamera(Camera):
             return RoborockCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_VIOMI:
             return ViomiCloudVacuum(vacuum_config)
+        if self._used_api == CONF_AVAILABLE_API_IJAI:
+            return IjaiCloudVacuum(self._connector, self._country, user_id, device_id, model, mac)
         if self._used_api == CONF_AVAILABLE_API_ROIDMI:
             return RoidmiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_DREAME:

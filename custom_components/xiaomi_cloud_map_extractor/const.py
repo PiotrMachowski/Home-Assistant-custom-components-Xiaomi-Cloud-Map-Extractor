@@ -6,6 +6,7 @@ CONF_AUTO_UPDATE = "auto_update"
 CONF_AVAILABLE_API_DREAME = "dreame"
 CONF_AVAILABLE_API_ROIDMI = "roidmi"
 CONF_AVAILABLE_API_VIOMI = "viomi"
+CONF_AVAILABLE_API_IJAI = "ijai"
 CONF_AVAILABLE_API_XIAOMI = "xiaomi"
 CONF_AVAILABLE_COUNTRIES = ["cn", "de", "us", "ru", "tw", "sg", "in", "i2"]
 CONF_BOTTOM = "bottom"
@@ -215,6 +216,7 @@ AVAILABLE_APIS = {
     CONF_AVAILABLE_API_DREAME: ["dreame.vacuum."],
     CONF_AVAILABLE_API_ROIDMI: ["roidmi.vacuum.", "zhimi.vacuum.", "chuangmi.vacuum."],
     CONF_AVAILABLE_API_VIOMI: ["viomi.vacuum."],
+    CONF_AVAILABLE_API_IJAI: ["ijai.vacuum."],
     CONF_AVAILABLE_API_XIAOMI: ["roborock.vacuum", "rockrobo.vacuum"]
 }
 

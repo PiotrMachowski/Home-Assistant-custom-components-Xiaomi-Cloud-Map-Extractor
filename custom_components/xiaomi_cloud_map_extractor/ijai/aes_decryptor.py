@@ -43,7 +43,6 @@ def md5key(string: str, model: str, device_mac: str):
         
     tempKey = pjstr + tempModel
     aeskey = aesEncrypted(string, tempKey)
-    #aeskey = string
 
     temp = MD5.new(aeskey.encode('utf-8')).hexdigest()
     if isEncryptKeyTypeHex:
@@ -59,8 +58,5 @@ def genMD5key(wifi_info_sn: str, owner_id: str, device_id: str, model: str, devi
 
 
 def unGzipCommon(data: str, wifi_info_sn: str, owner_id: str, device_id: str, model: str, device_mac: str) -> bytes:
-    #base64map = base64.b64encode(data)
-#    with open("0.encrypted.map", 'wb') as file:
-#            file.write(data)
     return aesDecrypted(data, genMD5key(wifi_info_sn, owner_id, device_id, model, device_mac))
 

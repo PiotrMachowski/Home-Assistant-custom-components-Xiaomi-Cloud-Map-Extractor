@@ -40,16 +40,13 @@ class MapDataParserIjai(MapDataParser):
         _LOGGER.debug(f"Skipping {offset1} bytes, value: {buf._data[buf._offs]:#x}")
         
         feature_flags = MapDataParserIjai.FEATURE_IMAGE
-        #feature_flags = buf.get_uint32('feature_flags')
         map_id = buf.peek_uint32('map_id')
-        #_LOGGER.debug('feature_flags: 0x%x, map_id: %d, some_hash: %s', feature_flags, map_id, some_hash)
 
         if feature_flags & MapDataParserIjai.FEATURE_ROBOT_STATUS != 0:
             MapDataParserIjai.parse_section(buf, 'robot_status', map_id)
             buf.skip('unknown1', 0x28)
 
         if feature_flags & MapDataParserIjai.FEATURE_IMAGE != 0:
-            #MapDataParserIjai.parse_section(buf, 'image', map_id)
             buf.set_name('image')
             map_data.image, map_data.rooms, map_data.cleaned_rooms = \
                 MapDataParserIjai.parse_image(buf, colors, image_config, DRAWABLE_CLEANED_AREA in drawables)

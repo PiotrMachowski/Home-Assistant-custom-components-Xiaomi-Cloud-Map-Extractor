@@ -2,10 +2,11 @@ import io
 import logging
 from datetime import timedelta
 from enum import StrEnum
+from dataclasses import fields
 
 from vacuum_map_parser_base.config.color import ColorsPalette
 from vacuum_map_parser_base.config.drawable import Drawable
-from vacuum_map_parser_base.config.image_config import ImageConfig
+from vacuum_map_parser_base.config.image_config import ImageConfig, TrimConfig
 from vacuum_map_parser_base.config.size import Sizes
 from vacuum_map_parser_base.config.text import Text
 
@@ -27,6 +28,7 @@ from .vacuum_platforms.vacuum_roidmi import RoidmiCloudVacuum
 from .vacuum_platforms.vacuum_viomi import ViomiCloudVacuum
 from .vacuum_platforms.vacuum_ijai import IjaiCloudVacuum
 from .vacuum_platforms.vacuum_unsupported import UnsupportedCloudVacuum
+from .initializer import from_dict
 from .const import *
 
 
@@ -122,9 +124,10 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     })
 
 
+
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
-
+    _LOGGER.debug(f"config={config}")
     host = config[CONF_HOST]
     token = config[CONF_TOKEN]
     username = config[CONF_USERNAME]
@@ -132,14 +135,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     country = config[CONF_COUNTRY]
     name = config[CONF_NAME]
     should_poll = config[CONF_AUTO_UPDATE]
-    image_config = config[CONF_MAP_TRANSFORM]
+    image_config = from_dict(ImageConfig, config[CONF_MAP_TRANSFORM])
     colors = config[CONF_COLORS]
     room_colors = config[CONF_ROOM_COLORS]
     for room, color in room_colors.items():
         colors[f"{COLOR_ROOM_PREFIX}{room}"] = color
     drawables = config[CONF_DRAW]
-    sizes = config[CONF_SIZES]
-    texts = config[CONF_TEXTS]
+    sizes = Sizes(config[CONF_SIZES])
+    texts = from_dict(list, config[CONF_TEXTS])
     if DRAWABLE_ALL in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
@@ -149,7 +152,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map_raw,
+                                     image_config, ColorsPalette(colors, room_colors), drawables, sizes, texts, attributes, store_map_raw,
                                      store_map_image, store_map_path, force_api)])
 
 
@@ -230,6 +233,7 @@ class VacuumCamera(Camera):
 
     @staticmethod
     def extract_attributes(map_data: MapData, attributes_to_return: list[str], country) -> dict[str, any]:
+        _LOGGER.debug(f"extract_attributes{map_data}, {attributes_to_return}, country")
         attributes = {}
         rooms = []
         if map_data.rooms is not None:
@@ -299,7 +303,7 @@ class VacuumCamera(Camera):
 
     def _initialize_device(self):
         _LOGGER.debug("Retrieving device info, country: %s", self._country)
-        country, user_id, device_id, model, mac = self._connector.get_device_details(self._vacuum.token, self._country)
+        country, user_id, device_id, model, mac = self._connector.get_device_details(self._token, self._country)
         if model is not None:
             self._country = country
             _LOGGER.debug("Retrieved device model: %s", model)
@@ -345,26 +349,29 @@ class VacuumCamera(Camera):
         self._used_api = self._detect_api(model)
         store_map_path = self._store_map_path if self._store_map_raw else None
         vacuum_config = VacuumConfig(
-            self._connector,
-            self._country,
-            user_id,
-            device_id,
-            self._host,
-            self._token,
-            model,
-            self._colors,
-            self._drawables,
-            self._image_config,
-            self._sizes,
-            self._texts,
-            store_map_path
+            connector = self._connector,
+            country = self._country,
+            user_id = user_id,
+            device_id = device_id,
+            host = self._host,
+            token = self._token,
+            model = model,
+            _mac = mac,
+            palette = self._colors,
+            drawables = self._drawables,
+            image_config = self._image_config,
+            sizes = self._sizes,
+            texts = self._texts,
+            store_map_path = store_map_path
         )
         if self._used_api == CONF_AVAILABLE_API_XIAOMI:
             return RoborockCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_VIOMI:
             return ViomiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_IJAI:
-            return IjaiCloudVacuum(self._connector, self._country, user_id, device_id, model, mac)
+            _LOGGER.debug(f"palette={vacuum_config.palette}")
+            _LOGGER.debug(f"image_config={vacuum_config.image_config}")
+            return IjaiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_ROIDMI:
             return RoidmiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_DREAME:

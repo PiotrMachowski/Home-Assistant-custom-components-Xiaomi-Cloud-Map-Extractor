@@ -24,6 +24,7 @@ class IjaiCloudVacuum(XiaomiCloudVacuumV2):
             vacuum_config.image_config,
             vacuum_config.texts
         )
+
     @property
     def map_archive_extension(self) -> str:
         return "zlib"
@@ -44,16 +45,17 @@ class IjaiCloudVacuum(XiaomiCloudVacuumV2):
         return api_response["result"]["url"]
 
     def decode_and_parse(self, raw_map: bytes):
-        if self._wifi_info_sn is None or self._wifi_info_sn is "":
+        if self._wifi_info_sn is None or self._wifi_info_sn == "":
             device = MiotDevice(self._host, self._token)
             props = device.get_property_by(7, 45)[0]["value"].split(',')
-            self._wifi_info_sn = props[self.WIFI_STR_POS].replace('"','')[:self.WIFI_STR_LEN]
+            self._wifi_info_sn = props[self.WIFI_STR_POS].replace('"', '')[:self.WIFI_STR_LEN]
             _LOGGER.debug(f"wifi_sn = {self._wifi_info_sn}")
 
-        decoded_map = self.map_data_parser.unpack_map(raw_map,
+        decoded_map = self.map_data_parser.unpack_map(
+            raw_map,
             wifi_sn=self._wifi_info_sn,
-            owner_id = str(self._user_id),
-            device_id = str(self._device_id),
-            model = self.model,
-            device_mac = self._mac)
+            owner_id=str(self._user_id),
+            device_id=str(self._device_id),
+            model=self.model,
+            device_mac=self._mac)
         return self.map_data_parser.parse(decoded_map)

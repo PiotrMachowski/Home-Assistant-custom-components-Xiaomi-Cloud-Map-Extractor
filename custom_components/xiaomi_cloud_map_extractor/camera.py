@@ -2,11 +2,10 @@ import io
 import logging
 from datetime import timedelta
 from enum import StrEnum
-from dataclasses import fields
 
 from vacuum_map_parser_base.config.color import ColorsPalette
 from vacuum_map_parser_base.config.drawable import Drawable
-from vacuum_map_parser_base.config.image_config import ImageConfig, TrimConfig
+from vacuum_map_parser_base.config.image_config import ImageConfig
 from vacuum_map_parser_base.config.size import Sizes
 from vacuum_map_parser_base.config.text import Text
 
@@ -123,14 +122,12 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
-
-
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
     _LOGGER.debug(f"config={config}")
     host = config[CONF_HOST]
     token = config[CONF_TOKEN]
-    username = config[CONF_USERNAME]
+    username=config[CONF_USERNAME]
     password = config[CONF_PASSWORD]
     country = config[CONF_COUNTRY]
     name = config[CONF_NAME]
@@ -349,20 +346,20 @@ class VacuumCamera(Camera):
         self._used_api = self._detect_api(model)
         store_map_path = self._store_map_path if self._store_map_raw else None
         vacuum_config = VacuumConfig(
-            connector = self._connector,
-            country = self._country,
-            user_id = user_id,
-            device_id = device_id,
-            host = self._host,
-            token = self._token,
-            model = model,
-            _mac = mac,
-            palette = self._colors,
-            drawables = self._drawables,
-            image_config = self._image_config,
-            sizes = self._sizes,
-            texts = self._texts,
-            store_map_path = store_map_path
+            connector=self._connector,
+            country=self._country,
+            user_id=user_id,
+            device_id=device_id,
+            host=self._host,
+            token=self._token,
+            model=model,
+            _mac=mac,
+            palette=self._colors,
+            drawables=self._drawables,
+            image_config=self._image_config,
+            sizes=self._sizes,
+            texts=self._texts,
+            store_map_path=store_map_path
         )
         if self._used_api == CONF_AVAILABLE_API_XIAOMI:
             return RoborockCloudVacuum(vacuum_config)

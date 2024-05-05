@@ -4,8 +4,8 @@
   "codeowners": [
     "@PiotrMachowski"
   ],
-  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor",
   "dependencies": [],
+  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues",
   "requirements": [

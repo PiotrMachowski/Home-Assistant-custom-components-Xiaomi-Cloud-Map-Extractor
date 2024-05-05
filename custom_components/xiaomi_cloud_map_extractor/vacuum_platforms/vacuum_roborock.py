@@ -29,10 +29,7 @@ class RoborockCloudVacuum(XiaomiCloudVacuum):
         }
         api_response = self._connector.execute_api_call_encrypted(url, params)
         if (
-            api_response is None
-            or "result" not in api_response
-            or api_response["result"] is None
-            or "url" not in api_response["result"]):
+            api_response is None or "result" not in api_response or api_response["result"] is None or "url" not in api_response["result"]):
             return None
         return api_response["result"]["url"]
 

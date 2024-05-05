@@ -10,13 +10,14 @@ _LOGGER = logging.getLogger(__name__)
 class IjaiCloudVacuum(XiaomiCloudVacuumV2):
     WIFI_STR_LEN = 18
     WIFI_STR_POS = 11
+
     def __init__(self, vacuum_config: VacuumConfig):
         super().__init__(vacuum_config)
         self._token = vacuum_config.token
         self._host = vacuum_config.host
         self._mac = vacuum_config._mac
         self._wifi_info_sn = None
-        
+
         self._ijai_map_data_parser = IjaiMapDataParser(
             vacuum_config.palette,
             vacuum_config.sizes,

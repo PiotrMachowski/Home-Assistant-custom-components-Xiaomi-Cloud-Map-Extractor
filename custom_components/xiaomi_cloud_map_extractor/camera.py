@@ -8,6 +8,8 @@ from vacuum_map_parser_base.config.drawable import Drawable
 from vacuum_map_parser_base.config.image_config import ImageConfig
 from vacuum_map_parser_base.config.size import Sizes
 from vacuum_map_parser_base.config.text import Text
+from vacuum_map_parser_base.image_generator import ImageGenerator
+from vacuum_map_parser_base.map_data import ImageData
 
 import PIL.Image as Image
 import voluptuous as vol
@@ -272,16 +274,21 @@ class VacuumCamera(Camera):
     def update(self):
         if self._status != CameraStatus.TWO_FACTOR_AUTH_REQUIRED and not self._logged_in:
             self._login()
-        if self._device is None and self._logged_in:
-            self._initialize_device()
-        if self._logged_in and self._device is not None:
-            self._download_map_data()
-        else:
-            _LOGGER.debug("Unable to retrieve map, reasons: Logged in - %s, device retrieved - %s",
-                          self._logged_in, self._device is not None)
-            if self._device is not None:
-                self._set_map_data(self._device.map_data_parser.create_empty(str(self._status)))
-        self._logged_in_previously = self._logged_in
+        if self._device is not None:
+            if self._logged_in:
+                #if we're logged in and the device is initialized - retrieve, parse and render map
+                self._download_map_data()
+                self._render_map()
+                return
+            #if the device is up and login failed (?) initialize map data
+            self._map_data = MapData()
+            self._map_data.image = ImageData.create_empty(self._image_generator.create_empty_map_image(str(self._status)))
+            return
+        #apparently we should initialize the device in case we haven't done it before
+        self._initialize_device()
+
+#        _LOGGER.debug("Unable to retrieve map, reasons: Logged in - %s, device retrieved - %s",
+#                    self._logged_in, self._device is not None)
 
     def _login(self):
         _LOGGER.debug("Logging in...")
@@ -297,6 +304,18 @@ class VacuumCamera(Camera):
             self._status = CameraStatus.FAILED_LOGIN
             if self._logged_in_previously:
                 _LOGGER.error("Unable to log in, check credentials")
+        self._logged_in_previously = self._logged_in
+
+    def _render_map(self):
+        if self._map_data is None or self._map_data.image is None or self._map_data.image.is_empty:
+            return
+        if not hasattr(self, "_image_generator") or self._image_generator is None:
+            self._image_generator = ImageGenerator(self._colors, self._sizes, self._device.map_data_parser._image_parser._drawables,self._image_config, self._texts)
+        self._image_generator.draw_map(self._map_data)
+        img_byte_arr = io.BytesIO()
+        self._map_data.image.data.save(img_byte_arr, format='PNG')
+        self._image = img_byte_arr.getvalue()
+        self._store_image()
 
     def _initialize_device(self):
         _LOGGER.debug("Retrieving device info, country: %s", self._country)
@@ -312,20 +331,17 @@ class VacuumCamera(Camera):
 
     def _download_map_data(self):
         _LOGGER.debug("Retrieving map from Xiaomi cloud")
-        map_data, map_stored = self._device.get_map()
-        if map_data is not None:
+        self._map_data, map_stored = self._device.get_map()
+        if self._map_data is not None:
             # noinspection PyBroadException
             try:
                 _LOGGER.debug("Map data retrieved")
                 self._map_saved = map_stored
-                if map_data.image.is_empty:
+                if self._map_data.image.is_empty:
                     _LOGGER.debug("Map is empty")
                     self._status = CameraStatus.EMPTY_MAP
-                    if self._map_data is None or self._map_data.image.is_empty:
-                        self._set_map_data(map_data)
                 else:
                     _LOGGER.debug("Map is ok")
-                    self._set_map_data(map_data)
                     self._status = CameraStatus.OK
             except:
                 _LOGGER.warning("Unable to parse map data")
@@ -334,13 +350,6 @@ class VacuumCamera(Camera):
             self._logged_in = False
             _LOGGER.warning("Unable to retrieve map data")
             self._status = CameraStatus.UNABLE_TO_RETRIEVE_MAP
-
-    def _set_map_data(self, map_data: MapData):
-        img_byte_arr = io.BytesIO()
-        map_data.image.data.save(img_byte_arr, format='PNG')
-        self._image = img_byte_arr.getvalue()
-        self._map_data = map_data
-        self._store_image()
 
     def _create_device(self, user_id: str, device_id: str, model: str, mac: str) -> XiaomiCloudVacuum:
         self._used_api = self._detect_api(model)
@@ -366,8 +375,6 @@ class VacuumCamera(Camera):
         if self._used_api == CONF_AVAILABLE_API_VIOMI:
             return ViomiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_IJAI:
-            _LOGGER.debug(f"palette={vacuum_config.palette}")
-            _LOGGER.debug(f"image_config={vacuum_config.image_config}")
             return IjaiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_ROIDMI:
             return RoidmiCloudVacuum(vacuum_config)
@@ -394,6 +401,7 @@ class VacuumCamera(Camera):
             try:
                 image = Image.open(io.BytesIO(self._image))
                 image.save(f"{self._store_map_path}/map_image_{self._device.model}.png")
+                _LOGGER.debug(f"image path = {self._store_map_path}/map_image_{self._device.model}.png")
             except:
                 _LOGGER.warning("Error while saving image")
 

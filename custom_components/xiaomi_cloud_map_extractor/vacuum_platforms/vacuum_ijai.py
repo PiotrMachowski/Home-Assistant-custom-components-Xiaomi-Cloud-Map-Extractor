@@ -46,11 +46,18 @@ class IjaiCloudVacuum(XiaomiCloudVacuumV2):
         return api_response["result"]["url"]
 
     def decode_and_parse(self, raw_map: bytes):
+        GET_PROP_RETRIES=5
         if self._wifi_info_sn is None or self._wifi_info_sn == "":
+            _LOGGER.debug(f"host={self._host}, token={self._token}")
             device = MiotDevice(self._host, self._token)
-            props = device.get_property_by(7, 45)[0]["value"].split(',')
-            self._wifi_info_sn = props[self.WIFI_STR_POS].replace('"', '')[:self.WIFI_STR_LEN]
-            _LOGGER.debug(f"wifi_sn = {self._wifi_info_sn}")
+            for _ in range(GET_PROP_RETRIES):
+                try:
+                    props = device.get_property_by(7, 45)[0]["value"].split(',')
+                    self._wifi_info_sn = props[self.WIFI_STR_POS].replace('"', '')[:self.WIFI_STR_LEN]
+                    _LOGGER.debug(f"wifi_sn = {self._wifi_info_sn}")
+                    break
+                except:
+                    _LOGGER.warn("Failed to get wifi_sn from vacuum")
 
         decoded_map = self.map_data_parser.unpack_map(
             raw_map,

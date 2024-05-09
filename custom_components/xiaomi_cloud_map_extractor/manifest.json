@@ -1,12 +1,13 @@
 {
   "domain": "xiaomi_cloud_map_extractor",
   "name": "Xiaomi Cloud Map Extractor",
-  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor",
-  "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues",
-  "dependencies": [],
   "codeowners": [
     "@PiotrMachowski"
   ],
+  "dependencies": [],
+  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues",
   "requirements": [
     "Pillow",
     "pybase64",
@@ -19,6 +20,5 @@
     "vacuum-map-parser-roidmi",
     "vacuum-map-parser-dreame"
   ],
-  "version": "v3.0.0-beta",
-  "iot_class": "cloud_polling"
+  "version": "v3.0.0-beta"
 }

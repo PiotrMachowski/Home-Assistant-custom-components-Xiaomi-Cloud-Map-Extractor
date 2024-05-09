@@ -15,6 +15,7 @@ class XiaomiCloudVacuumV2(XiaomiCloudVacuum, ABC):
             "data": f'{{"obj_name":"{self._user_id}/{self._device_id}/{map_name}"}}'
         }
         api_response = self._connector.execute_api_call_encrypted(url, params)
-        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
+        if api_response is None or ("result" not in api_response) or (api_response["result"] is None) or ("url" not in api_response["result"]):
+            self._LOGGER.debug(f"API returned {api_response['code']}" + "(" + api_response["message"] + ")")
             return None
         return api_response["result"]["url"]

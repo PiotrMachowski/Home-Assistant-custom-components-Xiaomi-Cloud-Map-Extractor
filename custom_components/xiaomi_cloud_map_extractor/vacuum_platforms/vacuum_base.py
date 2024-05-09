@@ -11,7 +11,6 @@ from vacuum_map_parser_base.map_data_parser import MapDataParser
 
 from .xiaomi_cloud_connector import XiaomiCloudConnector
 
-
 @dataclass
 class VacuumConfig:
     connector: XiaomiCloudConnector
@@ -21,6 +20,7 @@ class VacuumConfig:
     host: str
     token: str
     model: str
+    _mac: str
     palette: ColorsPalette
     drawables: list[Drawable]
     image_config: ImageConfig

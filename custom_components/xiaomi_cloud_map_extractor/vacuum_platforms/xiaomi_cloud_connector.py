@@ -132,7 +132,7 @@ class XiaomiCloudConnector:
         return None
 
     def get_device_details(self, token: str,
-                           country: str) -> tuple[str | None, str | None, str | None, str | None]:
+                           country: str) -> tuple[str | None, str | None, str | None, str | None, str | None]:
         countries_to_check = CONF_AVAILABLE_COUNTRIES
         if country is not None:
             countries_to_check = [country]
@@ -146,9 +146,9 @@ class XiaomiCloudConnector:
                 user_id = found[0]["uid"]
                 device_id = found[0]["did"]
                 model = found[0]["model"]
-                self.country = country
-                return country, user_id, device_id, model
-        return None, None, None, None
+                mac = found[0]["mac"]
+                return country, user_id, device_id, model, mac
+        return None, None, None, None, None
 
     def get_devices(self, country: str) -> any:
         url = self.get_api_url(country) + "/home/device_list"
@@ -164,7 +164,6 @@ class XiaomiCloudConnector:
         }
         return self.execute_api_call_encrypted(url, params)
 
-
     def execute_api_call_encrypted(self, url: str, params: dict[str, str]) -> any:
         headers = {
             "Accept-Encoding": "identity",
@@ -177,7 +176,7 @@ class XiaomiCloudConnector:
             "userId": str(self._userId),
             "yetAnotherServiceToken": str(self._serviceToken),
             "serviceToken": str(self._serviceToken),
-            "locale": "en_GB",
+            "locale": "en_US",
             "timezone": "GMT+02:00",
             "is_daylight": "1",
             "dst_offset": "3600000",

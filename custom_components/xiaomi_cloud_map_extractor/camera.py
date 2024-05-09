@@ -8,6 +8,8 @@ from vacuum_map_parser_base.config.drawable import Drawable
 from vacuum_map_parser_base.config.image_config import ImageConfig
 from vacuum_map_parser_base.config.size import Sizes
 from vacuum_map_parser_base.config.text import Text
+from vacuum_map_parser_base.image_generator import ImageGenerator
+from vacuum_map_parser_base.map_data import ImageData
 
 import PIL.Image as Image
 import voluptuous as vol
@@ -25,8 +27,11 @@ from .vacuum_platforms.vacuum_dreame import DreameCloudVacuum
 from .vacuum_platforms.vacuum_roborock import RoborockCloudVacuum
 from .vacuum_platforms.vacuum_roidmi import RoidmiCloudVacuum
 from .vacuum_platforms.vacuum_viomi import ViomiCloudVacuum
+from .vacuum_platforms.vacuum_ijai import IjaiCloudVacuum
 from .vacuum_platforms.vacuum_unsupported import UnsupportedCloudVacuum
+from .initializer import from_dict
 from .const import *
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -119,10 +124,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_FORCE_API, default=None): vol.Or(vol.In(CONF_AVAILABLE_APIS), vol.Equal(None))
     })
 
-
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     await async_setup_reload_service(hass, DOMAIN, PLATFORMS)
-
+    _LOGGER.debug(f"config={config}")
     host = config[CONF_HOST]
     token = config[CONF_TOKEN]
     username = config[CONF_USERNAME]
@@ -130,14 +134,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     country = config[CONF_COUNTRY]
     name = config[CONF_NAME]
     should_poll = config[CONF_AUTO_UPDATE]
-    image_config = config[CONF_MAP_TRANSFORM]
+    image_config = from_dict(ImageConfig, config[CONF_MAP_TRANSFORM])
     colors = config[CONF_COLORS]
     room_colors = config[CONF_ROOM_COLORS]
     for room, color in room_colors.items():
         colors[f"{COLOR_ROOM_PREFIX}{room}"] = color
     drawables = config[CONF_DRAW]
-    sizes = config[CONF_SIZES]
-    texts = config[CONF_TEXTS]
+    sizes = Sizes(config[CONF_SIZES])
+    texts = from_dict(list, config[CONF_TEXTS])
     if DRAWABLE_ALL in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
@@ -147,7 +151,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     force_api = config[CONF_FORCE_API]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
     async_add_entities([VacuumCamera(entity_id, host, token, username, password, country, name, should_poll,
-                                     image_config, colors, drawables, sizes, texts, attributes, store_map_raw,
+                                     image_config, ColorsPalette(colors, room_colors), drawables, sizes, texts, attributes, store_map_raw,
                                      store_map_image, store_map_path, force_api)])
 
 
@@ -228,6 +232,7 @@ class VacuumCamera(Camera):
 
     @staticmethod
     def extract_attributes(map_data: MapData, attributes_to_return: list[str], country) -> dict[str, any]:
+        _LOGGER.debug(f"extract_attributes{map_data}, {attributes_to_return}, country")
         attributes = {}
         rooms = []
         if map_data.rooms is not None:
@@ -269,16 +274,21 @@ class VacuumCamera(Camera):
     def update(self):
         if self._status != CameraStatus.TWO_FACTOR_AUTH_REQUIRED and not self._logged_in:
             self._login()
-        if self._device is None and self._logged_in:
-            self._initialize_device()
-        if self._logged_in and self._device is not None:
-            self._download_map_data()
-        else:
-            _LOGGER.debug("Unable to retrieve map, reasons: Logged in - %s, device retrieved - %s",
-                          self._logged_in, self._device is not None)
-            if self._device is not None:
-                self._set_map_data(self._device.map_data_parser.create_empty(str(self._status)))
-        self._logged_in_previously = self._logged_in
+        if self._device is not None:
+            if self._logged_in:
+                #if we're logged in and the device is initialized - retrieve, parse and render map
+                self._download_map_data()
+                self._render_map()
+                return
+            #if the device is up and login failed (?) initialize map data
+            self._map_data = MapData()
+            self._map_data.image = ImageData.create_empty(self._image_generator.create_empty_map_image(str(self._status)))
+            return
+        #apparently we should initialize the device in case we haven't done it before
+        self._initialize_device()
+
+#        _LOGGER.debug("Unable to retrieve map, reasons: Logged in - %s, device retrieved - %s",
+#                    self._logged_in, self._device is not None)
 
     def _login(self):
         _LOGGER.debug("Logging in...")
@@ -294,14 +304,26 @@ class VacuumCamera(Camera):
             self._status = CameraStatus.FAILED_LOGIN
             if self._logged_in_previously:
                 _LOGGER.error("Unable to log in, check credentials")
+        self._logged_in_previously = self._logged_in
+
+    def _render_map(self):
+        if self._map_data is None or self._map_data.image is None or self._map_data.image.is_empty:
+            return
+        if not hasattr(self, "_image_generator") or self._image_generator is None:
+            self._image_generator = ImageGenerator(self._colors, self._sizes, self._device.map_data_parser._image_parser._drawables,self._image_config, self._texts)
+        self._image_generator.draw_map(self._map_data)
+        img_byte_arr = io.BytesIO()
+        self._map_data.image.data.save(img_byte_arr, format='PNG')
+        self._image = img_byte_arr.getvalue()
+        self._store_image()
 
     def _initialize_device(self):
         _LOGGER.debug("Retrieving device info, country: %s", self._country)
-        country, user_id, device_id, model = self._connector.get_device_details(self._token, self._country)
+        country, user_id, device_id, model, mac = self._connector.get_device_details(self._token, self._country)
         if model is not None:
             self._country = country
             _LOGGER.debug("Retrieved device model: %s", model)
-            self._device = self._create_device(user_id, device_id, model)
+            self._device = self._create_device(user_id, device_id, model, mac)
             _LOGGER.debug("Created device, used api: %s", self._used_api)
         else:
             _LOGGER.error("Failed to retrieve model")
@@ -309,20 +331,17 @@ class VacuumCamera(Camera):
 
     def _download_map_data(self):
         _LOGGER.debug("Retrieving map from Xiaomi cloud")
-        map_data, map_stored = self._device.get_map()
-        if map_data is not None:
+        self._map_data, map_stored = self._device.get_map()
+        if self._map_data is not None:
             # noinspection PyBroadException
             try:
                 _LOGGER.debug("Map data retrieved")
                 self._map_saved = map_stored
-                if map_data.image.is_empty:
+                if self._map_data.image.is_empty:
                     _LOGGER.debug("Map is empty")
                     self._status = CameraStatus.EMPTY_MAP
-                    if self._map_data is None or self._map_data.image.is_empty:
-                        self._set_map_data(map_data)
                 else:
                     _LOGGER.debug("Map is ok")
-                    self._set_map_data(map_data)
                     self._status = CameraStatus.OK
             except:
                 _LOGGER.warning("Unable to parse map data")
@@ -332,35 +351,31 @@ class VacuumCamera(Camera):
             _LOGGER.warning("Unable to retrieve map data")
             self._status = CameraStatus.UNABLE_TO_RETRIEVE_MAP
 
-    def _set_map_data(self, map_data: MapData):
-        img_byte_arr = io.BytesIO()
-        map_data.image.data.save(img_byte_arr, format='PNG')
-        self._image = img_byte_arr.getvalue()
-        self._map_data = map_data
-        self._store_image()
-
-    def _create_device(self, user_id: str, device_id: str, model: str) -> XiaomiCloudVacuum:
+    def _create_device(self, user_id: str, device_id: str, model: str, mac: str) -> XiaomiCloudVacuum:
         self._used_api = self._detect_api(model)
         store_map_path = self._store_map_path if self._store_map_raw else None
         vacuum_config = VacuumConfig(
-            self._connector,
-            self._country,
-            user_id,
-            device_id,
-            self._host,
-            self._token,
-            model,
-            self._colors,
-            self._drawables,
-            self._image_config,
-            self._sizes,
-            self._texts,
-            store_map_path
+            connector=self._connector,
+            country=self._country,
+            user_id=user_id,
+            device_id=device_id,
+            host=self._host,
+            token=self._token,
+            model=model,
+            _mac=mac,
+            palette=self._colors,
+            drawables=self._drawables,
+            image_config=self._image_config,
+            sizes=self._sizes,
+            texts=self._texts,
+            store_map_path=store_map_path
         )
         if self._used_api == CONF_AVAILABLE_API_XIAOMI:
             return RoborockCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_VIOMI:
             return ViomiCloudVacuum(vacuum_config)
+        if self._used_api == CONF_AVAILABLE_API_IJAI:
+            return IjaiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_ROIDMI:
             return RoidmiCloudVacuum(vacuum_config)
         if self._used_api == CONF_AVAILABLE_API_DREAME:
@@ -386,6 +401,7 @@ class VacuumCamera(Camera):
             try:
                 image = Image.open(io.BytesIO(self._image))
                 image.save(f"{self._store_map_path}/map_image_{self._device.model}.png")
+                _LOGGER.debug(f"image path = {self._store_map_path}/map_image_{self._device.model}.png")
             except:
                 _LOGGER.warning("Error while saving image")
 

@@ -6,6 +6,7 @@ import logging
 import os
 import random
 import time
+from typing import Any, Dict, NamedTuple, Optional, Tuple
 from Crypto.Cipher import ARC4
 
 import requests
@@ -13,6 +14,21 @@ import requests
 
 _LOGGER = logging.getLogger(__name__)
 CONF_AVAILABLE_COUNTRIES = ["cn", "de", "us", "ru", "tw", "sg", "in", "i2"]
+
+
+class XiaomiHome(NamedTuple):
+    homeid: int
+    owner: int
+
+
+class XiaomiDeviceInfo(NamedTuple):
+    device_id: str
+    name: str
+    model: str
+    token: str
+    country: str
+    home_id: int
+    user_id: int
 
 
 # noinspection PyBroadException
@@ -131,31 +147,78 @@ class XiaomiCloudConnector:
                 return response.content
         return None
 
-    def get_device_details(self, token: str,
-                           country: str) -> tuple[str | None, str | None, str | None, str | None]:
-        countries_to_check = CONF_AVAILABLE_COUNTRIES
-        if country is not None:
-            countries_to_check = [country]
-        for country in countries_to_check:
-            devices = self.get_devices(country)
-            if devices is None:
-                continue
-            found = list(filter(lambda d: str(d["token"]).casefold() == str(token).casefold(),
-                                devices["result"]["list"]))
-            if len(found) > 0:
-                user_id = found[0]["uid"]
-                device_id = found[0]["did"]
-                model = found[0]["model"]
-                self.country = country
-                return country, user_id, device_id, model
-        return None, None, None, None
-
-    def get_devices(self, country: str) -> any:
-        url = self.get_api_url(country) + "/home/device_list"
+    def get_homes_iter(self, country: str):
+        url = self.get_api_url(country) + "/v2/homeroom/gethome"
         params = {
-            "data": '{"getVirtualModel":false,"getHuamiDevices":0}'
+            "data": json.dumps(
+                {
+                    "fg": True,
+                    "fetch_share": True,
+                    "fetch_share_dev": True,
+                    "limit": 300,
+                    "app_ver": 7,
+                }
+            )
         }
-        return self.execute_api_call_encrypted(url, params)
+
+        if (response := self.execute_api_call_encrypted(url, params)) is None:
+            return None
+
+        if homelist := response["result"]["homelist"]:
+            yield from (XiaomiHome(int(home["id"]), home["uid"]) for home in homelist)
+
+        if homelist := response["result"]["share_home_list"]:
+            yield from (XiaomiHome(int(home["id"]), home["uid"]) for home in homelist)
+
+    def get_devices_from_home_iter(self, country: str, home_id: int, owner_id: int):
+        url = self.get_api_url(country) + "/v2/home/home_device_list"
+        params = {
+            "data": json.dumps(
+                {
+                    "home_id": home_id,
+                    "home_owner": owner_id,
+                    "limit": 200,
+                    "get_split_device": True,
+                    "support_smart_home": True,
+                }
+            )
+        }
+        if (response := self.execute_api_call_encrypted(url, params)) is None:
+            return
+
+        if (raw_devices := response["result"]["device_info"]) is None:
+            return
+
+        yield from (
+            XiaomiDeviceInfo(
+                device_id=device["did"],
+                name=device["name"],
+                model=device["model"],
+                token=device["token"],
+                country=country,
+                user_id=owner_id,
+                home_id=home_id,
+            )
+            for device in raw_devices
+        )
+
+    def get_devices_iter(self, country: Optional[str] = None):
+        countries_to_check = CONF_AVAILABLE_COUNTRIES if country is None else [country]
+        for _country in countries_to_check:
+            homes = self.get_homes_iter(_country)
+            for home in homes:
+                devices = self.get_devices_from_home_iter(
+                    _country, home.homeid, home.owner
+                )
+                yield from devices
+
+    def get_device_details(self, token: str, country: Optional[str] = None):
+        devices = self.get_devices_iter(country)
+        matching_token = filter(lambda device: device.token == token, devices)
+        if match := next(matching_token, None):
+            return match.country, match.user_id, match.device_id, match.model
+
+        return None, None, None, None
 
     def get_other_info(self, device_id: str, method: str, parameters: dict) -> any:
         url = self.get_api_url('sg') + "/v2/home/rpc/" + device_id

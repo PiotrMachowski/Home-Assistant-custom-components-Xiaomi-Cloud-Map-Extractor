@@ -9,7 +9,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class IjaiCloudVacuum(XiaomiCloudVacuumV2):
     WIFI_STR_LEN = 18
-    WIFI_STR_POS = 11
 
     def __init__(self, vacuum_config: VacuumConfig):
         super().__init__(vacuum_config)
@@ -45,15 +44,42 @@ class IjaiCloudVacuum(XiaomiCloudVacuumV2):
             return None
         return api_response["result"]["url"]
 
+    def get_wifi_info_sn(self):
+        device = MiotDevice(self._host, self._token)
+
+        wifi_info_sn = None
+
+        # aggressivly searching for Serial Number in first siid
+        # 1,3 on 2019 - 2021 vacuums; 1,5 on 2022 and newer vacuums
+        piids = [3, 5]
+
+        for piid in piids:
+            data = device.get_property_by(1, piid)
+            if "value" in data[0] and (len(data[0]["value"]) == 18 and data[0]["value"].isalnum() and data[0]["value"].isupper()):
+                wifi_info_sn = data[0]["value"]
+                break
+
+        if not wifi_info_sn:
+            # property 7, 45 (sweep -> multi-prop-vacuum) on all miot vacuums
+            got_from_vacuum = device.get_property_by(7, 45)
+
+            for prop in got_from_vacuum[0]["value"].split(','):
+                cleaned_prop = str(prop).replace('"', '')
+
+                if str(self._user_id) in cleaned_prop:
+                    cleaned_prop = cleaned_prop.split(';')[0]
+
+                if len(cleaned_prop) == self.WIFI_STR_LEN and cleaned_prop.isalnum() and cleaned_prop.isupper():
+                    wifi_info_sn = cleaned_prop
+        return wifi_info_sn
+
     def decode_and_parse(self, raw_map: bytes):
         GET_PROP_RETRIES=5
         if self._wifi_info_sn is None or self._wifi_info_sn == "":
             _LOGGER.debug(f"host={self._host}, token={self._token}")
-            device = MiotDevice(self._host, self._token)
             for _ in range(GET_PROP_RETRIES):
                 try:
-                    props = device.get_property_by(7, 45)[0]["value"].split(',')
-                    self._wifi_info_sn = props[self.WIFI_STR_POS].replace('"', '')[:self.WIFI_STR_LEN]
+                    self._wifi_info_sn = self.get_wifi_info_sn()
                     _LOGGER.debug(f"wifi_sn = {self._wifi_info_sn}")
                     break
                 except:

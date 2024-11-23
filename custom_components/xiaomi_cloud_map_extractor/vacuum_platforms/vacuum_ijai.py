@@ -55,7 +55,7 @@ class IjaiCloudVacuum(XiaomiCloudVacuumV2):
 
         for piid in piids:
             data = device.get_property_by(1, piid)
-            if "value" in data[0] and (len(data[0]["value"]) == 18 and data[0]["value"].isalnum() and data[0]["value"].isupper()):
+            if "value" in data[0] and (len(data[0]["value"]) == self.WIFI_STR_LEN and data[0]["value"].isalnum() and data[0]["value"].isupper()):
                 wifi_info_sn = data[0]["value"]
                 break
 

@@ -310,7 +310,7 @@ class VacuumCamera(Camera):
         if self._map_data is None or self._map_data.image is None or self._map_data.image.is_empty:
             return
         if not hasattr(self, "_image_generator") or self._image_generator is None:
-            self._image_generator = ImageGenerator(self._colors, self._sizes, self._device.map_data_parser._image_parser._drawables,self._image_config, self._texts)
+            self._image_generator = ImageGenerator(self._colors, self._sizes, self._device.map_data_parser._image_parser._drawables, self._image_config, self._texts)
         self._image_generator.draw_map(self._map_data)
         img_byte_arr = io.BytesIO()
         self._map_data.image.data.save(img_byte_arr, format='PNG')

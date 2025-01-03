@@ -1,12 +1,13 @@
 {
   "domain": "xiaomi_cloud_map_extractor",
   "name": "Xiaomi Cloud Map Extractor",
-  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor",
-  "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues",
-  "dependencies": [],
   "codeowners": [
     "@PiotrMachowski"
   ],
+  "dependencies": [],
+  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/issues",
   "requirements": [
     "pillow",
     "pybase64",
@@ -14,6 +15,5 @@
     "requests",
     "pycryptodome"
   ],
-  "version": "v2.2.0",
-  "iot_class": "cloud_polling"
+  "version": "v0.0.0"
 }

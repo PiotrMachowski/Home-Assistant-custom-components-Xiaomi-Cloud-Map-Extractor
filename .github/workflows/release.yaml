@@ -1,28 +1,38 @@
----
 name: Release
 
 on:
   release:
     types: [published]
 
+env:
+  COMPONENT_NAME: xiaomi_cloud_map_extractor
+
 jobs:
   release:
     name: Prepare release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Download repo
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4.2.2
 
-      - name: Zip xiaomi_cloud_map_extractor dir
+      - name: Adjust version number
+        shell: bash
         run: |
-          cd /home/runner/work/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/custom_components/xiaomi_cloud_map_extractor
-          zip xiaomi_cloud_map_extractor.zip -r ./
+          version="${{ github.event.release.tag_name }}"
+          yq e -P -o=json \
+            -i ".version = \"${version}\"" \
+            "${{ github.workspace }}/custom_components/${{ env.COMPONENT_NAME }}/manifest.json"
+
+      - name: Zip ${{ env.COMPONENT_NAME }} dir
+        run: |
+          cd "${{ github.workspace }}/custom_components/${{ env.COMPONENT_NAME }}"
+          zip ${{ env.COMPONENT_NAME }}.zip -r ./
+
 
       - name: Upload zip to release
-        uses: svenstaro/upload-release-action@v1-release
+        uses: softprops/action-gh-release@v2.1.0
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: /home/runner/work/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/custom_components/xiaomi_cloud_map_extractor/xiaomi_cloud_map_extractor.zip
-          asset_name: xiaomi_cloud_map_extractor.zip
-          tag: ${{ github.ref }}
-          overwrite: true
+          files: ${{ github.workspace }}/custom_components/${{ env.COMPONENT_NAME }}/${{ env.COMPONENT_NAME }}.zip

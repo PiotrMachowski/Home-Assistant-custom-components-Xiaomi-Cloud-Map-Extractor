@@ -118,12 +118,16 @@ camera:
       color_obstacle: [0, 0, 0, 127]
       color_obstacle_with_photo: [0, 0, 0, 127]
       color_path: [147, 194, 238]
+      color_mop_path: [255, 255, 255, 0x5F]
       color_goto_path: [0, 255, 0]
       color_predicted_path: [255, 255, 0, 0]
       color_cleaned_area: [127, 127, 127, 127]
       color_zones: [0xAD, 0xD8, 0xFF, 0x8F]
       color_zones_outline: [0xAD, 0xD8, 0xFF]
       color_virtual_walls: [255, 0, 0]
+      color_carpets: [0xA9, 0xF7, 0xA9 ]
+      color_no_carpet_zones: [255, 33, 55, 0x5F]
+      color_no_carpet_zones_outline: [255, 0, 0]
       color_new_discovered_area: [64, 64, 64]
       color_no_go_zones: [255, 33, 55, 127]
       color_no_go_zones_outline: [255, 0, 0]
@@ -157,6 +161,8 @@ camera:
       - goto_path
       - ignored_obstacles
       - ignored_obstacles_with_photo
+      - mop_path
+      - no_carpet_zones
       - no_go_zones
       - no_mopping_zones
       - obstacles
@@ -190,12 +196,14 @@ camera:
       charger_radius: 4
       vacuum_radius: 6.5
       path_width: 1
+      mop_path_width: 16
       obstacle_radius: 3
       ignored_obstacle_radius: 3
       obstacle_with_photo_radius: 3
       ignored_obstacle_with_photo_radius: 3
     attributes:
       - calibration_points
+      - carpet_map
       - charger
       - cleaned_rooms
       - country
@@ -205,6 +213,8 @@ camera:
       - image
       - is_empty
       - map_name
+      - mop_path
+      - no_carpet_areas
       - no_go_areas
       - no_mopping_areas
       - obstacles
@@ -263,6 +273,7 @@ camera:
 
   | Color name | Description |
   | --- | --- |
+  | `color_carpets` | Carpets fill, in checkboard pattern |
   | `color_charger` | Charger fill |
   | `color_charger_outline` | Charger outline |
   | `color_cleaned_area` | Fill of area that already has been cleaned |
@@ -275,6 +286,8 @@ camera:
   | `color_map_wall_v2` | Walls (for software with rooms support) |
   | `color_map_wall` | Walls (for software without rooms support) |
   | `color_new_discovered_area` | Newly discovered areas |
+  | `color_no_carpet_zones_outline` | Outline of no-carpet zones |
+  | `color_no_carpet_zones` | Fill of no-carpet zones |
   | `color_no_go_zones_outline` | Outline of no-go zones |
   | `color_no_go_zones` | Fill of no-go zones |
   | `color_no_mop_zones_outline` | Outline of no-mopping zones |
@@ -282,6 +295,7 @@ camera:
   | `color_obstacle_with_photo` | Obstacle with photo mark on a map |
   | `color_obstacle` | Obstacle mark on a map |
   | `color_path` | Path of a vacuum |
+  | `color_mop_path` | Mopped path of a vacuum (for vacuums that support mopping) |
   | `color_predicted_path` | Predicted path to a point in goto mode |
   | `color_robo` | Vacuum fill |
   | `color_robo_outline` | Vacuum outline |
@@ -310,6 +324,8 @@ camera:
   - `goto_path`
   - `ignored_obstacles_with_photo`
   - `ignored_obstacles`
+  - `mop_path`
+  - `no_carpet_zones`
   - `no_go_zones`
   - `no_mopping_zones`
   - `obstacles_with_photo`
@@ -357,6 +373,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   | `obstacle_with_photo_radius` | float | false | 3 | Radius of an obstacle with photo circle. |
   | `ignored_obstacle_with_photo_radius` | float | false | 3 | Radius of an ignored obstacle with photo circle. |
   | `path_width` | float | false | 1 | Width of path line. |
+  | `mop_path_width` | float | false | equal to vacuum radius | Width of mop path line. |
 
 #### Attributes configuration
 
@@ -364,6 +381,7 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   Available values:
   - `calibration_points` - Calculated calibration points for [Lovelace Xiaomi Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card).
      <img src="https://raw.githubusercontent.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/master/images/map_card.gif" width=50%>
+  - `carpet_map`
   - `charger`
   - `cleaned_rooms`
   - `country`
@@ -375,6 +393,8 @@ fc-list | grep ttf | sed "s/.*\///"| sed "s/ttf.*/ttf/"
   - `image`
   - `is_empty`
   - `map_name`
+  - `mop_path`
+  - `no_carpet_areas`
   - `no_go_areas`
   - `no_mopping_areas`
   - `obstacles_with_photo`
@@ -418,6 +438,7 @@ This integration was tested on following vacuums:
    - `roborock.vacuum.a15` (Roborock S7)
    - `roborock.vacuum.a19` (Roborocka S4 Max)
    - `roborock.vacuum.a27` (Roborock S7 MaxV)
+   - `roborock.vacuum.a70` (Roborock S8 Pro Ultra)
  - Viomi map format:
    - `viomi.vacuum.v6` (Viomi Vacuum V2 Pro, Xiaomi Mijia STYJ02YM, Mi Robot Vacuum Mop Pro)
    - `viomi.vacuum.v7` (Mi Robot Vacuum-Mop Pro)
@@ -426,7 +447,9 @@ This integration was tested on following vacuums:
  - Roidmi map format:
    - `roidmi.vacuum.v60` (Roidmi EVE Plus)
    - `viomi.vacuum.v18` (Viomi S9)
+   - `viomi.vacuum.v38` (Viomi V5 Pro)
    - `zhimi.vacuum.xa1` (Lydsto R1)
+   - `chuangmi.vacuum.hmi707` (IMILAB V1 Vacuum)
  - Dreame map format:
    - `dreame.vacuum.mc1808` (Xiaomi Mi Mop/Xiaomi Mijia 1C)
    - `dreame.vacuum.p2008` (Dreame F9)

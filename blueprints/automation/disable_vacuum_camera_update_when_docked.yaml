@@ -30,7 +30,7 @@ action:
   - condition: trigger
     id: 0
   - service: |
-      {% if trigger.to_state.state in ["unavailable", "unknown", "docked"] %}
+      {% if trigger.to_state.state in ["unavailable", "unknown", "docked", "idle", "paused", "charging"] %}
         camera.turn_off
       {% else %}
         camera.turn_on

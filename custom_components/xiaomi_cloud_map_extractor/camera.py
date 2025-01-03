@@ -16,7 +16,7 @@ except ImportError:
     from miio import Vacuum as RoborockVacuum, DeviceException
 import PIL.Image as Image
 import voluptuous as vol
-from homeassistant.components.camera import Camera, ENTITY_ID_FORMAT, PLATFORM_SCHEMA, SUPPORT_ON_OFF
+from homeassistant.components.camera import Camera, CameraEntityFeature, ENTITY_ID_FORMAT, PLATFORM_SCHEMA
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
@@ -209,8 +209,8 @@ class VacuumCamera(Camera):
         self._should_poll = False
 
     @property
-    def supported_features(self) -> int:
-        return SUPPORT_ON_OFF
+    def supported_features(self):
+        return CameraEntityFeature.ON_OFF
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:

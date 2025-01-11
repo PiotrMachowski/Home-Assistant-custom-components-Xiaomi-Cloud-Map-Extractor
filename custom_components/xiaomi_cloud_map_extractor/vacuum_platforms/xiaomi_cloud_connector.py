@@ -212,7 +212,7 @@ class XiaomiCloudConnector:
                 )
                 yield from devices
 
-    def get_device_details(self, token: str, country: Optional[str] = None):
+    def get_device_details_from_home(self, token: str, country: Optional[str] = None):
         devices = self.get_devices_iter(country)
         matching_token = filter(lambda device: device.token == token, devices)
         if match := next(matching_token, None):
@@ -228,7 +228,32 @@ class XiaomiCloudConnector:
         return self.execute_api_call_encrypted(url, params)
 
 
-    def execute_api_call_encrypted(self, url: str, params: dict[str, str]) -> any:
+    def get_device_details(self, token: str,
+                           country: Optional[str]) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
+        countries_to_check = CONF_AVAILABLE_COUNTRIES
+        if country is not None:
+            countries_to_check = [country]
+        for c in countries_to_check:
+            devices = self.get_devices(c)
+            if devices is None:
+                continue
+            found = list(filter(lambda d: str(d["token"]).casefold() == str(token).casefold(),
+                                devices["result"]["list"]))
+            if len(found) > 0:
+                user_id = found[0]["uid"]
+                device_id = found[0]["did"]
+                model = found[0]["model"]
+                return c, user_id, device_id, model
+        return self.get_device_details_from_home(token, country)
+
+    def get_devices(self, country: str) -> Any:
+        url = self.get_api_url(country) + "/home/device_list"
+        params = {
+            "data": '{"getVirtualModel":false,"getHuamiDevices":0}'
+        }
+        return self.execute_api_call_encrypted(url, params)
+
+    def execute_api_call_encrypted(self, url: str, params: Dict[str, str]) -> Any:
         headers = {
             "Accept-Encoding": "identity",
             "User-Agent": self._agent,

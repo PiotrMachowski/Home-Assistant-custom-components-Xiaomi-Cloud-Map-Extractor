@@ -163,10 +163,12 @@ class XiaomiCloudConnector:
         if (response := self.execute_api_call_encrypted(url, params)) is None:
             return None
 
-        if homelist := response["result"]["homelist"]:
+        result = response["result"]
+
+        if homelist := result["homelist"]:
             yield from (XiaomiHome(int(home["id"]), home["uid"]) for home in homelist)
 
-        if homelist := response["result"]["share_home_list"]:
+        if homelist := result.get("share_home_list", None):
             yield from (XiaomiHome(int(home["id"]), home["uid"]) for home in homelist)
 
     def get_devices_from_home_iter(self, country: str, home_id: int, owner_id: int):

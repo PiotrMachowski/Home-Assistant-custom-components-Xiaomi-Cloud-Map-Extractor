@@ -297,7 +297,12 @@ class VacuumCamera(Camera):
 
     def _initialize_device(self):
         _LOGGER.debug("Retrieving device info, country: %s", self._country)
-        country, user_id, device_id, model = self._connector.get_device_details(self._token, self._country)
+        token = self._token
+        country, user_id, device_id, model = self._connector.get_device_details(token, self._country)
+
+        if device_id is None:
+            _LOGGER.error("Failed to find a device matching the given token: %s", token)
+
         if model is not None:
             self._country = country
             _LOGGER.debug("Retrieved device model: %s", model)

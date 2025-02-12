@@ -1,0 +1,199 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Device is already configured",
+      "already_in_progress": "Configuration flow is already in progress",
+      "unknown": "Unexpected error"
+    },
+    "error": {
+      "cloud_login_error": "Could not login to Xiaomi Miio Cloud, check the credentials.",
+      "two_factor_auth_required": "Two factor authentication required. Use the following url and try again {two_factor_url}.",
+      "cloud_no_devices": "No vacuums found in this Xiaomi Miio cloud account.",
+      "invalid_vacuum": "Connection to vacuum failed, please check the configuration."
+    },
+    "flow_title": "{name}",
+    "step": {
+      "cloud": {
+        "data": {
+          "country": "Server",
+          "password": "Password",
+          "username": "Username"
+        },
+        "description": "Log in to the Xiaomi Miio cloud, see https://www.openhab.org/addons/bindings/miio/#country-servers for the cloud server to use."
+      },
+      "confirm_data": {
+        "data": {
+          "host": "IP address",
+          "token": "API token",
+          "used_map_api": "Used map API"
+        },
+        "data_description": {
+          "used_map_api": "API used to decode the map. (*) - detected"
+        },
+        "description": "Confirm detected device configuration."
+      },
+      "reauth_confirm": {
+        "description": "The Xiaomi Cloud Map Extractor integration needs to re-authenticate your account in order to update the tokens or add missing cloud credentials.",
+        "title": "Authentication expired for {name}"
+      },
+      "select_vacuum": {
+        "data": {
+          "select_vacuum": "Vacuum"
+        },
+        "description": "Select the vacuum to set up."
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "left_and_right_sum_over_100": "Sum of left and right trims is above 100%",
+      "top_and_bottom_sum_over_100": "Sum of top and bottom trims is above 100%",
+      "some_room_ids_are_not_integers": "Some room IDs are not integers"
+    },
+    "step": {
+      "init": {
+        "description": "Choose parameters to configure.",
+        "menu_options": {
+          "image_config": "Image dimensions",
+          "colors": "Image colors",
+          "room_colors_step1": "Room colors",
+          "drawables": "Drawn map elements",
+          "sizes": "Map elements' sizes"
+        }
+      },
+      "image_config": {
+        "description": "Choose image configuration.",
+        "data": {
+          "scale": "Scale",
+          "rotate": "Rotate",
+          "trim_left": "Trim - left",
+          "trim_right": "Trim - right",
+          "trim_top": "Trim - top",
+          "trim_bottom": "Trim - bottom"
+        }
+      },
+      "colors": {
+        "description": "Choose colors and their transparency levels that should be used to render a map.",
+        "data": {
+          "color_carpets": "Carpets",
+          "color_carpets_alpha": "Carpets - alpha",
+          "color_charger": "Charger",
+          "color_charger_alpha": "Charger - transparency",
+          "color_charger_outline": "Charger outline",
+          "color_charger_outline_alpha": "Charger outline - transparency",
+          "color_cleaned_area": "Cleaned area",
+          "color_cleaned_area_alpha": "Cleaned area - transparency",
+          "color_goto_path": "Goto path",
+          "color_goto_path_alpha": "Goto path - transparency",
+          "color_grey_wall": "Grey wall",
+          "color_grey_wall_alpha": "Grey wall - transparency",
+          "color_ignored_obstacle": "Ignored obstacle",
+          "color_ignored_obstacle_alpha": "Ignored obstacle - transparency",
+          "color_ignored_obstacle_with_photo": "Ignored obstacle with_photo",
+          "color_ignored_obstacle_with_photo_alpha": "Ignored obstacle with photo - transparency",
+          "color_map_inside": "Map inside",
+          "color_map_inside_alpha": "Map inside - transparency",
+          "color_map_outside": "Map outside",
+          "color_map_outside_alpha": "Map outside - transparency",
+          "color_map_wall": "Map wall",
+          "color_map_wall_alpha": "Map wall - transparency",
+          "color_map_wall_v2": "Map wall v2",
+          "color_map_wall_v2_alpha": "Map wall v2 - transparency",
+          "color_mop_path": "Mop path",
+          "color_mop_path_alpha": "Mop path - transparency",
+          "color_new_discovered_area": "New discovered area",
+          "color_new_discovered_area_alpha": "New discovered area - transparency",
+          "color_no_carpet_zones": "No-carpet zones",
+          "color_no_carpet_zones_alpha": "No-carpet zones - transparency",
+          "color_no_carpet_zones_outline": "No-carpet zones outline",
+          "color_no_carpet_zones_outline_alpha": "No-carpet zones outline - transparency",
+          "color_no_go_zones": "No-go zones",
+          "color_no_go_zones_alpha": "No-go zones - transparency",
+          "color_no_go_zones_outline": "No-go zones outline",
+          "color_no_go_zones_outline_alpha": "No-go zones outline - transparency",
+          "color_no_mop_zones": "No-mop_zones",
+          "color_no_mop_zones_alpha": "No-mop zones - transparency",
+          "color_no_mop_zones_outline": "No-mop zones outline",
+          "color_no_mop_zones_outline_alpha": "No mop zones outline - transparency",
+          "color_obstacle": "Obstacle",
+          "color_obstacle_alpha": "Obstacle - transparency",
+          "color_obstacle_with_photo": "Obstacle with photo",
+          "color_obstacle_with_photo_alpha": "Obstacle with photo - transparency",
+          "color_path": "Path",
+          "color_path_alpha": "Path - transparency",
+          "color_predicted_path": "Predicted path",
+          "color_predicted_path_alpha": "Predicted path - transparency",
+          "color_robo": "Robo",
+          "color_robo_alpha": "Robo - transparency",
+          "color_robo_outline": "Robot outline",
+          "color_robo_outline_alpha": "Robot outline - transparency",
+          "color_room_names": "Room names",
+          "color_room_names_alpha": "Room names - transparency",
+          "color_scan": "Scan",
+          "color_scan_alpha": "Scan - transparency",
+          "color_unknown": "Unknown",
+          "color_unknown_alpha": "Unknown - transparency",
+          "color_virtual_walls": "Virtual walls",
+          "color_virtual_walls_alpha": "Virtual walls - transparency",
+          "color_zones": "Zones",
+          "color_zones_alpha": "Zones - transparency",
+          "color_zones_outline": "Zones outline",
+          "color_zones_outline_alpha": "Zones outline - transparency"
+        }
+      },
+      "room_colors_step1": {
+        "description": "Choose rooms for which you want to configure colors.",
+        "data": {
+          "room_color_ids": "Room IDs"
+        }
+      },
+      "room_colors_step2": {
+        "description": "Choose rooms' colors.",
+        "data": {
+        }
+      },
+      "drawables": {
+        "description": "Choose map elements to draw.",
+        "data": {
+          "drawables": "Map elements"
+        }
+      },
+      "sizes": {
+        "description": "Configure sizes of map's elements.",
+        "data": {
+          "charger_radius": "Radius of a charger",
+          "ignored_obstacle_radius": "Radius of an ignored obstacle",
+          "ignored_obstacle_with_photo_radius": "Radius of an ignored obstacle with photo",
+          "mop_path_width": "Width of a mop path",
+          "obstacle_radius": "Radius of an obstacle",
+          "obstacle_with_photo_radius": "Radius of an obstacle with photo",
+          "vacuum_radius": "Radius of a vacuum",
+          "path_width": "Width of a vacuum path"
+        }
+      }
+    }
+  },
+  "selector": {
+    "drawables": {
+      "options": {
+        "charger": "Charger",
+        "cleaned_area": "Cleaned area",
+        "goto_path": "Goto path",
+        "ignored_obstacles": "Ignored obstacles",
+        "ignored_obstacles_with_photo": "Ignored obstacles with photo",
+        "mop_path": "Mop path",
+        "no_carpet_zones": "No carpet zones",
+        "no_go_zones": "No go zones",
+        "no_mopping_zones": "No mopping zones",
+        "obstacles": "Obstacles",
+        "obstacles_with_photo": "Obstacles with photo",
+        "path": "Path",
+        "predicted_path": "Predicted path",
+        "room_names": "Room names",
+        "vacuum_position": "Vacuum position",
+        "virtual_walls": "Virtual walls",
+        "zones": "Zones"
+      }
+    }
+  }
+}

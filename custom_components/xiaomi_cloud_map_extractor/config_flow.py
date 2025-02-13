@@ -119,8 +119,9 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                 two_factor_url = e.url
             except XiaomiCloudMapExtractorException:
                 errors["base"] = "cloud_login_error"
-            except Exception:
-                _LOGGER.exception("Unexpected exception in Miio cloud login")
+            except Exception as e:
+                _LOGGER.error("Unexpected exception while attempting Miio cloud login")
+                _LOGGER.error(e, exc_info=True)
                 return self.async_abort(reason="unknown")
 
             if errors:
@@ -131,8 +132,9 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
 
             try:
                 devices_raw = await connector.get_devices(server)
-            except Exception:
-                _LOGGER.exception("Unexpected exception in Miio cloud get devices")
+            except Exception as e:
+                _LOGGER.error("Unexpected exception while attempting to Miio cloud get devices")
+                _LOGGER.error(e, exc_info=True)
                 return self.async_abort(reason="unknown")
 
             if not devices_raw:
@@ -270,7 +272,7 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             status = await self.hass.async_add_executor_job(roborock_vacuum.status)
             return status is not None
         except Exception as e:
-            _LOGGER.error(e)
+            _LOGGER.error(e, exc_info=True)
             return False
 
     def _default_image_config(self: Self) -> dict[str, float]:

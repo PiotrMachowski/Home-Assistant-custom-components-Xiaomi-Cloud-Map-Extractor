@@ -119,7 +119,7 @@ class MapDataParserXiaomi(MapDataParser):
             map_data.image = image
             map_data.rooms = rooms
 
-        if not map_data.image.is_empty:
+        if hasattr(map_data.image, 'is_empty') and not map_data.image.is_empty:
             MapDataParserXiaomi.draw_elements(colors, drawables, sizes, map_data, image_config)
             if len(map_data.rooms) > 0 and map_data.vacuum_position is not None:
                 map_data.vacuum_room = MapDataParserXiaomi.get_current_vacuum_room(img_start, raw,

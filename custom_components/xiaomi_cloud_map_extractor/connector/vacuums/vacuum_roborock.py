@@ -76,7 +76,7 @@ class RoborockCloudVacuum(BaseXiaomiCloudVacuum):
                 return self._off_counter <= OFF_UPDATES
 
         except DeviceException as de:
-            if "token" in de:
+            if "token" in repr(de):
                 raise InvalidDeviceTokenException()
             return False
 

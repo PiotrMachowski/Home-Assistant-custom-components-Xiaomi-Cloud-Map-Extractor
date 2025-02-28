@@ -34,7 +34,7 @@ class BaseXiaomiCloudVacuum(ABC):
         self.model = vacuum_config.model
         self._connector = vacuum_config.connector
         self._server = vacuum_config.server
-        self._user_id = vacuum_config.user_id
+        self._user_id = vacuum_config.device_info.user_id
         self._device_id = vacuum_config.device_id
         self._palette = vacuum_config.palette
         self._drawables = vacuum_config.drawables

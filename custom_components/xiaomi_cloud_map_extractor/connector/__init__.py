@@ -138,8 +138,8 @@ class XiaomiCloudMapExtractorConnector:
         store_map_path = self._config.store_map_path if self._config.store_map_raw else None
         vacuum_config = VacuumConfig(
             self._cloud_connector,
+            device_details,
             self._config.server,
-            device_details.user_id,
             self._config.device_id,
             self._config.host,
             self._config.token,

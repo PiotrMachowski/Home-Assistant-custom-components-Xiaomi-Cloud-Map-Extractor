@@ -72,6 +72,12 @@ class DreameCloudVacuum(BaseXiaomiCloudVacuumV2):
             self._robot_stamp = 0
             return map_name
         else:
+            await self._connector.get_other_info(self._device_id, "action", parameters={
+                "did": self._device_id,
+                "siid": 6,
+                "aiid": 1,
+                "in": [{'piid': 2, 'value': '{"req_type":1,"frame_type":"I","force_type":1}'}],
+            })
             return await super().get_map_name()
 
     def store_map(self: Self, raw_map_data):

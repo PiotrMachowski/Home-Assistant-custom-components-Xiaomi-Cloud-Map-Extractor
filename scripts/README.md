@@ -10,7 +10,7 @@ Config file (passed with argument `--config`) should contain configuration of `x
 
 ### Dependencies installation
 ```bash
-pip3 install pillow pybase64 python requests pycryptodome pyyaml
+pip3 install pillow pybase64 requests pycryptodome pyyaml
 ```
 
 ### Downloading map from Xiaomi cloud

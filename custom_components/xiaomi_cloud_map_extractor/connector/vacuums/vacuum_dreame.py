@@ -1,5 +1,7 @@
 from typing import Self
 
+from miio import DreameVacuum
+
 from vacuum_map_parser_base.map_data import MapData
 
 from vacuum_map_parser_dreame.map_data_parser import DreameMapDataParser
@@ -24,6 +26,7 @@ class DreameCloudVacuum(BaseXiaomiCloudVacuumV2):
         )
         self._robot_stamp = 0
         self._enc_key = None
+        self._dreame_vacuum = DreameVacuum(vacuum_config.host, vacuum_config.token, model=vacuum_config.model)
 
     @staticmethod
     def vacuum_platform() -> VacuumApi:
@@ -72,12 +75,7 @@ class DreameCloudVacuum(BaseXiaomiCloudVacuumV2):
             self._robot_stamp = 0
             return map_name
         else:
-            await self._connector.get_other_info(self._device_id, "action", parameters={
-                "did": self._device_id,
-                "siid": 6,
-                "aiid": 1,
-                "in": [{'piid': 2, 'value': '{"req_type":1,"frame_type":"I","force_type":1}'}],
-            })
+            self._dreame_vacuum.call_action("map_view", params=[{'piid': 2, 'value': '{"frame_type":"I"}'}])
             return await super().get_map_name()
 
     def store_map(self: Self, raw_map_data):

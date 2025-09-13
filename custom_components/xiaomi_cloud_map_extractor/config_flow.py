@@ -22,7 +22,7 @@ from vacuum_map_parser_base.config.drawable import Drawable
 from vacuum_map_parser_base.config.image_config import ImageConfig
 from vacuum_map_parser_base.config.size import Sizes
 
-from .connector.utils.exceptions import XiaomiCloudMapExtractorException, TwoFactorAuthRequiredException
+from .connector.utils.exceptions import XiaomiCloudMapExtractorException, TwoFactorAuthRequiredException, InvalidCredentialsException, FailedLoginException
 from .connector.vacuums.base.model import VacuumApi
 from .connector.xiaomi_cloud.connector import XiaomiCloudConnector, XiaomiCloudDeviceInfo
 from .connector.xiaomi_cloud.const import AVAILABLE_SERVERS
@@ -41,7 +41,11 @@ from .const import (
     CONF_IMAGE_CONFIG_TRIM_LEFT,
     CONF_IMAGE_CONFIG_TRIM_BOTTOM,
     CONF_IMAGE_CONFIG_TRIM_TOP,
-    CONF_IMAGE_CONFIG_TRIM_RIGHT
+    CONF_IMAGE_CONFIG_TRIM_RIGHT,
+    CONF_MI_SSECURITY,
+    CONF_MI_SERVICE_TOKEN,
+    CONF_MI_USER_ID,
+    CONF_MI_CUSER_ID,
 )
 from .options_flow import XiaomiCloudMapExtractorOptionsFlowHandler
 from .types import XiaomiCloudMapExtractorConfigEntry
@@ -50,11 +54,17 @@ _LOGGER = logging.getLogger(__name__)
 
 CLOUD_SCHEMA = vol.Schema(
     {
-        vol.Optional(CONF_USERNAME): str,
-        vol.Optional(CONF_PASSWORD): str,
-        vol.Optional(CONF_SERVER, default='de'): vol.In(
+        vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_PASSWORD): str,
+        vol.Required(CONF_SERVER, default='de'): vol.In(
             AVAILABLE_SERVERS
         )
+    }
+)
+
+TWO_FACTOR_SCHEMA = vol.Schema(
+    {
+        vol.Required("verification_code"): str,
     }
 )
 
@@ -70,6 +80,11 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         self.server = None
         self.cloud_vacuums: list[XiaomiCloudDeviceInfo] = []
         self.cloud_vacuum: XiaomiCloudDeviceInfo | None = None
+        self.two_factor_url = None
+        self.session_data = None
+        # Avoid clashing with ConfigFlow.context (dict). Store Xiaomi context separately.
+        self.mi_context = None
+        self.connector = None
 
     @staticmethod
     @callback
@@ -101,8 +116,10 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
     async def async_step_cloud(
             self: Self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        _LOGGER.error("STEP_CLOUD_CALLED: Method started with user_input=%s", user_input is not None)
         errors = {}
         if user_input is not None:
+            _LOGGER.error("STEP_CLOUD_PROCESSING: Processing user input")
 
             username = user_input.get(CONF_USERNAME)
             password = user_input.get(CONF_PASSWORD)
@@ -112,30 +129,75 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             connector = XiaomiCloudConnector(session_creator, username, password, server)
             two_factor_url = None
             try:
-                if await connector.login() is None:
-                    errors["base"] = "cloud_login_error"
+                _LOGGER.error("DEBUG: Config flow starting login attempt - THIS IS A TEST MESSAGE")
+                _LOGGER.debug("About to call connector.login()")
+                login_result = await connector.login()
+                _LOGGER.debug("Login completed with result: %s", login_result)
+                if login_result is None:
+                    _LOGGER.error("Login returned None - authentication failed")
+                    errors["base"] = "TESTING_LOGIN_RETURNED_NULL"
             except TwoFactorAuthRequiredException as e:
-                errors["base"] = "two_factor_auth_required"  # todo 2fa
-                two_factor_url = e.url
-            except XiaomiCloudMapExtractorException:
-                errors["base"] = "cloud_login_error"
+                _LOGGER.error("TwoFactorAuthRequiredException caught - redirecting to 2FA input step")
+                _LOGGER.error("Exception details: url=%s, session_data=%s, context=%s", e.url, e.session_data, e.context)
+                # Store data for 2FA step
+                self.username = username
+                self.password = password  
+                self.server = server
+                self.connector = connector
+                self.two_factor_url = e.url
+                self.session_data = e.session_data
+                self.mi_context = e.context
+                _LOGGER.error("2FA_REDIRECT: Stored session data, showing simple 2FA form")
+                try:
+                    form_result = self.async_show_form(
+                        step_id="two_factor",
+                        data_schema=vol.Schema({vol.Required("verification_code"): str}),
+                        errors={},
+                        description_placeholders={"two_factor_url": self.two_factor_url}
+                    )
+                    _LOGGER.error("2FA_REDIRECT: 2FA form created successfully")
+                    return form_result
+                except Exception as form_error:
+                    _LOGGER.error("2FA_REDIRECT: Error creating 2FA form: %s", form_error, exc_info=True)
+                    # Fall back to error message
+                    errors["base"] = "two_factor_auth_required"
+                    two_factor_url = e.url
+            except InvalidCredentialsException as e:
+                _LOGGER.error("InvalidCredentialsException during login: %s", str(e))
+                errors["base"] = "TESTING_INVALID_CREDENTIALS"
+            except FailedLoginException as e:
+                _LOGGER.error("FailedLoginException during login: %s", str(e))
+                errors["base"] = "TESTING_FAILED_LOGIN"
+            except XiaomiCloudMapExtractorException as e:
+                _LOGGER.error("Other XiaomiCloudMapExtractorException during login: %s (type: %s)", str(e), type(e).__name__)
+                errors["base"] = f"TESTING_XIAOMI_EXCEPTION_{type(e).__name__}"
             except Exception as e:
-                _LOGGER.error("Unexpected exception while attempting Miio cloud login")
-                _LOGGER.error(e, exc_info=True)
-                return self.async_abort(reason="unknown")
+                _LOGGER.error("Unexpected exception type: %s", type(e).__name__)
+                _LOGGER.error("Unexpected exception message: %s", str(e))
+                _LOGGER.error("Exception details:", exc_info=True)
+                # Show the actual error in the UI for debugging
+                errors["base"] = f"DEBUGGING_ERROR_{type(e).__name__}_{str(e)[:50]}"
 
             if errors:
+                _LOGGER.error("FINAL_ERROR_CHECK: Found errors, showing cloud form with errors: %s", errors)
+                _LOGGER.error("FINAL_ERROR_CHECK: two_factor_url value: %s", two_factor_url)
+                placeholders = {}
+                if two_factor_url:
+                    placeholders["two_factor_url"] = two_factor_url
                 return self.async_show_form(
                     step_id="cloud", data_schema=CLOUD_SCHEMA, errors=errors,
-                    description_placeholders={"two_factor_url": two_factor_url}
+                    description_placeholders=placeholders
                 )
 
             try:
                 devices_raw = await connector.get_devices(server)
             except Exception as e:
-                _LOGGER.error("Unexpected exception while attempting to Miio cloud get devices")
+                _LOGGER.error("Unexpected exception while attempting to Miio cloud get devices: %s", str(e))
                 _LOGGER.error(e, exc_info=True)
-                return self.async_abort(reason="unknown")
+                errors["base"] = f"DEVICE_DISCOVERY_ERROR_{type(e).__name__}"
+                return self.async_show_form(
+                    step_id="cloud", data_schema=CLOUD_SCHEMA, errors=errors
+                )
 
             if not devices_raw:
                 errors[CONF_SERVER] = "cloud_no_devices"
@@ -157,6 +219,67 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="cloud", data_schema=CLOUD_SCHEMA, errors=errors
         )
+
+    async def async_step_two_factor(
+        self: Self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle 2FA verification step."""
+        _LOGGER.error("2FA_STEP: async_step_two_factor called")
+        errors = {}
+        
+        if user_input is not None:
+            _LOGGER.error("2FA_STEP: Processing verification code")
+            verification_code = user_input.get("verification_code")
+            
+            if verification_code:
+                try:
+                    # Continue the 2FA flow with the provided code
+                    _LOGGER.error("2FA_STEP: Calling continue_2fa_email_flow with code")
+                    success = await self.connector.continue_2fa_email_flow(
+                        verification_code, self.session_data, self.mi_context
+                    )
+                    
+                    if success:
+                        _LOGGER.error("2FA_STEP: 2FA completed successfully, proceeding to device discovery")
+                        # Persist Xiaomi session artifacts to the entry once we finish device selection
+                        return await self._complete_login()
+                    else:
+                        _LOGGER.error("2FA_STEP: Invalid verification code")
+                        errors["base"] = "two_factor_invalid_code"
+                        
+                except Exception as e:
+                    _LOGGER.error("2FA_STEP: Error during verification: %s", e, exc_info=True)
+                    errors["base"] = "two_factor_error"
+            else:
+                errors["base"] = "two_factor_invalid_code"
+        
+        _LOGGER.error("2FA_STEP: Showing 2FA form with URL: %s", self.two_factor_url)
+        return self.async_show_form(
+            step_id="two_factor",
+            data_schema=TWO_FACTOR_SCHEMA,
+            errors=errors,
+            description_placeholders={"two_factor_url": self.two_factor_url}
+        )
+
+    
+    async def _complete_login(self) -> ConfigFlowResult:
+        """Complete login after 2FA and discover devices."""
+        try:
+            cloud_vacuums = await self.connector.get_devices(self.server)
+            if len(cloud_vacuums) == 0:
+                return self.async_abort(reason="cloud_no_devices")
+            
+            self.cloud_vacuums = cloud_vacuums
+            
+            if len(cloud_vacuums) == 1:
+                self.cloud_vacuum = cloud_vacuums[0]
+                return await self.async_step_confirm_data()
+            else:
+                return await self.async_step_select_vacuum()
+                
+        except Exception as e:
+            _LOGGER.error("Error during device discovery: %s", e, exc_info=True)
+            return self.async_abort(reason="cloud_login_error")
 
     async def async_step_select_vacuum(
             self, user_input: dict[str, Any] | None = None
@@ -215,6 +338,16 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                     data[CONF_PASSWORD] = self.password
                     data[CONF_SERVER] = self.server
                     data[CONF_USED_MAP_API] = used_map_api
+                    # Persist Xiaomi session artifacts gathered during 2FA
+                    try:
+                        artifacts = self.connector.get_session_artifacts()
+                        if artifacts:
+                            data[CONF_MI_SSECURITY] = artifacts.get("ssecurity")
+                            data[CONF_MI_SERVICE_TOKEN] = artifacts.get("serviceToken")
+                            data[CONF_MI_USER_ID] = artifacts.get("userId")
+                            data[CONF_MI_CUSER_ID] = artifacts.get("cUserId")
+                    except Exception:
+                        pass
                     return self.async_update_reload_and_abort(existing_entry, data=data)
                 else:
                     return self.async_create_entry(
@@ -230,6 +363,11 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                             CONF_PASSWORD: self.password,
                             CONF_SERVER: self.server,
                             CONF_USED_MAP_API: used_map_api,
+                            # Persist Xiaomi session artifacts gathered during 2FA
+                            CONF_MI_SSECURITY: self.connector.get_session_artifacts() and self.connector.get_session_artifacts().get("ssecurity"),
+                            CONF_MI_SERVICE_TOKEN: self.connector.get_session_artifacts() and self.connector.get_session_artifacts().get("serviceToken"),
+                            CONF_MI_USER_ID: self.connector.get_session_artifacts() and self.connector.get_session_artifacts().get("userId"),
+                            CONF_MI_CUSER_ID: self.connector.get_session_artifacts() and self.connector.get_session_artifacts().get("cUserId"),
                         },
                         options={
                             CONF_IMAGE_CONFIG: self._default_image_config(),

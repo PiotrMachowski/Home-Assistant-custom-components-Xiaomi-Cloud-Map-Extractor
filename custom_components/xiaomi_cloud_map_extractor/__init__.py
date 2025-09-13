@@ -35,7 +35,11 @@ from .const import (
     CONF_IMAGE_CONFIG_TRIM_RIGHT,
     CONF_IMAGE_CONFIG_TRIM_TOP,
     CONF_IMAGE_CONFIG_TRIM_BOTTOM,
-    CONF_ROOM_COLORS
+    CONF_ROOM_COLORS,
+    CONF_MI_SSECURITY,
+    CONF_MI_SERVICE_TOKEN,
+    CONF_MI_USER_ID,
+    CONF_MI_CUSER_ID,
 )
 from .coordinator import XiaomiCloudMapExtractorDataUpdateCoordinator
 from .types import XiaomiCloudMapExtractorConfigEntry, XiaomiCloudMapExtractorRuntimeData
@@ -47,6 +51,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: XiaomiCloudMapExtractorC
     xcme_configuration = to_configuration(entry)
     session_creator = lambda: async_create_clientsession(hass)
     xcme_connector = XiaomiCloudMapExtractorConnector(session_creator, xcme_configuration)
+    # If session artifacts were persisted, adopt them to avoid re-2FA
+    try:
+        artifacts_present = any([
+            xcme_configuration.mi_ssecurity,
+            xcme_configuration.mi_service_token,
+            xcme_configuration.mi_user_id,
+            xcme_configuration.mi_cuser_id,
+        ])
+        if artifacts_present:
+            await xcme_connector._cloud_connector.adopt_session_artifacts(
+                xcme_configuration.mi_ssecurity,
+                xcme_configuration.mi_service_token,
+                xcme_configuration.mi_user_id,
+                xcme_configuration.mi_cuser_id,
+            )
+    except Exception:
+        pass
     xcme_update_coordinator = XiaomiCloudMapExtractorDataUpdateCoordinator(hass, xcme_connector)
     await xcme_update_coordinator.async_config_entry_first_refresh()
     entry.runtime_data = XiaomiCloudMapExtractorRuntimeData(xcme_update_coordinator)
@@ -111,5 +132,10 @@ def to_configuration(entry: XiaomiCloudMapExtractorConfigEntry) -> XiaomiCloudMa
         store_map_raw,
         store_map_image,
         store_map_path,
+        # Session artifacts, if stored in entry
+        entry.data.get(CONF_MI_SSECURITY),
+        entry.data.get(CONF_MI_SERVICE_TOKEN),
+        entry.data.get(CONF_MI_USER_ID),
+        entry.data.get(CONF_MI_CUSER_ID),
     )
     return config

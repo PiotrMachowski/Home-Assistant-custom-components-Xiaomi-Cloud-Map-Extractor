@@ -47,6 +47,11 @@ class XiaomiCloudMapExtractorConnectorConfiguration:
     store_map_raw: bool
     store_map_image: bool
     store_map_path: str
+    # Persisted Xiaomi session artifacts (optional)
+    mi_ssecurity: str | None = None
+    mi_service_token: str | None = None
+    mi_user_id: str | None = None
+    mi_cuser_id: str | None = None
 
 
 @dataclass

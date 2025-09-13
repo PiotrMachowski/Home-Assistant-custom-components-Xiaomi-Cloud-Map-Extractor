@@ -41,3 +41,9 @@ CONF_TEXT_Y: Final = "y"
 CONF_TEXT_COLOR: Final = "color"
 CONF_TEXT_FONT: Final = "font"
 CONF_TEXT_FONT_SIZE: Final = "font_size"
+
+# Xiaomi cloud session persistence keys
+CONF_MI_SSECURITY: Final = "mi_ssecurity"
+CONF_MI_SERVICE_TOKEN: Final = "mi_service_token"
+CONF_MI_USER_ID: Final = "mi_user_id"
+CONF_MI_CUSER_ID: Final = "mi_cuser_id"

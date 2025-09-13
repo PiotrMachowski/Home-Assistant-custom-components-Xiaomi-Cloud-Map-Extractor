@@ -38,3 +38,5 @@ class FailedMapParseException(XiaomiCloudMapExtractorException):
 @dataclass
 class TwoFactorAuthRequiredException(XiaomiCloudMapExtractorException):
     url: str
+    session_data: dict | None = None
+    context: str | None = None

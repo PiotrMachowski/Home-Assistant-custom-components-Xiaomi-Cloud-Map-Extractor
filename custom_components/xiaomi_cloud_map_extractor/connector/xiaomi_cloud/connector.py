@@ -230,11 +230,8 @@ class XiaomiCloudConnector:
                 if isinstance(captcha_url, str) and captcha_url.startswith("/"):
                     captcha_url = f"https://account.xiaomi.com{captcha_url}"
                 _LOGGER.error("LOGIN_STEP_2: captchaUrl found, CAPTCHA required: %s", captcha_url)
-                # Preload captcha to obtain 'ick' cookie required by Xiaomi to validate captcha answers
-                try:
-                    await self._session_data.get(captcha_url)
-                except Exception:
-                    pass
+                # Do NOT prefetch the captcha; fetching here may generate a code bound to a different cookie jar
+                # than the one used by the user to read the image, which can cause code 87001.
                 raise CaptchaRequiredException(captcha_url=captcha_url or "", sign=sign)
             if "ssecurity" in response_json:
                 _LOGGER.error("LOGIN_STEP_2: ssecurity found, login successful")
@@ -282,15 +279,7 @@ class XiaomiCloudConnector:
             "captCode": captcha_code,
         }
 
-        # Include 'ick' if present (some deployments validate it alongside captcha)
-        try:
-            ick_cookie = self._session_data.session.cookie_jar.filter_cookies(
-                "https://account.xiaomi.com"
-            ).get("ick")
-            if ick_cookie and ick_cookie.value:
-                params["ick"] = ick_cookie.value
-        except Exception:
-            pass
+        # Do not attach 'ick' param; other implementations succeed without it and adding it can mismatch sessions
 
         # Xiaomi sometimes validates Referer
         referer_headers = {"Referer": "https://account.xiaomi.com/pass/serviceLogin"}

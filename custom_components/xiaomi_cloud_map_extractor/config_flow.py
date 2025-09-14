@@ -181,7 +181,7 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                             class XiaomiCloudCaptchaView(HomeAssistantView):
                                 url = "/api/xiaomi_cloud_map_extractor/captcha"
                                 name = "xiaomi_cloud_map_extractor:captcha"
-                                requires_auth = True
+                                requires_auth = False
 
                                 def __init__(self, hass):
                                     self.hass = hass

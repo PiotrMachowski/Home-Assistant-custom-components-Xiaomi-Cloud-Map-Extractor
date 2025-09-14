@@ -191,13 +191,16 @@ class XiaomiCloudConnector:
             raise FailedLoginException()
 
         # Some regions may already return captchaUrl at step 1
-        if response.status == 200 and response_json and response_json.get("captchaUrl"):
-            captcha_url = response_json.get("captchaUrl")
-            if isinstance(captcha_url, str) and captcha_url.startswith("/"):
-                captcha_url = f"https://account.xiaomi.com{captcha_url}"
-            next_sign = response_json.get("_sign", "")
-            _LOGGER.debug("Step 1 returned captchaUrl; raising CaptchaRequiredException: %s", captcha_url)
-            raise CaptchaRequiredException(captcha_url=captcha_url or "", sign=next_sign)
+        if response.status == 200 and response_json:
+            # Some regions may signal captcha at step 1 via captchaUrl, code 87001, or type 'manMachine'
+            if response_json.get("captchaUrl") or response_json.get("code") == 87001 or response_json.get("type") == "manMachine":
+                captcha_url = response_json.get("captchaUrl")
+                if isinstance(captcha_url, str) and captcha_url.startswith("/"):
+                    captcha_url = f"https://account.xiaomi.com{captcha_url}"
+                next_sign = response_json.get("_sign", "")
+                _LOGGER.debug("Step 1 indicates CAPTCHA (code=%s, type=%s); raising CaptchaRequiredException: %s",
+                               response_json.get("code"), response_json.get("type"), captcha_url)
+                raise CaptchaRequiredException(captcha_url=captcha_url or "", sign=next_sign)
 
         successful = response.status == 200 and "_sign" in response_json
         if successful:
@@ -233,12 +236,17 @@ class XiaomiCloudConnector:
         _LOGGER.error("LOGIN_STEP_2: Response status=%s", response.status)
         if response.status == 200:
             _LOGGER.error("LOGIN_STEP_2: Response keys=%s", list(response_json.keys()) if response_json else "None")
-            # CAPTCHA required
-            if response_json and response_json.get("captchaUrl"):
+            # CAPTCHA required (various indicators used by Xiaomi)
+            if response_json and (
+                response_json.get("captchaUrl")
+                or response_json.get("code") == 87001
+                or response_json.get("type") == "manMachine"
+            ):
                 captcha_url = response_json.get("captchaUrl")
                 if isinstance(captcha_url, str) and captcha_url.startswith("/"):
                     captcha_url = f"https://account.xiaomi.com{captcha_url}"
-                _LOGGER.error("LOGIN_STEP_2: captchaUrl found, CAPTCHA required: %s", captcha_url)
+                _LOGGER.error("LOGIN_STEP_2: CAPTCHA required (code=%s, type=%s, url=%s)",
+                              response_json.get("code"), response_json.get("type"), captcha_url)
                 # Use updated _sign returned by server if present for captcha retry
                 next_sign = response_json.get("_sign", sign)
                 raise CaptchaRequiredException(captcha_url=captcha_url or "", sign=next_sign)

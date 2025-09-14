@@ -40,3 +40,9 @@ class TwoFactorAuthRequiredException(XiaomiCloudMapExtractorException):
     url: str
     session_data: dict | None = None
     context: str | None = None
+
+
+@dataclass
+class CaptchaRequiredException(XiaomiCloudMapExtractorException):
+    captcha_url: str
+    sign: str | None = None

@@ -24,7 +24,8 @@ from ..utils.exceptions import (
     TwoFactorAuthRequiredException,
     InvalidCredentialsException,
     FailedLoginException,
-    FailedConnectionException
+    FailedConnectionException,
+    CaptchaRequiredException,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -223,6 +224,13 @@ class XiaomiCloudConnector:
         _LOGGER.error("LOGIN_STEP_2: Response status=%s", response.status)
         if response.status == 200:
             _LOGGER.error("LOGIN_STEP_2: Response keys=%s", list(response_json.keys()) if response_json else "None")
+            # CAPTCHA required
+            if response_json and response_json.get("captchaUrl"):
+                captcha_url = response_json.get("captchaUrl")
+                if isinstance(captcha_url, str) and captcha_url.startswith("/"):
+                    captcha_url = f"https://account.xiaomi.com{captcha_url}"
+                _LOGGER.error("LOGIN_STEP_2: captchaUrl found, CAPTCHA required: %s", captcha_url)
+                raise CaptchaRequiredException(captcha_url=captcha_url or "", sign=sign)
             if "ssecurity" in response_json:
                 _LOGGER.error("LOGIN_STEP_2: ssecurity found, login successful")
                 self._session_data.cUserId = response_json["cUserId"]
@@ -246,6 +254,73 @@ class XiaomiCloudConnector:
                 else:
                     _LOGGER.error("LOGIN_STEP_2: no ssecurity and no notificationUrl found")
                     _LOGGER.error("LOGIN_STEP_2: Response JSON: %s", response_json)
+        raise InvalidCredentialsException()
+
+    async def continue_login_with_captcha(self: Self, sign: str, captcha_code: str) -> str | None:
+        """Retry login step 2 including the CAPTCHA code.
+
+        Returns location string if login succeeds and should continue to step 3.
+        May raise TwoFactorAuthRequiredException to start the 2FA flow.
+        Raises InvalidCredentialsException if captcha is invalid or other error.
+        """
+        _LOGGER.debug("Login step 2 retry with captcha")
+        url = "https://account.xiaomi.com/pass/serviceLoginAuth2"
+        params = {
+            "sid": "xiaomiio",
+            "hash": hashlib.md5(str.encode(self._password)).hexdigest().upper(),
+            "callback": "https://sts.api.io.mi.com/sts",
+            "qs": "%3Fsid%3Dxiaomiio%26_json%3Dtrue",
+            "user": self._username,
+            "_sign": sign,
+            "_json": "true",
+            # Captcha answer field; Xiaomi expects this key on login retry
+            "captCode": captcha_code,
+        }
+
+        try:
+            response = await self._session_data.post(url, params=params)
+            _LOGGER.debug("login_step_2 (captcha retry) status=%s", response.status)
+            response_text = await response.text()
+            _LOGGER.debug("login_step_2 (captcha retry) body=%s", response_text[:1000])
+            response_json = to_json(response_text)
+        except Exception as e:
+            _LOGGER.error("Login failed during captcha retry: %s", e)
+            raise InvalidCredentialsException()
+
+        if response.status != 200:
+            _LOGGER.error("Login failed even after captcha. status=%s", response.status)
+            raise InvalidCredentialsException()
+
+        # Invalid captcha commonly returns code 87001
+        if response_json and response_json.get("code") == 87001:
+            _LOGGER.error("Invalid captcha provided (code 87001)")
+            raise InvalidCredentialsException()
+
+        if response_json and response_json.get("captchaUrl"):
+            _LOGGER.error("CAPTCHA still required after retry")
+            raise InvalidCredentialsException()
+
+        if response_json and "ssecurity" in response_json:
+            self._session_data.cUserId = response_json.get("cUserId")
+            location = response_json.get("location")
+            self._session_data.ssecurity = response_json.get("ssecurity")
+            self._session_data.userId = response_json.get("userId")
+            try:
+                max_age = int(response.cookies.get("userId").get("max-age"))
+                self._session_data.expiration = datetime.datetime.now() + datetime.timedelta(seconds=max_age)
+            except Exception:
+                pass
+            self.two_factor_auth_url = None
+            return location
+
+        if response_json and response_json.get("notificationUrl"):
+            notification_url = response_json.get("notificationUrl")
+            _LOGGER.error("2FA required after captcha: %s", notification_url)
+            await self._prepare_2fa_flow(notification_url)
+            _LOGGER.error("continue_login_with_captcha: unexpected flow after _prepare_2fa_flow")
+            raise InvalidCredentialsException()
+
+        _LOGGER.error("Unexpected response after captcha retry: %s", response_json)
         raise InvalidCredentialsException()
 
     # -------------------- 2FA handling -------------------- #

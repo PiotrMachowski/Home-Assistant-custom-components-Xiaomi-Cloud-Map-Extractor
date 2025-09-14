@@ -11,6 +11,8 @@
       "two_factor_auth_required": "Two factor authentication required. Visit this URL in a new tab to complete 2FA, then click Submit again: {two_factor_url}",
       "two_factor_invalid_code": "Invalid verification code. Please try again.",
       "two_factor_error": "Error during two-factor authentication. Please try again.",
+      "captcha_invalid": "Invalid captcha. Please try again.",
+      "captcha_error": "Error while verifying captcha. Please try again.",
       "cloud_no_devices": "No vacuums found in this Xiaomi Miio cloud account.",
       "invalid_vacuum": "Connection to vacuum failed, please check the configuration."
     },
@@ -29,6 +31,12 @@
           "verification_code": "Verification Code"
         },
         "description": "Xiaomi has sent a verification code to your email. Please enter the 6-digit code below. You can also visit this URL if needed: {two_factor_url}"
+      },
+      "captcha": {
+        "data": {
+          "captcha_code": "Captcha Code"
+        },
+        "description": "Xiaomi requires a captcha to continue. Open the image at: {captcha_url}, then enter the characters you see."
       },
       "confirm_data": {
         "data": {

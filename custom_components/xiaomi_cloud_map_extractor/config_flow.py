@@ -22,7 +22,7 @@ from vacuum_map_parser_base.config.drawable import Drawable
 from vacuum_map_parser_base.config.image_config import ImageConfig
 from vacuum_map_parser_base.config.size import Sizes
 
-from .connector.utils.exceptions import XiaomiCloudMapExtractorException, TwoFactorAuthRequiredException, InvalidCredentialsException, FailedLoginException
+from .connector.utils.exceptions import XiaomiCloudMapExtractorException, TwoFactorAuthRequiredException, InvalidCredentialsException, FailedLoginException, CaptchaRequiredException
 from .connector.vacuums.base.model import VacuumApi
 from .connector.xiaomi_cloud.connector import XiaomiCloudConnector, XiaomiCloudDeviceInfo
 from .connector.xiaomi_cloud.const import AVAILABLE_SERVERS
@@ -65,6 +65,12 @@ CLOUD_SCHEMA = vol.Schema(
 TWO_FACTOR_SCHEMA = vol.Schema(
     {
         vol.Required("verification_code"): str,
+    }
+)
+
+CAPTCHA_SCHEMA = vol.Schema(
+    {
+        vol.Required("captcha_code"): str,
     }
 )
 
@@ -136,6 +142,23 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                 if login_result is None:
                     _LOGGER.error("Login returned None - authentication failed")
                     errors["base"] = "TESTING_LOGIN_RETURNED_NULL"
+            except CaptchaRequiredException as e:
+                _LOGGER.error("CaptchaRequiredException caught - redirecting to CAPTCHA input step")
+                # Preserve auth inputs and connector to reuse the same session
+                self.username = username
+                self.password = password
+                self.server = server
+                self.connector = connector
+                # Store sign needed to retry step 2
+                self._captcha_sign = e.sign
+                # Build absolute captcha URL for display
+                self._captcha_url = e.captcha_url
+                return self.async_show_form(
+                    step_id="captcha",
+                    data_schema=CAPTCHA_SCHEMA,
+                    errors={},
+                    description_placeholders={"captcha_url": self._captcha_url},
+                )
             except TwoFactorAuthRequiredException as e:
                 _LOGGER.error("TwoFactorAuthRequiredException caught - redirecting to 2FA input step")
                 _LOGGER.error("Exception details: url=%s, session_data=%s, context=%s", e.url, e.session_data, e.context)
@@ -259,6 +282,46 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             data_schema=TWO_FACTOR_SCHEMA,
             errors=errors,
             description_placeholders={"two_factor_url": self.two_factor_url}
+        )
+
+    async def async_step_captcha(
+        self: Self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle CAPTCHA step when Xiaomi requests captchaUrl in login step 2."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            captcha_code = user_input.get("captcha_code")
+            if captcha_code:
+                try:
+                    # Retry step 2 with captcha and continue the normal flow
+                    location = await self.connector.continue_login_with_captcha(self._captcha_sign or "", captcha_code)
+                    if location:
+                        await self.connector._login_step_3(location)
+                        return await self._complete_login()
+                except TwoFactorAuthRequiredException as e:
+                    # Switch into 2FA step
+                    self.two_factor_url = e.url
+                    self.session_data = e.session_data
+                    self.mi_context = e.context
+                    return self.async_show_form(
+                        step_id="two_factor",
+                        data_schema=TWO_FACTOR_SCHEMA,
+                        errors={},
+                        description_placeholders={"two_factor_url": self.two_factor_url}
+                    )
+                except InvalidCredentialsException:
+                    errors["base"] = "captcha_invalid"
+                except Exception as e:
+                    _LOGGER.error("CAPTCHA_STEP: Unexpected error: %s", e, exc_info=True)
+                    errors["base"] = "captcha_error"
+            else:
+                errors["base"] = "captcha_invalid"
+
+        return self.async_show_form(
+            step_id="captcha",
+            data_schema=CAPTCHA_SCHEMA,
+            errors=errors,
+            description_placeholders={"captcha_url": getattr(self, "_captcha_url", "")},
         )
 
     

@@ -230,6 +230,11 @@ class XiaomiCloudConnector:
                 if isinstance(captcha_url, str) and captcha_url.startswith("/"):
                     captcha_url = f"https://account.xiaomi.com{captcha_url}"
                 _LOGGER.error("LOGIN_STEP_2: captchaUrl found, CAPTCHA required: %s", captcha_url)
+                # Preload captcha to obtain 'ick' cookie required by Xiaomi to validate captcha answers
+                try:
+                    await self._session_data.get(captcha_url)
+                except Exception:
+                    pass
                 raise CaptchaRequiredException(captcha_url=captcha_url or "", sign=sign)
             if "ssecurity" in response_json:
                 _LOGGER.error("LOGIN_STEP_2: ssecurity found, login successful")
@@ -277,15 +282,41 @@ class XiaomiCloudConnector:
             "captCode": captcha_code,
         }
 
+        # Include 'ick' if present (some deployments validate it alongside captcha)
         try:
-            response = await self._session_data.post(url, params=params)
-            _LOGGER.debug("login_step_2 (captcha retry) status=%s", response.status)
+            ick_cookie = self._session_data.session.cookie_jar.filter_cookies(
+                "https://account.xiaomi.com"
+            ).get("ick")
+            if ick_cookie and ick_cookie.value:
+                params["ick"] = ick_cookie.value
+        except Exception:
+            pass
+
+        # Xiaomi sometimes validates Referer
+        referer_headers = {"Referer": "https://account.xiaomi.com/pass/serviceLogin"}
+
+        # Attempt 1: POST with query params (matches widely used flows)
+        try:
+            response = await self._session_data.post(url, params=params, headers=referer_headers, allow_redirects=False)
+            _LOGGER.debug("login_step_2 (captcha retry, params) status=%s", response.status)
             response_text = await response.text()
-            _LOGGER.debug("login_step_2 (captcha retry) body=%s", response_text[:1000])
+            _LOGGER.debug("login_step_2 (captcha retry, params) body=%s", response_text[:1000])
             response_json = to_json(response_text)
         except Exception as e:
-            _LOGGER.error("Login failed during captcha retry: %s", e)
+            _LOGGER.error("Login failed during captcha retry (params): %s", e)
             raise InvalidCredentialsException()
+
+        # If invalid captcha or still asking for captcha, try form-encoded POST as fallback
+        if response.status != 200 or (response_json and (response_json.get("code") == 87001 or response_json.get("captchaUrl"))):
+            try:
+                response = await self._session_data.post(url, data=params, headers=referer_headers, allow_redirects=False)
+                _LOGGER.debug("login_step_2 (captcha retry, form) status=%s", response.status)
+                response_text = await response.text()
+                _LOGGER.debug("login_step_2 (captcha retry, form) body=%s", response_text[:1000])
+                response_json = to_json(response_text)
+            except Exception as e:
+                _LOGGER.error("Login failed during captcha retry (form): %s", e)
+                raise InvalidCredentialsException()
 
         if response.status != 200:
             _LOGGER.error("Login failed even after captcha. status=%s", response.status)

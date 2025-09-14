@@ -190,6 +190,15 @@ class XiaomiCloudConnector:
         except:
             raise FailedLoginException()
 
+        # Some regions may already return captchaUrl at step 1
+        if response.status == 200 and response_json and response_json.get("captchaUrl"):
+            captcha_url = response_json.get("captchaUrl")
+            if isinstance(captcha_url, str) and captcha_url.startswith("/"):
+                captcha_url = f"https://account.xiaomi.com{captcha_url}"
+            next_sign = response_json.get("_sign", "")
+            _LOGGER.debug("Step 1 returned captchaUrl; raising CaptchaRequiredException: %s", captcha_url)
+            raise CaptchaRequiredException(captcha_url=captcha_url or "", sign=next_sign)
+
         successful = response.status == 200 and "_sign" in response_json
         if successful:
             sign = response_json["_sign"]

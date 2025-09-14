@@ -91,6 +91,9 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         # Avoid clashing with ConfigFlow.context (dict). Store Xiaomi context separately.
         self.mi_context = None
         self.connector = None
+        # Captcha-related state
+        self._captcha_sign = None
+        self._captcha_url = None
 
     @staticmethod
     @callback

@@ -77,6 +77,8 @@ class BaseXiaomiCloudVacuum(ABC):
         _LOGGER.debug("Got map name: \"%s\".", map_name)
         _LOGGER.debug("Downloading map...")
         raw_map_data = await self.get_raw_map_data(map_name)
+        with open("raw_map_data.bin", "wb") as f:
+            f.write(raw_map_data if raw_map_data is not None else b"")
         if raw_map_data is None:
             _LOGGER.error("FailedMapDownloadException")
             raise FailedMapDownloadException()

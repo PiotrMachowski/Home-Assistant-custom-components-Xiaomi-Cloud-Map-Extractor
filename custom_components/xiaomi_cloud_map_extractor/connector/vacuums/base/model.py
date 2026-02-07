@@ -34,6 +34,7 @@ class VacuumApi(StrEnum):
     ROIDMI = "ROIDMI"
     DREAME = "DREAME"
     IJAI = "IJAI"
+    XIAOMI = "XIAOMI"
     UNSUPPORTED = "UNSUPPORTED"
 
     @staticmethod
@@ -55,7 +56,8 @@ AVAILABLE_APIS = {
     VacuumApi.ROIDMI: ["roidmi.vacuum.", "zhimi.vacuum.", "chuangmi.vacuum."],
     VacuumApi.VIOMI: ["viomi.vacuum."],
     VacuumApi.ROBOROCK: ["roborock.vacuum", "rockrobo.vacuum"],
-    VacuumApi.IJAI: ["ijai.vacuum.", "xiaomi.vacuum."],
+    VacuumApi.IJAI: ["ijai.vacuum."],
+    VacuumApi.XIAOMI: ["xiaomi.vacuum."],
 }
 
 API_EXCEPTIONS = {

@@ -5,7 +5,7 @@ from miio.miot_device import MiotDevice
 from miio.exceptions import DeviceException
 from vacuum_map_parser_base.map_data import MapData
 from vacuum_map_parser_ijai.map_data_parser import IjaiMapDataParser
-from vacuum_map_parser_ijai.status_mapping import get_status_mapping
+from vacuum_map_parser_ijai.status_mapping import get_status_mapping, is_K3_model
 from vacuum_map_parser_ijai.aes_decryptor import gen_md5_key
 
 from .base.vacuum_v2 import BaseXiaomiCloudVacuumV2
@@ -71,7 +71,10 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         return self._ijai_map_data_parser
 
     async def get_map_url(self, map_name: str) -> str | None:
-        return await self.get_fallback_map_url(map_name)
+        if is_K3_model(self.model):
+            return await self.get_fallback_map_url(map_name)
+        else:
+            return await super().get_map_url(map_name)
 
     def get_wifi_info_sn(self):
         wifi_info_sn = None

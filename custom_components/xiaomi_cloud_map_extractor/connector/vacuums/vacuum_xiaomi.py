@@ -6,7 +6,7 @@ from typing import Self, Any
 
 from miio.exceptions import DeviceException
 from miio.miot_device import MiotDevice
-from vacuum_map_parser_base.map_data import Area, MapData, Obstacle, ObstacleDetails, Wall
+from vacuum_map_parser_base.map_data import MapData, Obstacle, ObstacleDetails
 from vacuum_map_parser_xiaomi.aes_decryptor import gen_md5_key
 from vacuum_map_parser_xiaomi.map_data_parser import XiaomiMapDataParser
 from vacuum_map_parser_xiaomi.status_mapping import get_status_mapping
@@ -166,13 +166,11 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
             payload = decoded_map
 
         if payload is not None:
-            no_go_areas, walls, obstacles = self._extract_map_objects(payload)
+            payload = self._normalize_firmware_map_objects(payload)
             payload = self._fix_map_room_info(payload)
             map_data = self.map_data_parser.parse(payload)
-            if no_go_areas is not None and not map_data.no_go_areas:
-                map_data.no_go_areas = no_go_areas
-            if walls is not None and not map_data.walls:
-                map_data.walls = walls
+            # Inject AI obstacles post-parse (library doesn't handle them)
+            obstacles = self._extract_obstacles(payload)
             if obstacles is not None and not map_data.obstacles:
                 map_data.obstacles = obstacles
             return map_data
@@ -180,40 +178,74 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         return self.map_data_parser.parse(decoded_map)
 
     @staticmethod
-    def _extract_map_objects(
-        payload: dict,
-    ) -> tuple[list[Area] | None, list[Wall] | None, list[Obstacle] | None]:
-        """Extract no-go areas, virtual walls, and AI obstacles from raw payload fields."""
-        no_go_areas = None
-        walls = None
-        obstacles = None
+    def _normalize_firmware_map_objects(payload: dict) -> dict:
+        """Convert firmware-specific fb_regions/fb_walls to the library's expected format.
 
-        fb_regions = payload.get("fb_regions")
-        if fb_regions:
-            parsed = [Area(*r["fb_point"]) for r in fb_regions
-                      if isinstance(r, dict) and len(r.get("fb_point", [])) == 8]
-            if parsed:
-                no_go_areas = parsed
+        The firmware uses:
+          fb_regions: [{"fb_point": [x0,y0,x1,y1,x2,y2,x3,y3], ...}]
+          fb_walls:   [{"wall_points": [x0,y0,x1,y1], ...}]
 
-        fb_walls = payload.get("fb_walls")
-        if fb_walls:
-            parsed = [Wall(*w["wall_points"]) for w in fb_walls
-                      if isinstance(w, dict) and len(w.get("wall_points", [])) == 4]
-            if parsed:
-                walls = parsed
+        The library (vacuum_map_parser_xiaomi) expects:
+          fb_regions: [{"type": "no_go"|"wall", "points": [{"x":..,"y":..}, ...]}, ...]
 
+        By normalizing before parse(), the library renders them in the camera image.
+        """
+        payload = dict(payload)
+        normalized: list[dict] = []
+
+        for r in payload.get("fb_regions") or []:
+            if not isinstance(r, dict):
+                continue
+            fb_point = r.get("fb_point")
+            if fb_point and len(fb_point) == 8:
+                x0, y0, x1, y1, x2, y2, x3, y3 = fb_point
+                normalized.append({
+                    "type": "no_go",
+                    "points": [
+                        {"x": x0, "y": y0},
+                        {"x": x1, "y": y1},
+                        {"x": x2, "y": y2},
+                        {"x": x3, "y": y3},
+                    ],
+                })
+            else:
+                normalized.append(r)
+
+        for w in payload.get("fb_walls") or []:
+            if not isinstance(w, dict):
+                continue
+            wp = w.get("wall_points")
+            if wp and len(wp) == 4:
+                x0, y0, x1, y1 = wp
+                # Library uses points[0] and points[2] for wall endpoints
+                normalized.append({
+                    "type": "wall",
+                    "points": [
+                        {"x": x0, "y": y0},
+                        {"x": 0, "y": 0},
+                        {"x": x1, "y": y1},
+                        {"x": 0, "y": 0},
+                    ],
+                })
+
+        if normalized:
+            payload["fb_regions"] = normalized
+
+        return payload
+
+    @staticmethod
+    def _extract_obstacles(payload: dict) -> list[Obstacle] | None:
+        """Extract AI-detected obstacles from payload (library does not handle these)."""
         ai_obj = payload.get("ai_obj")
-        if ai_obj:
-            parsed = [
-                Obstacle(obj["pos_x"], obj["pos_y"], ObstacleDetails(type=obj.get("type")))
-                for obj in ai_obj
-                if isinstance(obj, dict) and obj.get("notshow", 0) == 0
-                and "pos_x" in obj and "pos_y" in obj
-            ]
-            if parsed:
-                obstacles = parsed
-
-        return no_go_areas, walls, obstacles
+        if not ai_obj:
+            return None
+        parsed = [
+            Obstacle(obj["pos_x"], obj["pos_y"], ObstacleDetails(type=obj.get("type")))
+            for obj in ai_obj
+            if isinstance(obj, dict) and obj.get("notshow", 0) == 0
+            and "pos_x" in obj and "pos_y" in obj
+        ]
+        return parsed or None
 
     @staticmethod
     def _fix_map_room_info(payload: dict) -> dict:

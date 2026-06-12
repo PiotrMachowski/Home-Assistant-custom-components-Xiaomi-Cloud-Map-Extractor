@@ -100,7 +100,9 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
                 return True
         except DeviceException as de:
             if "token" not in repr(de):
-                return False
+                # LAN unreachable (e.g. vacuum busy cleaning) — keep fetching from cloud
+                _LOGGER.debug("Could not check vacuum status via LAN, assuming active: %s", de)
+                return True
             raise FailedConnectionException(de)
 
     @staticmethod

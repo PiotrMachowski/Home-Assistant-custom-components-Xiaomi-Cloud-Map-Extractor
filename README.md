@@ -461,6 +461,8 @@ This integration was tested on following vacuums:
    - `dreame.vacuum.p2140` (Mijia Robot Vacuum-Mop 2C)
    - `dreame.vacuum.p2157` (MOVA L600)
    - `dreame.vacuum.p2259` (Dreame D9 Max)
+ - Xiaomi map format (MiOT):
+   - `xiaomi.vacuum.ov21gl` (Xiaomi Robot Vacuum 5 Pro)
 
 ## Retrieving map
 

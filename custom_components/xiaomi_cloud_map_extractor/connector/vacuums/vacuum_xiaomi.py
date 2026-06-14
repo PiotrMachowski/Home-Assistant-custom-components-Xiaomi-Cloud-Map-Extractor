@@ -6,7 +6,7 @@ from typing import Self, Any
 
 from miio.exceptions import DeviceException
 from miio.miot_device import MiotDevice
-from vacuum_map_parser_base.map_data import MapData
+from vacuum_map_parser_base.map_data import MapData, Obstacle, ObstacleDetails
 from vacuum_map_parser_xiaomi.aes_decryptor import gen_md5_key
 from vacuum_map_parser_xiaomi.map_data_parser import XiaomiMapDataParser
 from vacuum_map_parser_xiaomi.status_mapping import get_status_mapping
@@ -100,7 +100,9 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
                 return True
         except DeviceException as de:
             if "token" not in repr(de):
-                return False
+                # LAN unreachable (e.g. vacuum busy cleaning) — keep fetching from cloud
+                _LOGGER.debug("Could not check vacuum status via LAN, assuming active: %s", de)
+                return True
             raise FailedConnectionException(de)
 
     @staticmethod
@@ -145,14 +147,134 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         except (json.JSONDecodeError, KeyError, UnicodeDecodeError):
             # Data may not be JSON-wrapped
             pass
-        
+
         raw_map = raw_map.hex()
         decoded_map = self.map_data_parser.unpack_map(
             raw_map,
             model=self.model.replace("xiaomi", "mi"),
             device_id=str(self._device_id),
         )
+
+        # Fix for models where map_room_info has all room_id=0 (e.g. xiaomi.vacuum.ov21gl).
+        # When all room_ids are identical the parser collapses every room into a single
+        # Room object. In that case use grid_id directly as the room identifier.
+        payload = None
+        if isinstance(decoded_map, str):
+            try:
+                payload = json.loads(decoded_map)
+            except Exception:
+                pass
+        elif isinstance(decoded_map, dict):
+            payload = decoded_map
+
+        if payload is not None:
+            payload = self._normalize_firmware_map_objects(payload)
+            payload = self._fix_map_room_info(payload)
+            map_data = self.map_data_parser.parse(payload)
+            # Inject AI obstacles post-parse (library doesn't handle them)
+            obstacles = self._extract_obstacles(payload)
+            if obstacles is not None and not map_data.obstacles:
+                map_data.obstacles = obstacles
+            return map_data
+
         return self.map_data_parser.parse(decoded_map)
+
+    @staticmethod
+    def _normalize_firmware_map_objects(payload: dict) -> dict:
+        """Convert firmware-specific fb_regions/fb_walls to the library's expected format.
+
+        The firmware uses:
+          fb_regions: [{"fb_point": [x0,y0,x1,y1,x2,y2,x3,y3], ...}]
+          fb_walls:   [{"wall_points": [x0,y0,x1,y1], ...}]
+
+        The library (vacuum_map_parser_xiaomi) expects:
+          fb_regions: [{"type": "no_go"|"wall", "points": [{"x":..,"y":..}, ...]}, ...]
+
+        By normalizing before parse(), the library renders them in the camera image.
+        """
+        payload = dict(payload)
+        normalized: list[dict] = []
+
+        for r in payload.get("fb_regions") or []:
+            if not isinstance(r, dict):
+                continue
+            fb_point = r.get("fb_point")
+            if fb_point and len(fb_point) == 8:
+                x0, y0, x1, y1, x2, y2, x3, y3 = fb_point
+                normalized.append({
+                    "type": "no_go",
+                    "points": [
+                        {"x": x0, "y": y0},
+                        {"x": x1, "y": y1},
+                        {"x": x2, "y": y2},
+                        {"x": x3, "y": y3},
+                    ],
+                })
+            else:
+                normalized.append(r)
+
+        for w in payload.get("fb_walls") or []:
+            if not isinstance(w, dict):
+                continue
+            wp = w.get("wall_points")
+            if wp and len(wp) == 4:
+                x0, y0, x1, y1 = wp
+                # Library uses points[0] and points[2] for wall endpoints
+                normalized.append({
+                    "type": "wall",
+                    "points": [
+                        {"x": x0, "y": y0},
+                        {"x": 0, "y": 0},
+                        {"x": x1, "y": y1},
+                        {"x": 0, "y": 0},
+                    ],
+                })
+
+        if normalized:
+            payload["fb_regions"] = normalized
+
+        return payload
+
+    @staticmethod
+    def _extract_obstacles(payload: dict) -> list[Obstacle] | None:
+        """Extract AI-detected obstacles from payload (library does not handle these)."""
+        ai_obj = payload.get("ai_obj")
+        if not ai_obj:
+            return None
+        parsed = [
+            Obstacle(obj["pos_x"], obj["pos_y"], ObstacleDetails(type=obj.get("type")))
+            for obj in ai_obj
+            if isinstance(obj, dict) and obj.get("notshow", 0) == 0
+            and "pos_x" in obj and "pos_y" in obj
+        ]
+        return parsed or None
+
+    @staticmethod
+    def _fix_map_room_info(payload: dict) -> dict:
+        """Fix map_room_info when all room_ids are identical (firmware quirk).
+
+        Some models (e.g. xiaomi.vacuum.ov21gl) set room_id=0 for every entry in
+        map_room_info. The upstream parser uses room_id as the dict key, so every
+        room overwrites the previous one. When this is detected, replace room_id with
+        grid_id so each room gets a unique identifier that also matches the id field
+        used in room_attrs.
+        """
+        map_room_info = payload.get("map_room_info")
+        if not isinstance(map_room_info, list) or len(map_room_info) <= 1:
+            return payload
+
+        room_ids = [e.get("room_id") for e in map_room_info if isinstance(e, dict)]
+        if len(set(room_ids)) != 1:
+            return payload  # room_ids are already unique, nothing to fix
+
+        _LOGGER.debug(
+            "map_room_info has all room_id=%s; using grid_id as room identifier", room_ids[0]
+        )
+        fixed_info = [
+            {**e, "room_id": e["grid_id"]} if isinstance(e, dict) and "grid_id" in e else e
+            for e in map_room_info
+        ]
+        return {**payload, "map_room_info": fixed_info}
     
     def additional_data(self: Self) -> dict[str, Any]:
         super_data = super().additional_data()

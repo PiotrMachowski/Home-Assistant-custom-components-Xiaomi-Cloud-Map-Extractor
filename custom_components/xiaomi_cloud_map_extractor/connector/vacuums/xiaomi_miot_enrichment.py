@@ -360,6 +360,22 @@ def _has_path_data(paths: Any) -> bool:
     return False
 
 
+def _last_path_point(paths: Any) -> dict[str, Any] | None:
+    if isinstance(paths, dict):
+        points = paths.get("points")
+    else:
+        points = paths
+
+    if not isinstance(points, list):
+        return None
+
+    for point in reversed(points):
+        if isinstance(point, dict) and "x" in point and "y" in point:
+            return point
+
+    return None
+
+
 def extract_paths_for_map_payload(source: Any) -> Any | None:
     if source is None:
         return None
@@ -410,6 +426,16 @@ def merge_live_map_data(
         if paths is not None:
             merged["paths"] = paths
             _LOGGER.debug("Merged MIOT trajectory into map payload")
+
+    if not isinstance(merged.get("position"), dict):
+        last_point = _last_path_point(merged.get("paths"))
+        if last_point is not None:
+            merged["position"] = {
+                "x": last_point["x"],
+                "y": last_point["y"],
+                "yaw": last_point.get("yaw", 0),
+            }
+            _LOGGER.debug("Using last trajectory point as vacuum position")
 
     return merged
 

@@ -117,6 +117,20 @@ def vacuum_position_to_payload(position: Point) -> dict[str, float]:
     return payload
 
 
+def charger_position_to_payload(payload: dict[str, Any]) -> dict[str, Any] | None:
+    if not payload.get("have_pile"):
+        return None
+
+    try:
+        return {
+            "x": float(payload["pile_x"]),
+            "y": float(payload["pile_y"]),
+            "yaw": payload.get("pile_yaw", 0),
+        }
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def _trajectory_distance(a: dict[str, int], b: dict[str, int]) -> float:
     return math.hypot(a["x"] - b["x"], a["y"] - b["y"])
 
@@ -495,6 +509,7 @@ def merge_live_map_data(
     vacuum_position: Point | None,
     trajectory_payload: Any | None,
     use_path_position_fallback: bool = False,
+    use_charger_position_fallback: bool = False,
 ) -> dict[str, Any]:
     merged = dict(payload)
 
@@ -517,6 +532,12 @@ def merge_live_map_data(
                 "yaw": last_point.get("yaw", 0),
             }
             _LOGGER.debug("Using last trajectory point as vacuum position")
+
+    if use_charger_position_fallback and not isinstance(merged.get("position"), dict):
+        charger_position = charger_position_to_payload(merged)
+        if charger_position is not None:
+            merged["position"] = charger_position
+            _LOGGER.debug("Using charger position as vacuum position")
 
     return merged
 

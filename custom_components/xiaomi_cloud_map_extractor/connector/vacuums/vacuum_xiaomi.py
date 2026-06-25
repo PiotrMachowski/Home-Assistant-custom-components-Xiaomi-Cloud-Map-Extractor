@@ -331,6 +331,7 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
             restricted_areas_payload,
             restricted_walls_payload,
             use_path_position_fallback=status_value is not None and not self._is_status_idle(status_value),
+            use_charger_position_fallback=status_value is not None and self._is_status_idle(status_value),
         )
         if map_data is not None:
             map_data.map_name = map_name
@@ -407,6 +408,7 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         restricted_areas_payload=None,
         restricted_walls_payload=None,
         use_path_position_fallback=False,
+        use_charger_position_fallback=False,
     ) -> MapData:
         # Try parsing as JSON first (old format), otherwise use raw data directly (new format)
         try:
@@ -430,7 +432,13 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
             return self.map_data_parser.parse(decoded_map)
 
         payload = normalize_json_map_payload(payload)
-        payload = merge_live_map_data(payload, vacuum_position, trajectory_payload, use_path_position_fallback)
+        payload = merge_live_map_data(
+            payload,
+            vacuum_position,
+            trajectory_payload,
+            use_path_position_fallback,
+            use_charger_position_fallback,
+        )
         payload = normalize_restricted_map_payload(payload, restricted_areas_payload, restricted_walls_payload)
         parse_payload = strip_mop_path_markers(payload)
         map_data = self.map_data_parser.parse(parse_payload)

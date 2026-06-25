@@ -9,7 +9,7 @@ from miio.miot_device import MiotDevice
 from vacuum_map_parser_base.map_data import MapData
 from vacuum_map_parser_xiaomi.aes_decryptor import gen_md5_key
 from vacuum_map_parser_xiaomi.map_data_parser import XiaomiMapDataParser
-from vacuum_map_parser_xiaomi.status_mapping import get_status_mapping
+from vacuum_map_parser_xiaomi.status_mapping import XiaomiVacuumStatusMapping, get_status_mapping
 
 from .base.model import VacuumConfig, VacuumApi
 from .base.vacuum_v2 import BaseXiaomiCloudVacuumV2
@@ -112,6 +112,16 @@ _LIVE_DATA_PROP = [
     ),
 ]
 
+_NON_STANDARD_STATUS_PROP = [
+    (
+        [
+            "xiaomi.vacuum.b108gl",
+        ],
+        # 4 is cleaning/running for b108gl, so it must not be treated as idle.
+        XiaomiVacuumStatusMapping(idle_at=(0, 1, 2, 3, 5, 8, 10)),
+    ),
+]
+
 class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
     def __init__(self, vacuum_config: VacuumConfig):
         super().__init__(vacuum_config)
@@ -128,8 +138,12 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
             vacuum_config.texts
         )
 
-        self._status_mapping = get_status_mapping(self.model)
+        self._status_mapping = next(
+            (mapping for models, mapping in _NON_STANDARD_STATUS_PROP if self.model in models),
+            get_status_mapping(self.model),
+        )
         self._off_counter = 0
+        self._last_status_value = None
 
         self._vacuum_map = next((mapping for models, mapping in _NON_STANDARD_MAP_PROP if self.model in models), XiaomiVacuumPropertyMapping())
         self._live_data = next((mapping for models, mapping in _LIVE_DATA_PROP if self.model in models), None)
@@ -193,10 +207,9 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
     @property
     def should_update_map(self: Self) -> bool:
         try:
-            status_value = self._miot_device.get_property_by(self._status_mapping.siid,
-                                                             self._status_mapping.piid)[0]["value"]
+            status_value = self._get_status_value()
 
-            if status_value in self._status_mapping.idle_at:
+            if self._is_status_idle(status_value):
                 self._off_counter += 1
                 _LOGGER.debug(
                     "Vacuum is not moving. Off counter: %d", self._off_counter)
@@ -208,6 +221,16 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
             if "token" not in repr(de):
                 return False
             raise FailedConnectionException(de)
+
+    def _get_status_value(self: Self):
+        self._last_status_value = self._miot_device.get_property_by(
+            self._status_mapping.siid,
+            self._status_mapping.piid,
+        )[0]["value"]
+        return self._last_status_value
+
+    def _is_status_idle(self: Self, status_value: Any) -> bool:
+        return status_value in self._status_mapping.idle_at
 
     @staticmethod
     def vacuum_platform() -> VacuumApi:
@@ -258,6 +281,12 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         map_last_used_url = self.last_used_url
         _LOGGER.debug("Downloaded raw map: \"%d\".", len(raw_map_data))
 
+        try:
+            status_value = self._get_status_value()
+        except DeviceException as de:
+            _LOGGER.debug("Failed to retrieve MIOT status: %s", de)
+            status_value = self._last_status_value
+
         vacuum_position = self._get_vacuum_position()
         trajectory_payload = await self._get_trajectory_payload()
         restricted_areas_payload, restricted_walls_payload = self._get_restricted_payloads()
@@ -270,6 +299,7 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
             trajectory_payload,
             restricted_areas_payload,
             restricted_walls_payload,
+            use_path_position_fallback=status_value is not None and not self._is_status_idle(status_value),
         )
         if map_data is not None:
             map_data.map_name = map_name
@@ -345,6 +375,7 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         trajectory_payload=None,
         restricted_areas_payload=None,
         restricted_walls_payload=None,
+        use_path_position_fallback=False,
     ) -> MapData:
         # Try parsing as JSON first (old format), otherwise use raw data directly (new format)
         try:
@@ -368,7 +399,7 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
             return self.map_data_parser.parse(decoded_map)
 
         payload = normalize_json_map_payload(payload)
-        payload = merge_live_map_data(payload, vacuum_position, trajectory_payload)
+        payload = merge_live_map_data(payload, vacuum_position, trajectory_payload, use_path_position_fallback)
         payload = normalize_restricted_map_payload(payload, restricted_areas_payload, restricted_walls_payload)
         map_data = self.map_data_parser.parse(payload)
         apply_json_map_calibration(map_data, payload)

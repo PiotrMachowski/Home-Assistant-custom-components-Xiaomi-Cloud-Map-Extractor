@@ -427,7 +427,7 @@ def merge_live_map_data(
             merged["paths"] = paths
             _LOGGER.debug("Merged MIOT trajectory into map payload")
 
-    if not isinstance(merged.get("position"), dict):
+    if not isinstance(merged.get("position"), dict) and not merged.get("have_pile"):
         last_point = _last_path_point(merged.get("paths"))
         if last_point is not None:
             merged["position"] = {

@@ -6,6 +6,10 @@ from typing import Self, Any
 
 from miio.exceptions import DeviceException
 from miio.miot_device import MiotDevice
+from vacuum_map_parser_base.config.color import SupportedColor
+from vacuum_map_parser_base.config.drawable import Drawable
+from vacuum_map_parser_base.config.size import Size
+from vacuum_map_parser_base.image_generator import ImageGenerator
 from vacuum_map_parser_base.map_data import MapData
 from vacuum_map_parser_xiaomi.aes_decryptor import gen_md5_key
 from vacuum_map_parser_xiaomi.map_data_parser import XiaomiMapDataParser
@@ -15,11 +19,13 @@ from .base.model import VacuumConfig, VacuumApi
 from .base.vacuum_v2 import BaseXiaomiCloudVacuumV2
 from .xiaomi_miot_enrichment import (
     apply_json_map_calibration,
+    apply_segmented_mop_path,
     apply_vacuum_room,
     merge_live_map_data,
     normalize_restricted_map_payload,
     normalize_json_map_payload,
     parse_vacuum_position_value,
+    strip_mop_path_markers,
 )
 from ..utils.dict_operations import path_extractor
 from ..utils.exceptions import FailedConnectionException, FailedMapDownloadException, FailedMapParseException
@@ -232,6 +238,31 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
     def _is_status_idle(self: Self, status_value: Any) -> bool:
         return status_value in self._status_mapping.idle_at
 
+    def _draw_segmented_mop_path(self: Self, map_data: MapData) -> None:
+        if Drawable.MOP_PATH not in self._drawables or map_data.mop_path is None or map_data.image is None:
+            return
+
+        image = map_data.image
+        path = map_data.mop_path
+        path_width = int(self._sizes.get_size(Size.MOP_PATH_WIDTH))
+        color = self._palette.get_color(SupportedColor.MOP_PATH)
+
+        def draw_func(draw) -> None:
+            for current_path in path.path:
+                if len(current_path) <= 1:
+                    continue
+                start = current_path[0].to_img(image.dimensions).rotated(image.dimensions)
+                for point in current_path[1:]:
+                    end = point.to_img(image.dimensions).rotated(image.dimensions)
+                    draw.line([start.x, start.y, end.x, end.y], width=path_width, fill=color)
+                    if path_width > 4:
+                        radius = path_width / 2
+                        coords = (end.x - radius, end.y - radius), (end.x + radius, end.y + radius)
+                        draw.pieslice(coords, 0, 360, outline=color, fill=color)
+                    start = end
+
+        ImageGenerator._draw_on_new_layer(image, draw_func, ImageGenerator._use_transparency(color))
+
     @staticmethod
     def vacuum_platform() -> VacuumApi:
         return VacuumApi.XIAOMI
@@ -401,9 +432,12 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         payload = normalize_json_map_payload(payload)
         payload = merge_live_map_data(payload, vacuum_position, trajectory_payload, use_path_position_fallback)
         payload = normalize_restricted_map_payload(payload, restricted_areas_payload, restricted_walls_payload)
-        map_data = self.map_data_parser.parse(payload)
-        apply_json_map_calibration(map_data, payload)
-        apply_vacuum_room(map_data, payload)
+        parse_payload = strip_mop_path_markers(payload)
+        map_data = self.map_data_parser.parse(parse_payload)
+        apply_segmented_mop_path(map_data, payload)
+        self._draw_segmented_mop_path(map_data)
+        apply_json_map_calibration(map_data, parse_payload)
+        apply_vacuum_room(map_data, parse_payload)
         return map_data
     
     def additional_data(self: Self) -> dict[str, Any]:

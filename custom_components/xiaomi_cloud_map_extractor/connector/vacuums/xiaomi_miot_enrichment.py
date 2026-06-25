@@ -8,7 +8,7 @@ import struct
 import zlib
 from typing import Any
 
-from vacuum_map_parser_base.map_data import MapData, Point
+from vacuum_map_parser_base.map_data import MapData, Path, Point
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -374,6 +374,86 @@ def _last_path_point(paths: Any) -> dict[str, Any] | None:
             return point
 
     return None
+
+
+def _path_points(paths: Any) -> list[Any] | None:
+    if isinstance(paths, dict):
+        points = paths.get("points")
+    else:
+        points = paths
+
+    return points if isinstance(points, list) else None
+
+
+def _copy_point_without_mop_marker(point: Any) -> Any:
+    if not isinstance(point, dict):
+        return point
+
+    copied = dict(point)
+    copied.pop("sweep_mop_mode", None)
+    return copied
+
+
+def strip_mop_path_markers(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return a payload copy that prevents the upstream parser from drawing flat mop paths."""
+    paths = payload.get("paths")
+    points = _path_points(paths)
+    if points is None:
+        return payload
+
+    stripped_points = [_copy_point_without_mop_marker(point) for point in points]
+    stripped = dict(payload)
+    if isinstance(paths, dict):
+        stripped_paths = dict(paths)
+        stripped_paths["points"] = stripped_points
+        stripped["paths"] = stripped_paths
+    else:
+        stripped["paths"] = stripped_points
+    return stripped
+
+
+def build_segmented_mop_path(payload: dict[str, Any]) -> Path | None:
+    points = _path_points(payload.get("paths"))
+    if points is None:
+        return None
+
+    segments: list[list[Point]] = []
+    current_segment: list[Point] = []
+
+    def flush_segment() -> None:
+        if len(current_segment) >= MIN_MOP_SEGMENT_POINTS:
+            segments.append(current_segment.copy())
+        current_segment.clear()
+
+    for point in points:
+        if not isinstance(point, dict) or "sweep_mop_mode" not in point:
+            flush_segment()
+            continue
+
+        try:
+            mop_point = Point(float(point["x"]), float(point["y"]))
+        except (KeyError, TypeError, ValueError):
+            flush_segment()
+            continue
+
+        if current_segment:
+            distance = math.hypot(mop_point.x - current_segment[-1].x, mop_point.y - current_segment[-1].y)
+            if distance > MAX_MOP_SEGMENT_GAP:
+                flush_segment()
+        current_segment.append(mop_point)
+
+    flush_segment()
+    if not segments:
+        return None
+
+    point_count = sum(len(segment) for segment in segments)
+    return Path(point_count, 1, 0, segments)
+
+
+def apply_segmented_mop_path(map_data: MapData, payload: dict[str, Any]) -> None:
+    segmented_path = build_segmented_mop_path(payload)
+    if segmented_path is not None:
+        map_data.mop_path = segmented_path
 
 
 def extract_paths_for_map_payload(source: Any) -> Any | None:

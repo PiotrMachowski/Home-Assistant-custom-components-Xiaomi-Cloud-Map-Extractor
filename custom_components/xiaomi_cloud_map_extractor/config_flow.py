@@ -285,13 +285,16 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             else:
                 unique_id = format_mac(self._cloud_vacuum.mac)
 
-                existing_entry = next(
-                    filter(
-                        lambda entry: entry.data[CONF_HOST] == host,
-                        self._async_current_entries(include_ignore=False),
-                    ),
-                    None,
-                )
+                if self.source == SOURCE_REAUTH:
+                    existing_entry = self._get_reauth_entry()
+                else:
+                    existing_entry = next(
+                        filter(
+                            lambda entry: entry.data[CONF_HOST] == host,
+                            self._async_current_entries(include_ignore=False),
+                        ),
+                        None,
+                    )
                 await self.async_set_unique_id(
                     unique_id, raise_on_progress=False
                 )
@@ -299,7 +302,7 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                     self._abort_if_unique_id_configured()
                 self._connector.server = self._cloud_vacuum.server
                 await save_connector_config(self.hass, self._cloud_vacuum.mac, self._connector.to_config())
-                if existing_entry or self.source == SOURCE_REAUTH:
+                if existing_entry:
                     data = existing_entry.data.copy()
                     data[CONF_HOST] = host
                     data[CONF_TOKEN] = token
@@ -311,7 +314,11 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                     data[CONF_PASSWORD] = self._password
                     data[CONF_SERVER] = self._cloud_vacuum.server
                     data[CONF_USED_MAP_API] = used_map_api
-                    result_entry = self.async_update_reload_and_abort(existing_entry, data=data)
+                    result_entry = self.async_update_reload_and_abort(
+                        existing_entry,
+                        unique_id=unique_id,
+                        data=data,
+                    )
                 else:
                     result_entry = self.async_create_entry(
                         title=self._cloud_vacuum.name,

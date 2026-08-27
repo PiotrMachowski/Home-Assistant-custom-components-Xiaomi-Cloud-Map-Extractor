@@ -306,7 +306,26 @@ class XiaomiCloudConnector:
         qr_data = await qr_response.read()
         self._long_polling_url = json_resp["lp"]
 
-        return qr_data, json_resp["loginUrl"]
+        return qr_data, await self._browser_login_url(json_resp["loginUrl"])
+
+    async def _browser_login_url(self: Self, login_url: str) -> str:
+        """
+        Rewrites loginUrl so that a signed-out browser gets a sign-in page, by dropping the
+        _json=true flag from the serviceLogin redirect that it carries.
+        """
+        try:
+            response = await self._session_data.get(login_url, allow_redirects=False)
+            location = response.headers.get("Location")
+            if location is None:
+                return login_url
+            target = URL(location)
+            if "_json" not in target.query:
+                return login_url
+            # callback and followup are left alone - they complete the long polling
+            return str(target.with_query({k: v for k, v in target.query.items() if k != "_json"}))
+        except Exception:
+            _LOGGER.debug("Xiaomi cloud qr login - could not rewrite the login URL: %s", login_url)
+            return login_url
 
     async def login_with_qr_wait_for_completion(self: Self) -> None:
         try:

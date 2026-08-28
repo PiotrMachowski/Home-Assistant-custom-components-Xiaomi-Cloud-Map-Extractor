@@ -1,0 +1,253 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ajouter votre aspirateur Xiaomi",
+        "description": "Connectez-vous par e-mail pour la carte en direct.",
+        "menu_options": {
+          "credentials": "E-mail et mot de passe (obtenir la carte en direct)",
+          "local": "IP de l'appareil et token (contrôle uniquement, pas de carte)"
+        }
+      },
+      "credentials": {
+        "title": "Connectez-vous à Mi Home",
+        "description": "Connectez-vous une fois. Vous resterez connecté après cela.",
+        "data": {
+          "username": "E-mail, numéro de téléphone ou ID de compte Mi",
+          "password": "Mot de passe"
+        }
+      },
+      "local": {
+        "title": "Connexion locale",
+        "description": "Adresse IP et token de 32 caractères. Contrôle et capteurs, pas de carte.",
+        "data": {
+          "host": "Adresse IP",
+          "token": "Token"
+        }
+      },
+      "captcha": {
+        "title": "Vérification rapide",
+        "description": "Xiaomi veut s'assurer que vous êtes réel. Tapez les caractères ci-dessous :\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "Caractères de l'image"
+        }
+      },
+      "twofa": {
+        "title": "Entrez le code",
+        "description": "Xiaomi vient de vous envoyer un code par e-mail. Entrez-le ci-dessous.",
+        "data": {
+          "code": "Code de vérification"
+        }
+      },
+      "devices": {
+        "title": "Choisissez votre aspirateur",
+        "description": "Il y a plus d'un aspirateur sur ce compte. Choisissez celui à ajouter.",
+        "data": {
+          "device": "Aspirateur"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Connectez-vous à nouveau à Xiaomi",
+        "description": "Votre session a expiré et ne s'est pas renouvelée automatiquement. Connectez-vous à nouveau pour restaurer la carte en direct.",
+        "data": {
+          "username": "E-mail, numéro de téléphone ou ID de compte Mi",
+          "password": "Mot de passe"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "Ce modèle n'est pas encore supporté.",
+      "cannot_connect": "Impossible d'atteindre l'aspirateur à cette IP avec ce token."
+    },
+    "abort": {
+      "already_configured": "Cet aspirateur est déjà configuré.",
+      "reauth_successful": "Vous êtes connecté. La carte en direct est restaurée.",
+      "login_failed": "Xiaomi a refusé ({reason}). Vérifiez votre e-mail et mot de passe, puis réessayez.",
+      "no_devices": "Aucun aspirateur supporté sur ce compte.",
+      "unsupported_model": "Ce modèle n'est pas encore supporté (aspirateurs ijai/Xiaomi uniquement)."
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "Carte"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Statut",
+        "state": {
+          "cleaning": "Nettoyage",
+          "paused": "Pause",
+          "idle": "Inactif",
+          "returning": "Retour à la station",
+          "docked": "En station",
+          "error": "Erreur"
+        }
+      },
+      "battery": {
+        "name": "Batterie"
+      },
+      "clean_area": {
+        "name": "Surface nettoyée"
+      },
+      "clean_time": {
+        "name": "Temps de nettoyage"
+      },
+      "main_brush_life": {
+        "name": "Durée de vie de la brosse principale"
+      },
+      "side_brush_life": {
+        "name": "Durée de vie de la brosse latérale"
+      },
+      "filter_life": {
+        "name": "Durée de vie du filtre"
+      },
+      "mop_life": {
+        "name": "Durée de vie de la serpillière"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "Vitesse du ventilateur",
+        "state": {
+          "quiet": "Silencieux",
+          "standard": "Standard",
+          "medium_gear": "Vitesse moyenne",
+          "strong": "Puissant",
+          "medium": "Moyen",
+          "mode_quiet": "Silencieux",
+          "mode_standard": "Standard",
+          "mode_medium": "Moyen",
+          "mode_strong": "Puissant",
+          "ultra_strong": "Ultra-puissant",
+          "off": "Arrêt",
+          "energy_saving": "Économie d'énergie",
+          "powerful": "Puissant",
+          "slient": "Silencieux",
+          "turbo": "Turbo",
+          "0": "Silencieux",
+          "1": "Économie d'énergie",
+          "2": "Standard",
+          "3": "Puissant",
+          "close": "Fermer",
+          "one": "Un",
+          "two": "Deux",
+          "three": "Trois",
+          "forth": "Quatre",
+          "silent": "Silencieux",
+          "basic": "Basique",
+          "full_speed": "Vitesse maximale"
+        }
+      },
+      "water_level": {
+        "name": "Niveau d'eau",
+        "state": {
+          "low_water_level": "Niveau d'eau bas",
+          "medium_water_level": "Niveau d'eau moyen",
+          "high_water_level": "Niveau d'eau élevé",
+          "low": "Bas",
+          "medium": "Moyen",
+          "high": "Élevé",
+          "middle": "Milieu",
+          "height": "Hauteur",
+          "mid": "Milieu",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "Vitesse 1",
+          "gear_2": "Vitesse 2",
+          "gear_3": "Vitesse 3",
+          "close": "Fermer",
+          "one": "Un",
+          "two": "Deux",
+          "three": "Trois",
+          "hig": "Élevé",
+          "off": "Arrêt",
+          "level1": "Niveau 1",
+          "level2": "Niveau 2",
+          "level3": "Niveau 3"
+        }
+      },
+      "mode": {
+        "name": "Mode de nettoyage",
+        "state": {
+          "silent": "Silencieux",
+          "basic": "Standard",
+          "strong": "Puissant",
+          "full_speed": "Vitesse maximale (Max)",
+          "auto": "Automatique",
+          "sweep": "Balayage",
+          "sweep_and_mop": "Balayage et nettoyage",
+          "mop": "Nettoyage",
+          "medium": "Vitesse moyenne",
+          "sweepandmop": "Balayage et nettoyage",
+          "sweep_then_mop": "Balayer puis nettoyer",
+          "sweep_mop": "Balayage et nettoyage",
+          "sweep_before_mopping": "Balayer avant de nettoyer"
+        }
+      },
+      "sweep_type": {
+        "name": "Type de balayage",
+        "state": {
+          "global": "Global",
+          "mop": "Nettoyage",
+          "edge": "Suivi des bords",
+          "area": "Zone",
+          "point": "Tache",
+          "remote": "Contrôle distant",
+          "explore": "Cartographie",
+          "room": "Personnalisation de la pièce",
+          "floor": "Personnalisation du sol",
+          "control": "Contrôle distant",
+          "total": "Nettoyage global",
+          "wall": "Nettoyage des bords",
+          "zone": "Nettoyage de zone",
+          "corner": "Suivi des bords",
+          "man": "Contrôle distant",
+          "roomprefer": "Personnalisation de la pièce",
+          "materialprefer": "Personnalisation du sol",
+          "maping": "Cartographie en cours",
+          "gocharging": "Retour à la station",
+          "remotecontrol": "Contrôle distant",
+          "selectroom": "Pièce",
+          "customclean": "Nettoyage personnalisé",
+          "costum": "Personnalisé",
+          "custom_area": "Zone personnalisée",
+          "appointment": "Programmé",
+          "linkage": "Liaison",
+          "fast": "Rapide",
+          "ai_hosting": "Hébergement IA"
+        }
+      },
+      "active_map": {
+        "name": "Carte active"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "Répéter le nettoyage"
+      },
+      "alarm": {
+        "name": "Trouver l'aspirateur (bip)"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "Nettoyer la/les pièce(s)",
+      "description": "Commencez le nettoyage d'une ou plusieurs pièces par leur ID de pièce sur la carte.",
+      "fields": {
+        "segments": {
+          "name": "Pièces",
+          "description": "Liste des ID de pièce à nettoyer (à partir de l'attribut \"rooms\" de la caméra de la carte)."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,253 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Agregue su aspiradora Xiaomi",
+        "description": "Inicie sesión por correo electrónico para obtener el mapa en directo.",
+        "menu_options": {
+          "credentials": "Correo electrónico y contraseña (obtener el mapa en directo)",
+          "local": "IP del dispositivo y token (solo control, sin mapa)"
+        }
+      },
+      "credentials": {
+        "title": "Inicie sesión en Mi Home",
+        "description": "Inicie sesión una vez. Permanecerá conectado después de eso.",
+        "data": {
+          "username": "Correo electrónico, número de teléfono o ID de cuenta Mi",
+          "password": "Contraseña"
+        }
+      },
+      "local": {
+        "title": "Conexión local",
+        "description": "Dirección IP y token de 32 caracteres. Control y sensores, sin mapa.",
+        "data": {
+          "host": "Dirección IP",
+          "token": "Token"
+        }
+      },
+      "captcha": {
+        "title": "Verificación rápida",
+        "description": "Xiaomi quiere saber que usted es real. Escriba los caracteres a continuación:\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "Caracteres de la imagen"
+        }
+      },
+      "twofa": {
+        "title": "Ingrese el código",
+        "description": "Xiaomi le acaba de enviar un código por correo electrónico. Ingresarlo a continuación.",
+        "data": {
+          "code": "Código de verificación"
+        }
+      },
+      "devices": {
+        "title": "Elija su aspiradora",
+        "description": "Hay más de una aspiradora en esta cuenta. Elija la que desea agregar.",
+        "data": {
+          "device": "Aspiradora"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Inicie sesión en Xiaomi nuevamente",
+        "description": "Su sesión ha caducado y no se pudo renovar automáticamente. Inicie sesión nuevamente para restaurar el mapa en directo.",
+        "data": {
+          "username": "Correo electrónico, número de teléfono o ID de cuenta Mi",
+          "password": "Contraseña"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "Este modelo aún no es compatible.",
+      "cannot_connect": "No se pudo comunicar con la aspiradora en esa IP con ese token."
+    },
+    "abort": {
+      "already_configured": "Esta aspiradora ya está configurada.",
+      "reauth_successful": "Ha iniciado sesión de nuevo. El mapa en directo ha sido restaurado.",
+      "login_failed": "Xiaomi rechazó eso ({reason}). Verifique su correo electrónico y contraseña, luego intente de nuevo.",
+      "no_devices": "No hay aspiradoras compatibles en esta cuenta.",
+      "unsupported_model": "Este modelo aún no es compatible (solo aspiradoras ijai/marca Xiaomi)."
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "Mapa"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Estado",
+        "state": {
+          "cleaning": "Limpiando",
+          "paused": "En pausa",
+          "idle": "Inactivo",
+          "returning": "Regresando a la estación",
+          "docked": "En la estación",
+          "error": "Error"
+        }
+      },
+      "battery": {
+        "name": "Batería"
+      },
+      "clean_area": {
+        "name": "Área limpiada"
+      },
+      "clean_time": {
+        "name": "Tiempo de limpieza"
+      },
+      "main_brush_life": {
+        "name": "Vida útil del cepillo principal"
+      },
+      "side_brush_life": {
+        "name": "Vida útil del cepillo lateral"
+      },
+      "filter_life": {
+        "name": "Vida útil del filtro"
+      },
+      "mop_life": {
+        "name": "Vida útil de la mopa"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "Velocidad del ventilador",
+        "state": {
+          "quiet": "Silencioso",
+          "standard": "Estándar",
+          "medium_gear": "Velocidad media",
+          "strong": "Fuerte",
+          "medium": "Medio",
+          "mode_quiet": "Silencioso",
+          "mode_standard": "Estándar",
+          "mode_medium": "Medio",
+          "mode_strong": "Fuerte",
+          "ultra_strong": "Ultra fuerte",
+          "off": "Apagado",
+          "energy_saving": "Ahorro de energía",
+          "powerful": "Potente",
+          "slient": "Silencioso",
+          "turbo": "Turbo",
+          "0": "Silencioso",
+          "1": "Ahorro de energía",
+          "2": "Estándar",
+          "3": "Potente",
+          "close": "Cerrar",
+          "one": "Uno",
+          "two": "Dos",
+          "three": "Tres",
+          "forth": "Cuatro",
+          "silent": "Silencioso",
+          "basic": "Básico",
+          "full_speed": "Velocidad máxima"
+        }
+      },
+      "water_level": {
+        "name": "Nivel de agua",
+        "state": {
+          "low_water_level": "Nivel de agua bajo",
+          "medium_water_level": "Nivel de agua medio",
+          "high_water_level": "Nivel de agua alto",
+          "low": "Bajo",
+          "medium": "Medio",
+          "high": "Alto",
+          "middle": "Medio",
+          "height": "Altura",
+          "mid": "Medio",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "Velocidad 1",
+          "gear_2": "Velocidad 2",
+          "gear_3": "Velocidad 3",
+          "close": "Cerrar",
+          "one": "Uno",
+          "two": "Dos",
+          "three": "Tres",
+          "hig": "Alto",
+          "off": "Apagado",
+          "level1": "Nivel 1",
+          "level2": "Nivel 2",
+          "level3": "Nivel 3"
+        }
+      },
+      "mode": {
+        "name": "Modo de limpieza",
+        "state": {
+          "silent": "Silencioso",
+          "basic": "Estándar",
+          "strong": "Fuerte",
+          "full_speed": "Velocidad máxima (Máximo)",
+          "auto": "Automático",
+          "sweep": "Barrido",
+          "sweep_and_mop": "Barrer y pasar mopa",
+          "mop": "Pasar mopa",
+          "medium": "Velocidad media",
+          "sweepandmop": "Barrer y pasar mopa",
+          "sweep_then_mop": "Barrer primero, luego pasar mopa",
+          "sweep_mop": "Barrer y pasar mopa",
+          "sweep_before_mopping": "Barrer antes de pasar mopa"
+        }
+      },
+      "sweep_type": {
+        "name": "Tipo de barrido",
+        "state": {
+          "global": "Global",
+          "mop": "Pasar mopa",
+          "edge": "Seguimiento de bordes",
+          "area": "Área",
+          "point": "Punto",
+          "remote": "Control remoto",
+          "explore": "Mapeo",
+          "room": "Personalización de sala",
+          "floor": "Personalización de piso",
+          "control": "Control remoto",
+          "total": "Limpieza global",
+          "wall": "Limpieza de borde",
+          "zone": "Limpieza de zona",
+          "corner": "Seguimiento de bordes",
+          "man": "Control remoto",
+          "roomprefer": "Personalización de sala",
+          "materialprefer": "Personalización de piso",
+          "maping": "Mapeo en progreso",
+          "gocharging": "Regresando a estación",
+          "remotecontrol": "Control remoto",
+          "selectroom": "Sala",
+          "customclean": "Limpieza personalizada",
+          "costum": "Personalizado",
+          "custom_area": "Área personalizada",
+          "appointment": "Programado",
+          "linkage": "Vinculación",
+          "fast": "Rápido",
+          "ai_hosting": "Alojamiento IA"
+        }
+      },
+      "active_map": {
+        "name": "Mapa activo"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "Repetir limpieza"
+      },
+      "alarm": {
+        "name": "Encontrar aspiradora (bip)"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volumen"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "Limpiar sala(s)",
+      "description": "Comience a limpiar una o más salas por su ID de sala del mapa.",
+      "fields": {
+        "segments": {
+          "name": "Salas",
+          "description": "Lista de IDs de sala a limpiar (del atributo \"rooms\" de la cámara del mapa)."
+        }
+      }
+    }
+  }
+}

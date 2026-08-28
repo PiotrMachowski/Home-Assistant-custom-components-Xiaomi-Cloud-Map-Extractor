@@ -1,0 +1,253 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Adicione seu aspirador Xiaomi",
+        "description": "Faça login pelo e-mail para obter o mapa ao vivo.",
+        "menu_options": {
+          "credentials": "E-mail e senha (obter mapa ao vivo)",
+          "local": "IP do dispositivo e token (apenas controle, sem mapa)"
+        }
+      },
+      "credentials": {
+        "title": "Faça login no Mi Home",
+        "description": "Faça login uma vez. Você permanecerá conectado depois disso.",
+        "data": {
+          "username": "E-mail, número de telefone ou ID de conta Mi",
+          "password": "Senha"
+        }
+      },
+      "local": {
+        "title": "Conexão local",
+        "description": "Endereço IP e token de 32 caracteres. Controle e sensores, sem mapa.",
+        "data": {
+          "host": "Endereço IP",
+          "token": "Token"
+        }
+      },
+      "captcha": {
+        "title": "Verificação rápida",
+        "description": "Xiaomi quer ter certeza de que você é real. Digite os caracteres abaixo:\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "Caracteres da imagem"
+        }
+      },
+      "twofa": {
+        "title": "Digite o código",
+        "description": "Xiaomi acabou de enviar um código para seu e-mail. Digite-o abaixo.",
+        "data": {
+          "code": "Código de verificação"
+        }
+      },
+      "devices": {
+        "title": "Escolha seu aspirador",
+        "description": "Há mais de um aspirador nesta conta. Escolha o que deseja adicionar.",
+        "data": {
+          "device": "Aspirador"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Faça login novamente no Xiaomi",
+        "description": "Sua sessão expirou e não conseguiu ser renovada automaticamente. Faça login novamente para restaurar o mapa ao vivo.",
+        "data": {
+          "username": "E-mail, número de telefone ou ID de conta Mi",
+          "password": "Senha"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "Este modelo ainda não é suportado.",
+      "cannot_connect": "Não foi possível alcançar o aspirador neste IP com este token."
+    },
+    "abort": {
+      "already_configured": "Este aspirador já está configurado.",
+      "reauth_successful": "Você fez login novamente. O mapa ao vivo foi restaurado.",
+      "login_failed": "Xiaomi recusou ({reason}). Verifique seu e-mail e senha e tente novamente.",
+      "no_devices": "Nenhum aspirador suportado nesta conta.",
+      "unsupported_model": "Este modelo ainda não é suportado (apenas aspiradores ijai/Xiaomi)."
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "Mapa"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "cleaning": "Limpando",
+          "paused": "Parado",
+          "idle": "Inativo",
+          "returning": "Retornando à base",
+          "docked": "Na base",
+          "error": "Erro"
+        }
+      },
+      "battery": {
+        "name": "Bateria"
+      },
+      "clean_area": {
+        "name": "Área limpa"
+      },
+      "clean_time": {
+        "name": "Tempo de limpeza"
+      },
+      "main_brush_life": {
+        "name": "Vida útil da escova principal"
+      },
+      "side_brush_life": {
+        "name": "Vida útil da escova lateral"
+      },
+      "filter_life": {
+        "name": "Vida útil do filtro"
+      },
+      "mop_life": {
+        "name": "Vida útil do pano de limpeza"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "Velocidade do ventilador",
+        "state": {
+          "quiet": "Silencioso",
+          "standard": "Padrão",
+          "medium_gear": "Velocidade média",
+          "strong": "Forte",
+          "medium": "Médio",
+          "mode_quiet": "Silencioso",
+          "mode_standard": "Padrão",
+          "mode_medium": "Médio",
+          "mode_strong": "Forte",
+          "ultra_strong": "Ultra forte",
+          "off": "Desligado",
+          "energy_saving": "Economia de energia",
+          "powerful": "Potente",
+          "slient": "Silencioso",
+          "turbo": "Turbo",
+          "0": "Silencioso",
+          "1": "Economia de energia",
+          "2": "Padrão",
+          "3": "Potente",
+          "close": "Fechar",
+          "one": "Um",
+          "two": "Dois",
+          "three": "Três",
+          "forth": "Quatro",
+          "silent": "Silencioso",
+          "basic": "Básico",
+          "full_speed": "Velocidade máxima"
+        }
+      },
+      "water_level": {
+        "name": "Nível de água",
+        "state": {
+          "low_water_level": "Nível de água baixo",
+          "medium_water_level": "Nível de água médio",
+          "high_water_level": "Nível de água alto",
+          "low": "Baixo",
+          "medium": "Médio",
+          "high": "Alto",
+          "middle": "Meio",
+          "height": "Altura",
+          "mid": "Meio",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "Velocidade 1",
+          "gear_2": "Velocidade 2",
+          "gear_3": "Velocidade 3",
+          "close": "Fechar",
+          "one": "Um",
+          "two": "Dois",
+          "three": "Três",
+          "hig": "Alto",
+          "off": "Desligado",
+          "level1": "Nível 1",
+          "level2": "Nível 2",
+          "level3": "Nível 3"
+        }
+      },
+      "mode": {
+        "name": "Modo de limpeza",
+        "state": {
+          "silent": "Silencioso",
+          "basic": "Padrão",
+          "strong": "Forte",
+          "full_speed": "Velocidade máxima (Máx.)",
+          "auto": "Automático",
+          "sweep": "Varredura",
+          "sweep_and_mop": "Varredura e limpeza",
+          "mop": "Limpeza",
+          "medium": "Velocidade média",
+          "sweepandmop": "Varredura e limpeza",
+          "sweep_then_mop": "Varrer e depois limpar",
+          "sweep_mop": "Varredura e limpeza",
+          "sweep_before_mopping": "Varrer antes de limpar"
+        }
+      },
+      "sweep_type": {
+        "name": "Tipo de varredura",
+        "state": {
+          "global": "Global",
+          "mop": "Limpeza",
+          "edge": "Seguimento de borda",
+          "area": "Área",
+          "point": "Ponto",
+          "remote": "Controle remoto",
+          "explore": "Mapeamento",
+          "room": "Personalização de cômodo",
+          "floor": "Personalização de piso",
+          "control": "Controle remoto",
+          "total": "Limpeza global",
+          "wall": "Limpeza de borda",
+          "zone": "Limpeza de zona",
+          "corner": "Seguimento de borda",
+          "man": "Controle remoto",
+          "roomprefer": "Personalização de cômodo",
+          "materialprefer": "Personalização de piso",
+          "maping": "Mapeamento em andamento",
+          "gocharging": "Retornar à base",
+          "remotecontrol": "Controle remoto",
+          "selectroom": "Cômodo",
+          "customclean": "Limpeza personalizada",
+          "costum": "Personalizado",
+          "custom_area": "Área personalizada",
+          "appointment": "Agendado",
+          "linkage": "Vinculação",
+          "fast": "Rápido",
+          "ai_hosting": "Hospedagem de IA"
+        }
+      },
+      "active_map": {
+        "name": "Mapa ativo"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "Repetir limpeza"
+      },
+      "alarm": {
+        "name": "Encontrar aspirador (bip)"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "Limpar cômodo(s)",
+      "description": "Comece a limpeza de um ou mais cômodos por seu ID de cômodo no mapa.",
+      "fields": {
+        "segments": {
+          "name": "Cômodos",
+          "description": "Lista de IDs de cômodo para limpar (do atributo \"rooms\" da câmera do mapa)."
+        }
+      }
+    }
+  }
+}

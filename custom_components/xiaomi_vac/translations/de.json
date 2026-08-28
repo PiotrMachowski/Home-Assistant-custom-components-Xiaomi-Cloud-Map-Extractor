@@ -1,0 +1,253 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Xiaomi-Staubsauger hinzufügen",
+        "description": "Melden Sie sich per E-Mail an, um die Live-Karte zu erhalten.",
+        "menu_options": {
+          "credentials": "E-Mail & Passwort (Live-Karte aktivieren)",
+          "local": "Geräte-IP & Token (nur Steuerung, keine Karte)"
+        }
+      },
+      "credentials": {
+        "title": "Bei Mi Home anmelden",
+        "description": "Melden Sie sich einmal an. Sie bleiben danach angemeldet.",
+        "data": {
+          "username": "E-Mail, Telefonnummer oder Mi-Konto-ID",
+          "password": "Passwort"
+        }
+      },
+      "local": {
+        "title": "Lokale Verbindung",
+        "description": "IP-Adresse und 32-stelliges Token. Steuerung und Sensoren, keine Karte.",
+        "data": {
+          "host": "IP-Adresse",
+          "token": "Token"
+        }
+      },
+      "captcha": {
+        "title": "Kurze Überprüfung",
+        "description": "Xiaomi möchte wissen, dass Sie echt sind. Geben Sie die Zeichen unten ein:\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "Zeichen aus dem Bild"
+        }
+      },
+      "twofa": {
+        "title": "Geben Sie den Code ein",
+        "description": "Xiaomi hat Ihnen gerade einen Code per E-Mail gesendet. Geben Sie ihn unten ein.",
+        "data": {
+          "code": "Bestätigungscode"
+        }
+      },
+      "devices": {
+        "title": "Wählen Sie Ihren Staubsauger",
+        "description": "Es gibt mehrere Staubsauger auf diesem Konto. Wählen Sie den hinzuzufügenden aus.",
+        "data": {
+          "device": "Staubsauger"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Melden Sie sich erneut bei Xiaomi an",
+        "description": "Ihre Sitzung ist abgelaufen und konnte sich nicht automatisch erneuern. Melden Sie sich an, um die Live-Karte wiederherzustellen.",
+        "data": {
+          "username": "E-Mail, Telefonnummer oder Mi-Konto-ID",
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "Dieses Modell wird noch nicht unterstützt.",
+      "cannot_connect": "Der Staubsauger konnte unter dieser IP mit diesem Token nicht erreicht werden."
+    },
+    "abort": {
+      "already_configured": "Dieser Staubsauger ist bereits eingerichtet.",
+      "reauth_successful": "Sie sind zurück angemeldet. Die Live-Karte wurde wiederhergestellt.",
+      "login_failed": "Xiaomi lehnt das ab ({reason}). Überprüfen Sie Ihre E-Mail und Ihr Passwort und versuchen Sie es erneut.",
+      "no_devices": "Keine unterstützten Staubsauger auf diesem Konto.",
+      "unsupported_model": "Dieses Modell wird noch nicht unterstützt (nur ijai/Xiaomi-Marken-ijai-Staubsauger)."
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "Karte"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "cleaning": "Reinigung läuft",
+          "paused": "Pausiert",
+          "idle": "Untätig",
+          "returning": "Kehrt zur Ladestation zurück",
+          "docked": "In Ladestation",
+          "error": "Fehler"
+        }
+      },
+      "battery": {
+        "name": "Akku"
+      },
+      "clean_area": {
+        "name": "Gereinigt Fläche"
+      },
+      "clean_time": {
+        "name": "Reinigungszeit"
+      },
+      "main_brush_life": {
+        "name": "Hauptbürste Lebensdauer"
+      },
+      "side_brush_life": {
+        "name": "Seitenbürste Lebensdauer"
+      },
+      "filter_life": {
+        "name": "Filter Lebensdauer"
+      },
+      "mop_life": {
+        "name": "Wischmopp Lebensdauer"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "Lüftergeschwindigkeit",
+        "state": {
+          "quiet": "Leise",
+          "standard": "Standard",
+          "medium_gear": "Mittelstufe",
+          "strong": "Stark",
+          "medium": "Mittel",
+          "mode_quiet": "Leise",
+          "mode_standard": "Standard",
+          "mode_medium": "Mittel",
+          "mode_strong": "Stark",
+          "ultra_strong": "Ultra-Stark",
+          "off": "Aus",
+          "energy_saving": "Energiesparmodus",
+          "powerful": "Kraftvoll",
+          "slient": "Leise",
+          "turbo": "Turbo",
+          "0": "Leise",
+          "1": "Energiesparmodus",
+          "2": "Standard",
+          "3": "Kraftvoll",
+          "close": "Aus",
+          "one": "Eins",
+          "two": "Zwei",
+          "three": "Drei",
+          "forth": "Vier",
+          "silent": "Leise",
+          "basic": "Basis",
+          "full_speed": "Vollständige Geschwindigkeit"
+        }
+      },
+      "water_level": {
+        "name": "Wasserstufe",
+        "state": {
+          "low_water_level": "Niedrige Wasserstufe",
+          "medium_water_level": "Mittlere Wasserstufe",
+          "high_water_level": "Hohe Wasserstufe",
+          "low": "Niedrig",
+          "medium": "Mittel",
+          "high": "Hoch",
+          "middle": "Mitte",
+          "height": "Höhe",
+          "mid": "Mitte",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "Stufe 1",
+          "gear_2": "Stufe 2",
+          "gear_3": "Stufe 3",
+          "close": "Aus",
+          "one": "Eins",
+          "two": "Zwei",
+          "three": "Drei",
+          "hig": "Hoch",
+          "off": "Aus",
+          "level1": "Stufe 1",
+          "level2": "Stufe 2",
+          "level3": "Stufe 3"
+        }
+      },
+      "mode": {
+        "name": "Reinigungsmodus",
+        "state": {
+          "silent": "Leise/Lautlos",
+          "basic": "Standard",
+          "strong": "Stark",
+          "full_speed": "Vollständige Geschwindigkeit (Maximum)",
+          "auto": "Automatisch",
+          "sweep": "Fegen",
+          "sweep_and_mop": "Fegen und Wischen",
+          "mop": "Wischen",
+          "medium": "Mittelstufe",
+          "sweepandmop": "Fegen und Wischen",
+          "sweep_then_mop": "Erst fegen, dann wischen",
+          "sweep_mop": "Fegen und Wischen",
+          "sweep_before_mopping": "Vor dem Wischen fegen"
+        }
+      },
+      "sweep_type": {
+        "name": "Fegeart",
+        "state": {
+          "global": "Gesamt",
+          "mop": "Wischen",
+          "edge": "Kante folgen",
+          "area": "Bereich",
+          "point": "Punkt",
+          "remote": "Fernsteuerung",
+          "explore": "Kartierung",
+          "room": "Raumanpassung",
+          "floor": "Bodenart-Anpassung",
+          "control": "Fernsteuerung",
+          "total": "Vollständige Reinigung",
+          "wall": "Kantenreinigung",
+          "zone": "Zonenreinigung",
+          "corner": "Kante folgen",
+          "man": "Fernsteuerung",
+          "roomprefer": "Raumanpassung",
+          "materialprefer": "Bodenart-Anpassung",
+          "maping": "Kartierung läuft",
+          "gocharging": "Zur Ladestation zurück",
+          "remotecontrol": "Fernsteuerung",
+          "selectroom": "Raum",
+          "customclean": "Benutzerdefinierte Reinigung",
+          "costum": "Benutzerdefiniert",
+          "custom_area": "Benutzerdefinierten Bereich",
+          "appointment": "Geplant",
+          "linkage": "Verknüpfung",
+          "fast": "Schnell",
+          "ai_hosting": "KI-Hosting"
+        }
+      },
+      "active_map": {
+        "name": "Aktive Karte"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "Reinigung wiederholen"
+      },
+      "alarm": {
+        "name": "Staubsauger finden (Piepsen)"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Lautstärke"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "Raum(räume) reinigen",
+      "description": "Beginnen Sie mit der Reinigung von einem oder mehreren Räumen nach deren Karten-Raum-ID.",
+      "fields": {
+        "segments": {
+          "name": "Räume",
+          "description": "Liste der Raum-IDs zum Reinigen (aus dem Attribut \"rooms\" der Karten-Kamera)."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+clean_segment:
+  name: Clean room(s)
+  description: Start cleaning one or more rooms by their map room id.
+  target:
+    entity:
+      domain: vacuum
+      integration: xiaomi_vac
+  fields:
+    segments:
+      name: Rooms
+      description: List of room ids to clean (from the map camera's "rooms" attribute).
+      required: true
+      example: "[11, 12]"
+      selector:
+        object:
+
+refresh_map:
+  name: Refresh map
+  description: Briefly starts the vacuum so it leaves the dock and uploads a fresh map, then sends it back to dock.
+  target:
+    entity:
+      domain: vacuum
+      integration: xiaomi_vac
+  fields:
+    confirm_movement:
+      name: Confirm movement
+      description: Must be true. The vacuum will briefly leave the dock and return.
+      required: true
+      example: true
+      selector:
+        boolean:

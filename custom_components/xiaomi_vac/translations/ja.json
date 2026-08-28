@@ -1,0 +1,253 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Xiaomiロボット掃除機を追加します",
+        "description": "ライブマップを取得するにはメールでサインインしてください。",
+        "menu_options": {
+          "credentials": "メールとパスワード（ライブマップを取得）",
+          "local": "デバイスIPとトークン（コントロールのみ、マップなし）"
+        }
+      },
+      "credentials": {
+        "title": "Mi Homeにサインインします",
+        "description": "1回サインインしてください。その後、ログイン状態を保つことができます。",
+        "data": {
+          "username": "メール、電話番号、またはMiアカウントID",
+          "password": "パスワード"
+        }
+      },
+      "local": {
+        "title": "ローカル接続",
+        "description": "IPアドレスと32文字のトークンです。コントロールとセンサー、マップなし。",
+        "data": {
+          "host": "IPアドレス",
+          "token": "トークン"
+        }
+      },
+      "captcha": {
+        "title": "簡単な確認",
+        "description": "Xiaomiはあなたが本物かどうかを確認したいです。以下の文字を入力してください：\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "画像からの文字"
+        }
+      },
+      "twofa": {
+        "title": "コードを入力します",
+        "description": "Xiaomiがメールでコードを送信しました。下に入力してください。",
+        "data": {
+          "code": "確認コード"
+        }
+      },
+      "devices": {
+        "title": "お使いのロボット掃除機を選択します",
+        "description": "このアカウントに複数のロボット掃除機があります。追加するものを選択してください。",
+        "data": {
+          "device": "ロボット掃除機"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Xiaomiに再度サインインします",
+        "description": "セッションの有効期限が切れており、自動更新できませんでした。ライブマップを復元するために再度サインインしてください。",
+        "data": {
+          "username": "メール、電話番号、またはMiアカウントID",
+          "password": "パスワード"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "このモデルはまだサポートされていません。",
+      "cannot_connect": "そのIPとトークンでロボット掃除機に到達できません。"
+    },
+    "abort": {
+      "already_configured": "このロボット掃除機はすでにセットアップされています。",
+      "reauth_successful": "再度ログインしました。ライブマップが復元されました。",
+      "login_failed": "Xiaomiが拒否しました（{reason}）。メールとパスワードを確認して、もう一度試してください。",
+      "no_devices": "このアカウントにはサポートされているロボット掃除機がありません。",
+      "unsupported_model": "このモデルはまだサポートされていません（ijai/Xiaomi品のijai掃除機のみ）。"
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "マップ"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "ステータス",
+        "state": {
+          "cleaning": "清掃中",
+          "paused": "一時停止",
+          "idle": "待機中",
+          "returning": "充電ドックに戻っています",
+          "docked": "充電中",
+          "error": "エラー"
+        }
+      },
+      "battery": {
+        "name": "バッテリー"
+      },
+      "clean_area": {
+        "name": "清掃面積"
+      },
+      "clean_time": {
+        "name": "清掃時間"
+      },
+      "main_brush_life": {
+        "name": "メインブラシの寿命"
+      },
+      "side_brush_life": {
+        "name": "サイドブラシの寿命"
+      },
+      "filter_life": {
+        "name": "フィルターの寿命"
+      },
+      "mop_life": {
+        "name": "モップの寿命"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "ファン速度",
+        "state": {
+          "quiet": "静音",
+          "standard": "標準",
+          "medium_gear": "中速",
+          "strong": "強",
+          "medium": "中",
+          "mode_quiet": "静音",
+          "mode_standard": "標準",
+          "mode_medium": "中",
+          "mode_strong": "強",
+          "ultra_strong": "超強",
+          "off": "オフ",
+          "energy_saving": "省エネ",
+          "powerful": "パワフル",
+          "slient": "静音",
+          "turbo": "ターボ",
+          "0": "静音",
+          "1": "省エネ",
+          "2": "標準",
+          "3": "パワフル",
+          "close": "クローズ",
+          "one": "1つ",
+          "two": "2つ",
+          "three": "3つ",
+          "forth": "4つ",
+          "silent": "静音",
+          "basic": "基本",
+          "full_speed": "最高速"
+        }
+      },
+      "water_level": {
+        "name": "水量レベル",
+        "state": {
+          "low_water_level": "低水量",
+          "medium_water_level": "中水量",
+          "high_water_level": "高水量",
+          "low": "低",
+          "medium": "中",
+          "high": "高",
+          "middle": "中央",
+          "height": "高さ",
+          "mid": "中央",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "ギア1",
+          "gear_2": "ギア2",
+          "gear_3": "ギア3",
+          "close": "クローズ",
+          "one": "1つ",
+          "two": "2つ",
+          "three": "3つ",
+          "hig": "高",
+          "off": "オフ",
+          "level1": "レベル1",
+          "level2": "レベル2",
+          "level3": "レベル3"
+        }
+      },
+      "mode": {
+        "name": "清掃モード",
+        "state": {
+          "silent": "静音",
+          "basic": "標準",
+          "strong": "強",
+          "full_speed": "最高速（最大）",
+          "auto": "自動",
+          "sweep": "掃く",
+          "sweep_and_mop": "掃いて拭く",
+          "mop": "拭く",
+          "medium": "中速",
+          "sweepandmop": "掃いて拭く",
+          "sweep_then_mop": "掃いてから拭く",
+          "sweep_mop": "掃いて拭く",
+          "sweep_before_mopping": "拭く前に掃く"
+        }
+      },
+      "sweep_type": {
+        "name": "掃除タイプ",
+        "state": {
+          "global": "グローバル",
+          "mop": "拭く",
+          "edge": "エッジに沿う",
+          "area": "エリア",
+          "point": "ポイント",
+          "remote": "リモートコントロール",
+          "explore": "マッピング",
+          "room": "部屋のカスタマイズ",
+          "floor": "床のカスタマイズ",
+          "control": "リモートコントロール",
+          "total": "全体清掃",
+          "wall": "壁の清掃",
+          "zone": "ゾーン清掃",
+          "corner": "エッジに沿う",
+          "man": "リモートコントロール",
+          "roomprefer": "部屋のカスタマイズ",
+          "materialprefer": "床のカスタマイズ",
+          "maping": "マッピング中",
+          "gocharging": "充電に戻る",
+          "remotecontrol": "リモートコントロール",
+          "selectroom": "部屋",
+          "customclean": "カスタム清掃",
+          "costum": "カスタム",
+          "custom_area": "カスタムエリア",
+          "appointment": "スケジュール済み",
+          "linkage": "リンク",
+          "fast": "高速",
+          "ai_hosting": "AIホスティング"
+        }
+      },
+      "active_map": {
+        "name": "現在のマップ"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "清掃を繰り返す"
+      },
+      "alarm": {
+        "name": "ロボット掃除機を見つける（ビープ音）"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "音量"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "部屋を清掃します",
+      "description": "マップ上の部屋IDで1つ以上の部屋の清掃を開始します。",
+      "fields": {
+        "segments": {
+          "name": "部屋",
+          "description": "清掃する部屋IDのリスト（マップカメラの\"rooms\"属性から）。"
+        }
+      }
+    }
+  }
+}

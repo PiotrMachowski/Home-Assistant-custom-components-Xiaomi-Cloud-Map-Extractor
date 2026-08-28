@@ -1,0 +1,167 @@
+"""Roidmi runtime profiles.
+
+See docs/dev/module-notes.md for design rationale and verification status.
+"""
+
+from __future__ import annotations
+
+from ..types import (
+    Action,
+    CleanHistoryCapability,
+    ConsumablesCapability,
+    DndCapability,
+    MapCapability,
+    ModelProfile,
+    PointZoneCapability,
+    Prop,
+    RoomCleanCapability,
+    ScheduleCapability,
+    SettingsCapability,
+    VoiceCapability,
+)
+
+
+# roidmi.vacuum.r1b, roidmi.vacuum.v60, roidmi.vacuum.v66
+ROIDMI_R1B = ModelProfile(
+    profile_id='roidmi.r1b',
+    brand='roidmi',
+    notes=("urn:miot-spec-v2:device:vacuum:0000A006:roidmi-r1b:2",),
+    room_clean=RoomCleanCapability(
+        room_ids=Prop(2, 9),
+        start=Action(2, 3, in_piid=9),
+    ),
+)
+
+# roidmi.vacuum.sdj60
+ROIDMI_SDJ60 = ModelProfile(
+    profile_id='roidmi.sdj60',
+    brand='roidmi',
+    notes=("urn:miot-spec-v2:device:vacuum:0000A006:roidmi-sdj60:2",),
+    room_clean=RoomCleanCapability(
+        room_ids=Prop(2, 9),
+        start=Action(2, 6, in_piid=9),
+    ),
+)
+
+# roidmi.vacuum.v62
+ROIDMI_V62 = ModelProfile(
+    profile_id='roidmi.v62',
+    brand='roidmi',
+    notes=("urn:miot-spec-v2:device:vacuum:0000A006:roidmi-v62:1",),
+    map=MapCapability(
+        service=10,
+        map_num=Prop(10, 3),
+        current_map_id=Prop(10, 2),
+        get_map_list=Action(10, 1, out_piids=(4,)),
+        upload_by_mapid=Action(10, 2, in_piid=6, out_piids=(6, 7, 18)),
+        upload_by_mapid_ii=Action(10, 14, in_piid=6, out_piids=(6, 7, 18, 21)),
+        set_current_map=Action(10, 3, in_piid=6),
+        point_zone=PointZoneCapability(
+            service=9,
+            zone_points=Prop(9, 2),
+            target_point=Prop(9, 5),
+            set_zone_point=Action(9, 8, in_piid=2, out_piids=(7, 8, 9)),
+            start_zone_clean=Action(9, 3),
+            start_point_clean=Action(9, 9, in_piid=5, out_piids=(7, 8, 9)),
+            legacy_start_point_clean=Action(9, 1),
+            pause_point_clean=Action(9, 2, in_piid=4),
+            pause_zone_clean=Action(9, 4, in_piid=4),
+            restrict_points=Prop(9, 3),
+            set_virtual_wall=Action(9, 6, in_piid=3, out_piids=(7, 8, 9)),
+            beauty_point=Prop(9, 6),
+            set_beauty_wall=Action(9, 5, in_piid=6, out_piids=(7, 8, 9)),
+            map_type=Prop(9, 8),
+        ),
+        map_list=Prop(10, 4),
+        remember_state=Prop(10, 1),
+        has_new_map=Prop(10, 19),
+        del_map=Action(10, 4, in_piid=6),
+        rename_map=Action(10, 5, in_piids=(6, 8)),
+        build_new_map=Action(10, 11, in_piid=14),
+        reset_map=Action(10, 10),
+        current_path=Prop(10, 5),
+        start_cleaning_point=Prop(10, 15),
+        end_cleaning_point=Prop(10, 16),
+        get_current_path=Action(10, 12, in_piids=(15, 16), out_piids=(5,)),
+        room_id_name_list=Prop(10, 17),
+        split_points=Prop(10, 12),
+        arrange_room_ids=Prop(10, 11),
+        get_map_room_list=Action(10, 13, in_piid=2, out_piids=(17,)),
+        rename_room=Action(10, 7, in_piids=(6, 9, 10), out_piids=(6, 7, 18)),
+        split_room=Action(10, 9, in_piids=(6, 9, 12, 13), out_piids=(6, 7, 18)),
+        mijia_room_list=Prop(10, 22),
+        set_mijia_room_list=Action(10, 18, in_piids=(6, 22)),
+    ),
+    schedule=ScheduleCapability(
+        service=8,
+        add=Action(8, 1, in_piids=(1, 2, 3, 4, 5, 6, 11, 14, 12, 16)),
+        delete=Action(8, 2, in_piid=1),
+        get=Action(8, 3, out_piids=(15,)),
+        order_id=Prop(8, 1),
+        enable=Prop(8, 2),
+        day=Prop(8, 3),
+        hour=Prop(8, 4),
+        minute=Prop(8, 5),
+        repeat=Prop(8, 6),
+        clean_way=Prop(8, 7),
+        suction=Prop(8, 8),
+        water=Prop(8, 9),
+        twice_clean=Prop(8, 10),
+        mapid=Prop(8, 11),
+        room_count=Prop(8, 12),
+        room_data=Prop(8, 13),
+        orderdata=Prop(8, 15),
+    ),
+    settings=SettingsCapability(
+        mop_route=Prop(7, 7),
+        shake_shift=Prop(7, 50),
+        tank_shake=Prop(7, 48),
+        direction=Prop(7, 16),
+        dirt_recognize=Prop(7, 35),
+        pet_recognize=Prop(7, 36),
+        ai_recognize=Prop(7, 42),
+        carpet_booster=Prop(7, 44),
+        carpet_avoid=Prop(7, 47),
+        map_encrypt=Prop(7, 55),
+        multi_prop_vacuum=Prop(7, 45),
+    ),
+    consumables=ConsumablesCapability(
+        side_brush_hours=Prop(7, 9),
+        main_brush_hours=Prop(7, 11),
+        hypa_hours=Prop(7, 13),
+        mop_hours=Prop(7, 15),
+        door_state=Prop(7, 3),
+        cloth_state=Prop(7, 4),
+        reset_consumable=Action(7, 1, in_piid=17),
+    ),
+    clean_history=CleanHistoryCapability(
+        start_time=Prop(7, 27),
+        use_time=Prop(7, 28),
+        clean_area=Prop(7, 29),
+        map_url=Prop(7, 30),
+        clean_mode=Prop(7, 31),
+        clean_way=Prop(7, 32),
+        current_map=Prop(7, 33),
+        task_status=Prop(7, 37),
+    ),
+    dnd=DndCapability(
+        service=12,
+        set_notdisturb=Action(12, 1, in_piids=(1, 2, 3, 4, 5, 6)),
+        enable=Prop(12, 1),
+        start_hour=Prop(12, 2),
+        start_minute=Prop(12, 3),
+        end_hour=Prop(12, 4),
+        end_minute=Prop(12, 5),
+        timezone=Prop(12, 6),
+    ),
+    voice=VoiceCapability(
+        service=14,
+        download_voice=Action(14, 1, in_piids=(1, 2, 5, 6), out_piids=(2,)),
+        get_download_status=Action(14, 2, out_piids=(1, 2, 3, 4)),
+        target_voice=Prop(14, 1),
+        cur_voice=Prop(14, 2),
+        download_status=Prop(14, 3),
+        download_progress=Prop(14, 4),
+        voice_url=Prop(14, 5),
+    ),
+)

@@ -1,0 +1,253 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "添加您的小米吸尘器",
+        "description": "使用电子邮件登录以获取实时地图。",
+        "menu_options": {
+          "credentials": "电子邮件和密码（获取实时地图）",
+          "local": "设备IP和令牌（仅控制，无地图）"
+        }
+      },
+      "credentials": {
+        "title": "登录小米智能家居",
+        "description": "登录一次。之后您将保持登录状态。",
+        "data": {
+          "username": "电子邮件、电话号码或小米账户ID",
+          "password": "密码"
+        }
+      },
+      "local": {
+        "title": "本地连接",
+        "description": "IP地址和32字符令牌。控制和传感器，无地图。",
+        "data": {
+          "host": "IP地址",
+          "token": "令牌"
+        }
+      },
+      "captcha": {
+        "title": "快速检查",
+        "description": "小米想确认您是真人。请输入下面的字符：\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "图像中的字符"
+        }
+      },
+      "twofa": {
+        "title": "输入验证码",
+        "description": "小米刚刚给您发送了一个验证码。请在下方输入。",
+        "data": {
+          "code": "验证码"
+        }
+      },
+      "devices": {
+        "title": "选择您的吸尘器",
+        "description": "此账户中有多台吸尘器。请选择要添加的吸尘器。",
+        "data": {
+          "device": "吸尘器"
+        }
+      },
+      "reauth_confirm": {
+        "title": "重新登录小米",
+        "description": "您的会话已过期，无法自动续期。请重新登录以恢复实时地图。",
+        "data": {
+          "username": "电子邮件、电话号码或小米账户ID",
+          "password": "密码"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "目前不支持此型号。",
+      "cannot_connect": "无法通过此IP和令牌连接到吸尘器。"
+    },
+    "abort": {
+      "already_configured": "此吸尘器已经配置。",
+      "reauth_successful": "您已重新登录。实时地图已恢复。",
+      "login_failed": "小米拒绝了（{reason}）。请检查您的电子邮件和密码，然后重试。",
+      "no_devices": "此账户中没有支持的吸尘器。",
+      "unsupported_model": "目前不支持此型号（仅限ijai/小米品牌ijai吸尘器）。"
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "地图"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "状态",
+        "state": {
+          "cleaning": "清扫中",
+          "paused": "已暂停",
+          "idle": "闲置",
+          "returning": "返回充电站",
+          "docked": "已停靠",
+          "error": "错误"
+        }
+      },
+      "battery": {
+        "name": "电池"
+      },
+      "clean_area": {
+        "name": "清扫面积"
+      },
+      "clean_time": {
+        "name": "清扫时间"
+      },
+      "main_brush_life": {
+        "name": "主刷寿命"
+      },
+      "side_brush_life": {
+        "name": "边刷寿命"
+      },
+      "filter_life": {
+        "name": "过滤器寿命"
+      },
+      "mop_life": {
+        "name": "拖布寿命"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "风速",
+        "state": {
+          "quiet": "安静",
+          "standard": "标准",
+          "medium_gear": "中档",
+          "strong": "强劲",
+          "medium": "中等",
+          "mode_quiet": "安静",
+          "mode_standard": "标准",
+          "mode_medium": "中等",
+          "mode_strong": "强劲",
+          "ultra_strong": "超强",
+          "off": "关闭",
+          "energy_saving": "节能",
+          "powerful": "强力",
+          "slient": "安静",
+          "turbo": "涡轮",
+          "0": "安静",
+          "1": "节能",
+          "2": "标准",
+          "3": "强力",
+          "close": "关闭",
+          "one": "一级",
+          "two": "二级",
+          "three": "三级",
+          "forth": "四级",
+          "silent": "安静",
+          "basic": "基础",
+          "full_speed": "全速"
+        }
+      },
+      "water_level": {
+        "name": "水量等级",
+        "state": {
+          "low_water_level": "低水位",
+          "medium_water_level": "中水位",
+          "high_water_level": "高水位",
+          "low": "低",
+          "medium": "中",
+          "high": "高",
+          "middle": "中",
+          "height": "高度",
+          "mid": "中",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "档位1",
+          "gear_2": "档位2",
+          "gear_3": "档位3",
+          "close": "关闭",
+          "one": "一级",
+          "two": "二级",
+          "three": "三级",
+          "hig": "高",
+          "off": "关闭",
+          "level1": "等级1",
+          "level2": "等级2",
+          "level3": "等级3"
+        }
+      },
+      "mode": {
+        "name": "清扫模式",
+        "state": {
+          "silent": "安静",
+          "basic": "标准",
+          "strong": "强劲",
+          "full_speed": "全速（最强）",
+          "auto": "自动",
+          "sweep": "清扫",
+          "sweep_and_mop": "清扫并拖地",
+          "mop": "拖地",
+          "medium": "中档",
+          "sweepandmop": "清扫并拖地",
+          "sweep_then_mop": "先清扫后拖地",
+          "sweep_mop": "清扫并拖地",
+          "sweep_before_mopping": "拖地前先清扫"
+        }
+      },
+      "sweep_type": {
+        "name": "清扫类型",
+        "state": {
+          "global": "全局",
+          "mop": "拖地",
+          "edge": "沿边清扫",
+          "area": "区域",
+          "point": "点位",
+          "remote": "远程控制",
+          "explore": "地图绘制",
+          "room": "房间自定义",
+          "floor": "地板自定义",
+          "control": "远程控制",
+          "total": "全局清扫",
+          "wall": "沿边清扫",
+          "zone": "区域清扫",
+          "corner": "沿边清扫",
+          "man": "远程控制",
+          "roomprefer": "房间自定义",
+          "materialprefer": "地板自定义",
+          "maping": "地图绘制中",
+          "gocharging": "返回充电",
+          "remotecontrol": "远程控制",
+          "selectroom": "房间",
+          "customclean": "自定义清扫",
+          "costum": "自定义",
+          "custom_area": "自定义区域",
+          "appointment": "预约",
+          "linkage": "联动",
+          "fast": "快速",
+          "ai_hosting": "AI托管"
+        }
+      },
+      "active_map": {
+        "name": "当前地图"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "重复清扫"
+      },
+      "alarm": {
+        "name": "查找吸尘器（声音警告）"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "音量"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "清扫房间",
+      "description": "根据地图上的房间ID开始清扫一个或多个房间。",
+      "fields": {
+        "segments": {
+          "name": "房间",
+          "description": "要清扫的房间ID列表（来自地图摄像头的\"rooms\"属性）。"
+        }
+      }
+    }
+  }
+}

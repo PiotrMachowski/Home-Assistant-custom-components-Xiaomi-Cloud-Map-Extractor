@@ -1,0 +1,253 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dodaj odkurzacz Xiaomi",
+        "description": "Zaloguj się za pomocą poczty e-mail, aby uzyskać mapę na żywo.",
+        "menu_options": {
+          "credentials": "E-mail i hasło (uzyskaj mapę na żywo)",
+          "local": "IP urządzenia i token (tylko kontrola, bez mapy)"
+        }
+      },
+      "credentials": {
+        "title": "Zaloguj się do Mi Home",
+        "description": "Zaloguj się raz. Pozostaniesz zalogowany po tym.",
+        "data": {
+          "username": "E-mail, numer telefonu lub ID konta Mi",
+          "password": "Hasło"
+        }
+      },
+      "local": {
+        "title": "Połączenie lokalne",
+        "description": "Adres IP i 32-znakowy token. Kontrola i czujniki, brak mapy.",
+        "data": {
+          "host": "Adres IP",
+          "token": "Token"
+        }
+      },
+      "captcha": {
+        "title": "Szybka weryfikacja",
+        "description": "Xiaomi chce się upewnić, że jesteś prawdziwą osobą. Wpisz poniższe znaki:\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "Znaki z obrazu"
+        }
+      },
+      "twofa": {
+        "title": "Wpisz kod",
+        "description": "Xiaomi właśnie wysłała Ci kod na e-mail. Wpisz go poniżej.",
+        "data": {
+          "code": "Kod weryfikacyjny"
+        }
+      },
+      "devices": {
+        "title": "Wybierz odkurzacz",
+        "description": "Na tym koncie jest więcej niż jeden odkurzacz. Wybierz ten, który chcesz dodać.",
+        "data": {
+          "device": "Odkurzacz"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zaloguj się ponownie do Xiaomi",
+        "description": "Twoja sesja wygasła i nie mogła się odnowić automatycznie. Zaloguj się ponownie, aby przywrócić mapę na żywo.",
+        "data": {
+          "username": "E-mail, numer telefonu lub ID konta Mi",
+          "password": "Hasło"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "Ten model nie jest jeszcze obsługiwany.",
+      "cannot_connect": "Nie można połączyć się z odkurzaczem przy tym adresie IP i tokenie."
+    },
+    "abort": {
+      "already_configured": "Ten odkurzacz jest już skonfigurowany.",
+      "reauth_successful": "Jesteś ponownie zalogowany. Mapa na żywo została przywrócona.",
+      "login_failed": "Xiaomi odrzuciła to ({reason}). Sprawdź swój e-mail i hasło, a następnie spróbuj ponownie.",
+      "no_devices": "Na tym koncie nie ma obsługiwanych odkurzaczy.",
+      "unsupported_model": "Ten model nie jest jeszcze obsługiwany (tylko odkurzacze ijai/Xiaomi)."
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "Mapa"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Stan",
+        "state": {
+          "cleaning": "Czyszczenie",
+          "paused": "Wstrzymane",
+          "idle": "Nieaktywny",
+          "returning": "Powrót do stacji",
+          "docked": "Na stacji",
+          "error": "Błąd"
+        }
+      },
+      "battery": {
+        "name": "Bateria"
+      },
+      "clean_area": {
+        "name": "Czyszczona powierzchnia"
+      },
+      "clean_time": {
+        "name": "Czas czyszczenia"
+      },
+      "main_brush_life": {
+        "name": "Żywotność głównej szczotki"
+      },
+      "side_brush_life": {
+        "name": "Żywotność bocznej szczotki"
+      },
+      "filter_life": {
+        "name": "Żywotność filtra"
+      },
+      "mop_life": {
+        "name": "Żywotność pędu mopującego"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "Prędkość wentylatora",
+        "state": {
+          "quiet": "Cichy",
+          "standard": "Standardowy",
+          "medium_gear": "Średni",
+          "strong": "Mocny",
+          "medium": "Średni",
+          "mode_quiet": "Cichy",
+          "mode_standard": "Standardowy",
+          "mode_medium": "Średni",
+          "mode_strong": "Mocny",
+          "ultra_strong": "Ultra mocny",
+          "off": "Wyłączony",
+          "energy_saving": "Oszczędzanie energii",
+          "powerful": "Potężny",
+          "slient": "Cichy",
+          "turbo": "Turbo",
+          "0": "Cichy",
+          "1": "Oszczędzanie energii",
+          "2": "Standardowy",
+          "3": "Potężny",
+          "close": "Zamknij",
+          "one": "Jeden",
+          "two": "Dwa",
+          "three": "Trzy",
+          "forth": "Cztery",
+          "silent": "Cichy",
+          "basic": "Podstawowy",
+          "full_speed": "Pełna prędkość"
+        }
+      },
+      "water_level": {
+        "name": "Poziom wody",
+        "state": {
+          "low_water_level": "Niski poziom wody",
+          "medium_water_level": "Średni poziom wody",
+          "high_water_level": "Wysoki poziom wody",
+          "low": "Niski",
+          "medium": "Średni",
+          "high": "Wysoki",
+          "middle": "Środek",
+          "height": "Wysokość",
+          "mid": "Środek",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "Prędkość 1",
+          "gear_2": "Prędkość 2",
+          "gear_3": "Prędkość 3",
+          "close": "Zamknij",
+          "one": "Jeden",
+          "two": "Dwa",
+          "three": "Trzy",
+          "hig": "Wysoki",
+          "off": "Wyłączony",
+          "level1": "Poziom 1",
+          "level2": "Poziom 2",
+          "level3": "Poziom 3"
+        }
+      },
+      "mode": {
+        "name": "Tryb czyszczenia",
+        "state": {
+          "silent": "Cichy",
+          "basic": "Standardowy",
+          "strong": "Mocny",
+          "full_speed": "Pełna prędkość (Maks.)",
+          "auto": "Automatyczny",
+          "sweep": "Zamiatanie",
+          "sweep_and_mop": "Zamiatanie i mopowanie",
+          "mop": "Mopowanie",
+          "medium": "Średni",
+          "sweepandmop": "Zamiatanie i mopowanie",
+          "sweep_then_mop": "Najpierw zamiatanie, potem mopowanie",
+          "sweep_mop": "Zamiatanie i mopowanie",
+          "sweep_before_mopping": "Zamiatanie przed mopowaniem"
+        }
+      },
+      "sweep_type": {
+        "name": "Typ zamiata",
+        "state": {
+          "global": "Globalne",
+          "mop": "Mopowanie",
+          "edge": "Śledzenie krawędzi",
+          "area": "Strefa",
+          "point": "Punkt",
+          "remote": "Zdalne sterowanie",
+          "explore": "Mapowanie",
+          "room": "Dostosowanie pokoju",
+          "floor": "Dostosowanie podłogi",
+          "control": "Zdalne sterowanie",
+          "total": "Pełne czyszczenie",
+          "wall": "Czyszczenie krawędzi",
+          "zone": "Czyszczenie strefy",
+          "corner": "Śledzenie krawędzi",
+          "man": "Zdalne sterowanie",
+          "roomprefer": "Dostosowanie pokoju",
+          "materialprefer": "Dostosowanie podłogi",
+          "maping": "Mapowanie w trakcie",
+          "gocharging": "Powrót do stacji",
+          "remotecontrol": "Zdalne sterowanie",
+          "selectroom": "Pokój",
+          "customclean": "Czyszczenie niestandardowe",
+          "costum": "Niestandardowy",
+          "custom_area": "Niestandardowa strefa",
+          "appointment": "Zaplanowane",
+          "linkage": "Powiązanie",
+          "fast": "Szybkie",
+          "ai_hosting": "Hosting AI"
+        }
+      },
+      "active_map": {
+        "name": "Aktywna mapa"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "Powtórz czyszczenie"
+      },
+      "alarm": {
+        "name": "Znajdź odkurzacz (sygnał dźwiękowy)"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Głośność"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "Czyść pokój/pokoje",
+      "description": "Rozpocznij czyszczenie jednego lub więcej pokojów według ich ID pokoju z mapy.",
+      "fields": {
+        "segments": {
+          "name": "Pokoje",
+          "description": "Lista ID pokojów do czyszczenia (z atrybutu \"rooms\" kamery mapy)."
+        }
+      }
+    }
+  }
+}

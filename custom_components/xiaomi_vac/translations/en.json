@@ -1,0 +1,351 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add your Xiaomi vacuum",
+        "description": "Sign in by email for the live map.",
+        "menu_options": {
+          "credentials": "Email & password (gets the live map)",
+          "local": "Device IP & token (control only, no map)"
+        }
+      },
+      "credentials": {
+        "title": "Sign in to Mi Home",
+        "description": "Sign in once. It stays logged in after that.",
+        "data": {
+          "username": "Email, phone number or Mi account ID",
+          "password": "Password"
+        }
+      },
+      "local": {
+        "title": "Local connection",
+        "description": "IP address and 32-character token. Control and sensors, no map.",
+        "data": {
+          "host": "IP address",
+          "token": "Token"
+        }
+      },
+      "captcha": {
+        "title": "Quick human check",
+        "description": "Xiaomi wants to know you're real. Type the characters below:\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "Characters from the image"
+        }
+      },
+      "twofa": {
+        "title": "Enter the code",
+        "description": "Xiaomi just emailed you a code. Put it in below.",
+        "data": {
+          "code": "Verification code"
+        }
+      },
+      "devices": {
+        "title": "Choose your vacuum",
+        "description": "There's more than one vacuum on this account. Pick the one to add.",
+        "data": {
+          "device": "Vacuum"
+        }
+      },
+      "miot_oauth": {
+        "title": "Enable real-time map auth",
+        "description": "Optional. This prepares the live MQTT map path. Skip it to keep the current polling map behaviour.",
+        "data": {
+          "enable_miot_oauth": "Enable OAuth for real-time map updates"
+        }
+      },
+      "miot_oauth_auth": {
+        "title": "Link Xiaomi OAuth",
+        "description": "Open the Xiaomi OAuth link. Home Assistant will continue automatically after Xiaomi redirects back.",
+        "data": {}
+      },
+      "miot_oauth_code": {
+        "title": "Paste Xiaomi OAuth code",
+        "description": "The automatic callback did not finish. Open this link, approve access, then paste the code from the redirect address bar (after 'CODE=' and before '&'):\n\n{authorize_url}",
+        "data": {
+          "code": "OAuth code"
+        }
+      },
+      "miot_oauth_finish": {
+        "title": "Xiaomi OAuth linked",
+        "description": "The real-time map auth is ready."
+      },
+      "reauth_confirm": {
+        "title": "Sign in to Xiaomi again",
+        "description": "Your Xiaomi cloud map session ran out and couldn't renew on its own. Sign in again to bring the map back.",
+        "data": {
+          "username": "Email, phone number or Mi account ID",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "This model isn't supported yet.",
+      "cannot_connect": "Couldn't reach the vacuum at that IP with that token.",
+      "oauth_failed": "Xiaomi OAuth failed. Try the link again or paste the code manually.",
+      "oauth_region_failed": "Couldn't work out the Xiaomi OAuth region from that code."
+    },
+    "progress": {
+      "miot_oauth_auth": "Open [Xiaomi OAuth]({authorize_url}) in a new tab. After approval, Xiaomi should return to Home Assistant and this step will continue automatically."
+    },
+    "abort": {
+      "already_configured": "This vacuum is already set up.",
+      "reauth_successful": "You're back in. The live map's restored.",
+      "login_failed": "Xiaomi cloud sign-in failed ({reason}). Check your email and password, then try again.",
+      "login_verification_required": "Xiaomi blocked this sign-in and wants the account verified. Sign in at account.xiaomi.com (or the Xiaomi Home app), complete any verification it asks for, then try again.",
+      "no_devices": "No supported vacuums on this account.",
+      "unsupported_model": "This model isn't supported yet (ijai / Xiaomi-branded ijai vacuums only)."
+    }
+  },
+  "options": {
+    "step": {
+      "miot_oauth_auth": {
+        "title": "Link Xiaomi OAuth",
+        "description": "Open the Xiaomi OAuth link. Home Assistant will continue automatically after Xiaomi redirects back.",
+        "data": {}
+      },
+      "miot_oauth_code": {
+        "title": "Paste Xiaomi OAuth code",
+        "description": "The automatic callback did not finish. Open this link, approve access, then paste the code from the redirect address bar (after 'CODE=' and before '&'):\n\n{authorize_url}",
+        "data": {
+          "code": "OAuth code"
+        }
+      },
+      "miot_oauth_finish": {
+        "title": "Xiaomi OAuth linked",
+        "description": "The real-time map auth is ready."
+      }
+    },
+    "error": {
+      "oauth_failed": "Xiaomi OAuth failed. Try the link again or paste the code manually.",
+      "oauth_region_failed": "Couldn't work out the Xiaomi OAuth region from that code."
+    },
+    "progress": {
+      "miot_oauth_auth": "Open [Xiaomi OAuth]({authorize_url}) in a new tab. After approval, Xiaomi should return to Home Assistant and this step will continue automatically."
+    },
+    "abort": {
+      "oauth_local_only": "This vacuum was added as local-only, so it has no Xiaomi cloud session to link OAuth to."
+    }
+  },
+  "issues": {
+    "oauth_missing": {
+      "title": "Turn on the real-time live map",
+      "fix_flow": {
+        "step": {
+          "link": {
+            "title": "Link Xiaomi OAuth",
+            "description": "Your vacuum works, but the map is on a slow refresh. Link Xiaomi OAuth to get the real-time (MQTT) live map. Open this link, approve access, then paste the code from the redirect address bar (after 'CODE=' and before '&'):\n\n{authorize_url}",
+            "data": {
+              "code": "OAuth code"
+            }
+          }
+        },
+        "error": {
+          "oauth_failed": "Xiaomi OAuth failed. Start the link again and paste the new code.",
+          "oauth_region_failed": "Couldn't work out the Xiaomi OAuth region from that code."
+        },
+        "abort": {
+          "entry_gone": "That vacuum is no longer set up."
+        }
+      }
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "Map"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "cleaning": "Cleaning",
+          "paused": "Paused",
+          "idle": "Idle",
+          "returning": "Returning to dock",
+          "docked": "Docked",
+          "error": "Error"
+        }
+      },
+      "battery": {
+        "name": "Battery"
+      },
+      "clean_area": {
+        "name": "Clean area"
+      },
+      "clean_time": {
+        "name": "Clean time"
+      },
+      "main_brush_life": {
+        "name": "Main brush life"
+      },
+      "side_brush_life": {
+        "name": "Side brush life"
+      },
+      "filter_life": {
+        "name": "Filter life"
+      },
+      "mop_life": {
+        "name": "Mop life"
+      },
+      "dust_bag_life": {
+        "name": "Dust bag life"
+      },
+      "detergent_life": {
+        "name": "Detergent life"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "Fan speed",
+        "state": {
+          "quiet": "Quiet",
+          "standard": "Standard",
+          "medium_gear": "Medium Gear",
+          "strong": "Strong",
+          "medium": "Medium",
+          "mode_quiet": "ModeQuiet",
+          "mode_standard": "ModeStandard",
+          "mode_medium": "ModeMedium",
+          "mode_strong": "ModeStrong",
+          "ultra_strong": "Ultra Strong",
+          "off": "Off",
+          "energy_saving": "Energy Saving",
+          "powerful": "Powerful",
+          "slient": "Silent",
+          "turbo": "Turbo",
+          "0": "Quiet",
+          "1": "Energy Saving",
+          "2": "Standard",
+          "3": "Powerful",
+          "close": "Close",
+          "one": "One",
+          "two": "Two",
+          "three": "Three",
+          "forth": "Forth",
+          "silent": "Silent",
+          "basic": "Basic",
+          "full_speed": "Full Speed"
+        }
+      },
+      "water_level": {
+        "name": "Water level",
+        "state": {
+          "low_water_level": "Low Water Level",
+          "medium_water_level": "Medium Water Level",
+          "high_water_level": "High Water Level",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "middle": "Middle",
+          "height": "Height",
+          "mid": "Mid",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "Gear 1",
+          "gear_2": "Gear 2",
+          "gear_3": "Gear 3",
+          "close": "Close",
+          "one": "One",
+          "two": "Two",
+          "three": "Three",
+          "hig": "High",
+          "off": "Off",
+          "level1": "Level 1",
+          "level2": "Level 2",
+          "level3": "Level 3"
+        }
+      },
+      "mode": {
+        "name": "Cleaning mode",
+        "state": {
+          "silent": "Quiet/Silent",
+          "basic": "Standard",
+          "strong": "Strong",
+          "full_speed": "Full Speed Mode (Max)",
+          "auto": "Auto",
+          "sweep": "Sweeping",
+          "sweep_and_mop": "Sweep and Mop",
+          "mop": "Mopping",
+          "medium": "Medium Gear",
+          "sweepandmop": "Sweep and Mop",
+          "sweep_then_mop": "Sweep Then Mop",
+          "sweep_mop": "Sweep and Mop",
+          "sweep_before_mopping": "Sweep Before Mopping"
+        }
+      },
+      "sweep_type": {
+        "name": "Sweep type",
+        "state": {
+          "global": "Global",
+          "mop": "Mopping",
+          "edge": "Edge Following",
+          "area": "Region",
+          "point": "Spot",
+          "remote": "Remote Control",
+          "explore": "Mapping",
+          "room": "Room Customization",
+          "floor": "Floor Customization",
+          "control": "Remote Control",
+          "total": "Global Cleaning",
+          "wall": "Edge Cleaning",
+          "zone": "Zone Cleaning",
+          "corner": "Edge Following",
+          "man": "Remote Control",
+          "roomprefer": "Room Customization",
+          "materialprefer": "Floor Customization",
+          "maping": "Mapping in Progress",
+          "gocharging": "Return to Charge",
+          "remotecontrol": "Remote Control",
+          "selectroom": "Room",
+          "customclean": "Custom Cleaning",
+          "costum": "Custom",
+          "custom_area": "Custom Area",
+          "appointment": "Scheduled",
+          "linkage": "Linkage",
+          "fast": "Fast",
+          "ai_hosting": "AI Hosting"
+        }
+      },
+      "active_map": {
+        "name": "Active map"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "Repeat clean"
+      },
+      "alarm": {
+        "name": "Find vacuum (beep)"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "Clean room(s)",
+      "description": "Start cleaning one or more rooms by their map room id.",
+      "fields": {
+        "segments": {
+          "name": "Rooms",
+          "description": "List of room ids to clean (from the map camera's \"rooms\" attribute)."
+        }
+      }
+    },
+    "refresh_map": {
+      "name": "Refresh map",
+      "description": "Briefly starts the vacuum so it leaves the dock and uploads a fresh map, then sends it back to dock.",
+      "fields": {
+        "confirm_movement": {
+          "name": "Confirm movement",
+          "description": "Must be true. The vacuum will briefly leave the dock and return."
+        }
+      }
+    }
+  }
+}

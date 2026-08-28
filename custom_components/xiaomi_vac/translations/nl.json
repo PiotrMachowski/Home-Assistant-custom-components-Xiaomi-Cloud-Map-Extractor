@@ -1,0 +1,253 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Voeg uw Xiaomi stofzuiger toe",
+        "description": "Meld u aan met e-mail voor de live kaart.",
+        "menu_options": {
+          "credentials": "E-mail en wachtwoord (krijg de live kaart)",
+          "local": "Apparaat-IP en token (alleen bedieningselementen, geen kaart)"
+        }
+      },
+      "credentials": {
+        "title": "Meld u aan bij Mi Home",
+        "description": "Meld u eenmaal aan. U blijft daarna ingelogd.",
+        "data": {
+          "username": "E-mail, telefoonnummer of Mi-account-ID",
+          "password": "Wachtwoord"
+        }
+      },
+      "local": {
+        "title": "Lokale verbinding",
+        "description": "IP-adres en 32-teken token. Bediening en sensoren, geen kaart.",
+        "data": {
+          "host": "IP-adres",
+          "token": "Token"
+        }
+      },
+      "captcha": {
+        "title": "Snelle controle",
+        "description": "Xiaomi wil zeker weten dat u echt bent. Typ de onderstaande tekens:\n\n![captcha]({captcha_url})",
+        "data": {
+          "code": "Tekens uit de afbeelding"
+        }
+      },
+      "twofa": {
+        "title": "Voer de code in",
+        "description": "Xiaomi heeft u zojuist een code per e-mail gestuurd. Voer deze hieronder in.",
+        "data": {
+          "code": "Verificatiecode"
+        }
+      },
+      "devices": {
+        "title": "Kies uw stofzuiger",
+        "description": "Er is meer dan een stofzuiger op deze account. Kies degene die u wilt toevoegen.",
+        "data": {
+          "device": "Stofzuiger"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Meld u opnieuw aan bij Xiaomi",
+        "description": "Uw sessie is verlopen en kon niet automatisch worden vernieuwd. Meld u opnieuw aan om de live kaart herstellen.",
+        "data": {
+          "username": "E-mail, telefoonnummer of Mi-account-ID",
+          "password": "Wachtwoord"
+        }
+      }
+    },
+    "error": {
+      "unsupported_model": "Dit model wordt nog niet ondersteund.",
+      "cannot_connect": "Kan de stofzuiger niet bereiken op dat IP-adres met dat token."
+    },
+    "abort": {
+      "already_configured": "Deze stofzuiger is al ingesteld.",
+      "reauth_successful": "U bent weer ingelogd. De live kaart is hersteld.",
+      "login_failed": "Xiaomi weigert dit ({reason}). Controleer uw e-mail en wachtwoord en probeer het opnieuw.",
+      "no_devices": "Geen ondersteunde stofzuigers op deze account.",
+      "unsupported_model": "Dit model wordt nog niet ondersteund (alleen ijai/Xiaomi-merk ijai stofzuigers)."
+    }
+  },
+  "entity": {
+    "camera": {
+      "map": {
+        "name": "Kaart"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "cleaning": "Aan het schoonmaken",
+          "paused": "Gepauzeerd",
+          "idle": "Inactief",
+          "returning": "Keert terug naar station",
+          "docked": "In station",
+          "error": "Fout"
+        }
+      },
+      "battery": {
+        "name": "Batterij"
+      },
+      "clean_area": {
+        "name": "Schoongemaakt oppervlak"
+      },
+      "clean_time": {
+        "name": "Schoonmaaktijd"
+      },
+      "main_brush_life": {
+        "name": "Levensduur hoofdborstel"
+      },
+      "side_brush_life": {
+        "name": "Levensduur bijborstel"
+      },
+      "filter_life": {
+        "name": "Levensduur filter"
+      },
+      "mop_life": {
+        "name": "Levensduur zwabber"
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "name": "Ventilatorsnelheid",
+        "state": {
+          "quiet": "Stil",
+          "standard": "Standaard",
+          "medium_gear": "Gemiddeld",
+          "strong": "Sterk",
+          "medium": "Gemiddeld",
+          "mode_quiet": "Stil",
+          "mode_standard": "Standaard",
+          "mode_medium": "Gemiddeld",
+          "mode_strong": "Sterk",
+          "ultra_strong": "Ultra sterk",
+          "off": "Uit",
+          "energy_saving": "Energiebesparing",
+          "powerful": "Krachtig",
+          "slient": "Stil",
+          "turbo": "Turbo",
+          "0": "Stil",
+          "1": "Energiebesparing",
+          "2": "Standaard",
+          "3": "Krachtig",
+          "close": "Sluiten",
+          "one": "Één",
+          "two": "Twee",
+          "three": "Drie",
+          "forth": "Vier",
+          "silent": "Stil",
+          "basic": "Basis",
+          "full_speed": "Volledige snelheid"
+        }
+      },
+      "water_level": {
+        "name": "Waterniveau",
+        "state": {
+          "low_water_level": "Laag waterniveau",
+          "medium_water_level": "Gemiddeld waterniveau",
+          "high_water_level": "Hoog waterniveau",
+          "low": "Laag",
+          "medium": "Gemiddeld",
+          "high": "Hoog",
+          "middle": "Midden",
+          "height": "Hoogte",
+          "mid": "Midden",
+          "1": "1",
+          "2": "2",
+          "3": "3",
+          "gear_1": "Snelheid 1",
+          "gear_2": "Snelheid 2",
+          "gear_3": "Snelheid 3",
+          "close": "Sluiten",
+          "one": "Één",
+          "two": "Twee",
+          "three": "Drie",
+          "hig": "Hoog",
+          "off": "Uit",
+          "level1": "Niveau 1",
+          "level2": "Niveau 2",
+          "level3": "Niveau 3"
+        }
+      },
+      "mode": {
+        "name": "Schoonmaakstand",
+        "state": {
+          "silent": "Stil",
+          "basic": "Standaard",
+          "strong": "Sterk",
+          "full_speed": "Volledige snelheid (Maximum)",
+          "auto": "Automatisch",
+          "sweep": "Vegen",
+          "sweep_and_mop": "Vegen en zwabben",
+          "mop": "Zwabben",
+          "medium": "Gemiddeld",
+          "sweepandmop": "Vegen en zwabben",
+          "sweep_then_mop": "Eerst vegen, dan zwabben",
+          "sweep_mop": "Vegen en zwabben",
+          "sweep_before_mopping": "Voor het zwabben vegen"
+        }
+      },
+      "sweep_type": {
+        "name": "Vegtype",
+        "state": {
+          "global": "Globaal",
+          "mop": "Zwabben",
+          "edge": "Randvolgeling",
+          "area": "Gebied",
+          "point": "Punt",
+          "remote": "Afstandsbediening",
+          "explore": "Kaartmaking",
+          "room": "Kameraanpassing",
+          "floor": "Vloeraanpassing",
+          "control": "Afstandsbediening",
+          "total": "Algehele schoonmaak",
+          "wall": "Randschoonmaak",
+          "zone": "Zonereinigung",
+          "corner": "Randvolgeling",
+          "man": "Afstandsbediening",
+          "roomprefer": "Kameraanpassing",
+          "materialprefer": "Vloeraanpassing",
+          "maping": "Kaartmaking bezig",
+          "gocharging": "Terug naar station",
+          "remotecontrol": "Afstandsbediening",
+          "selectroom": "Kamer",
+          "customclean": "Aangepaste schoonmaak",
+          "costum": "Aangepast",
+          "custom_area": "Aangepast gebied",
+          "appointment": "Gepland",
+          "linkage": "Koppeling",
+          "fast": "Snel",
+          "ai_hosting": "AI-hosting"
+        }
+      },
+      "active_map": {
+        "name": "Actieve kaart"
+      }
+    },
+    "switch": {
+      "repeat": {
+        "name": "Schoonmaak herhalen"
+      },
+      "alarm": {
+        "name": "Stofzuiger zoeken (piep)"
+      }
+    },
+    "number": {
+      "volume": {
+        "name": "Volume"
+      }
+    }
+  },
+  "services": {
+    "clean_segment": {
+      "name": "Kamer(s) schoonmaken",
+      "description": "Begin met schoonmaken van een of meer kamers op basis van hun kaartkaamer-ID.",
+      "fields": {
+        "segments": {
+          "name": "Kamers",
+          "description": "Lijst met kaameraID's om schoon te maken (van het attribuut \"rooms\" van de kaartcamera)."
+        }
+      }
+    }
+  }
+}

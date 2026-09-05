@@ -27,6 +27,7 @@ from custom_components.xiaomi_cloud_map_extractor.common.xiaomi_cloud_connector 
 from custom_components.xiaomi_cloud_map_extractor.const import *
 from custom_components.xiaomi_cloud_map_extractor.dreame.vacuum import DreameVacuum
 from custom_components.xiaomi_cloud_map_extractor.roidmi.vacuum import RoidmiVacuum
+from custom_components.xiaomi_cloud_map_extractor.roidmi_v2.vacuum import RoidmiVacuumV2
 from custom_components.xiaomi_cloud_map_extractor.unsupported.vacuum import UnsupportedVacuum
 from custom_components.xiaomi_cloud_map_extractor.viomi.vacuum import ViomiVacuum
 from custom_components.xiaomi_cloud_map_extractor.xiaomi.vacuum import XiaomiVacuum
@@ -398,6 +399,8 @@ class VacuumCamera(Camera):
             return ViomiVacuum(self._connector, self._country, user_id, device_id, model)
         if self._used_api == CONF_AVAILABLE_API_ROIDMI:
             return RoidmiVacuum(self._connector, self._country, user_id, device_id, model)
+        if self._used_api == CONF_AVAILABLE_API_ROIDMI_V2:
+            return RoidmiVacuumV2(self._connector, self._country, user_id, device_id, model)
         if self._used_api == CONF_AVAILABLE_API_DREAME:
             return DreameVacuum(self._connector, self._country, user_id, device_id, model)
         return UnsupportedVacuum(self._connector, self._country, user_id, device_id, model)

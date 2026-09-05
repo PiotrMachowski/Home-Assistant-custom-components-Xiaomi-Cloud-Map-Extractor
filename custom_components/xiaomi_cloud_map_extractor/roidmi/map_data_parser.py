@@ -15,12 +15,16 @@ _LOGGER = logging.getLogger(__name__)
 class MapDataParserRoidmi(MapDataParser):
 
     @staticmethod
-    def parse(raw: bytes, colors, drawables, texts, sizes, image_config, *args, **kwargs) -> MapData:
-        scale = float(image_config[CONF_SCALE])
+    def split_raw(raw: bytes):
         map_image_size = raw.find(bytes([127, 123]))
         map_image = raw[16:map_image_size + 1]
-        map_info_raw = raw[map_image_size + 1:]
-        map_info = json.loads(map_info_raw)
+        map_info = json.loads(raw[map_image_size + 1:])
+        return map_image, map_info
+
+    @classmethod
+    def parse(cls, raw: bytes, colors, drawables, texts, sizes, image_config, *args, **kwargs) -> MapData:
+        scale = float(image_config[CONF_SCALE])
+        map_image, map_info = cls.split_raw(raw)
         width = map_info["width"]
         height = map_info["height"]
         x_min = map_info["x_min"]

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Self
 
@@ -94,7 +95,7 @@ class RoborockCloudVacuum(BaseXiaomiCloudVacuum):
         while map_name == MISSING_MAP_VALUE and remaining_attempts > 0:
             _LOGGER.debug("Retrieving map name from device, remaining_attempts: %d", remaining_attempts)
             try:
-                map_name = self._vacuum.map()[0]  # todo async
+                map_name = (await asyncio.to_thread(self._vacuum.map))[0]
                 _LOGGER.debug("Map name %s", map_name)
                 if map_name != MISSING_MAP_VALUE:
                     return map_name

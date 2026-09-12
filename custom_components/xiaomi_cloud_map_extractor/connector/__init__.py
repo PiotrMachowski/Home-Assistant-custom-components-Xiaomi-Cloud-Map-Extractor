@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import logging
 from collections.abc import Callable
@@ -83,7 +84,7 @@ class XiaomiCloudMapExtractorConnector:
         self._last_hash = None
 
     async def get_data(self: Self) -> XiaomiCloudMapExtractorData:
-        if self._should_get_map():
+        if await asyncio.to_thread(self._should_get_map):
             _LOGGER.debug("Downloading new map.")
             await self._get_map()
         else:

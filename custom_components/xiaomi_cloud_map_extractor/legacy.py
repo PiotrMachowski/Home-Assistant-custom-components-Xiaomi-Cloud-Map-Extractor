@@ -44,6 +44,7 @@ from .const import (
     DOMAIN,
     NAME,
 )
+from .connector.vacuums.base.model import VacuumApi
 from .connector.xiaomi_cloud.connector import XiaomiCloudConnector, XiaomiCloudDeviceInfo
 
 
@@ -412,17 +413,22 @@ async def create_config_entry_data_from_yaml(
     except BaseException as e:
         _LOGGER.error("Failed to connect to Xiaomi Cloud", exc_info=e)
 
+    used_map_api = import_info.get(LEGACY_CONF_FORCE_API)
+    if model is not None and used_map_api is None:
+        detected_api = VacuumApi.detect(model)
+        used_map_api = detected_api.value if detected_api is not None else None
+
     data = {
         CONF_HOST: import_info[CONF_HOST],
         CONF_TOKEN: import_info[CONF_TOKEN],
         CONF_DEVICE_ID: device_id,
         CONF_MODEL: model,
         CONF_MAC: mac,
-        CONF_NAME: name,
+        CONF_NAME: import_info.get(CONF_NAME) or name,
         CONF_USERNAME: import_info[CONF_USERNAME],
         CONF_PASSWORD: import_info[CONF_PASSWORD],
         CONF_SERVER: server,
-        CONF_USED_MAP_API: import_info.get(LEGACY_CONF_FORCE_API, None),
+        CONF_USED_MAP_API: used_map_api,
     }
     options = {
         CONF_IMAGE_CONFIG: {

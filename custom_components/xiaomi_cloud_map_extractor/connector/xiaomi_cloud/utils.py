@@ -14,9 +14,8 @@ def generate_nonce(millis: int):
 
 
 def generate_agent() -> str:
-    agent_id = random_text(65, 69, 13)
-    prefix = random_text(97, 122, 18)
-    return f"{prefix}-{agent_id} APP/com.xiaomi.mihome APPV/10.5.201"
+    client_id = random_text(65, 90, 16)
+    return f"Android-7.1.1-1.0.0-ONEPLUS A3010-136-{client_id} APP/xiaomi.smarthome APPV/62830"
 
 
 def generate_device_id() -> str:

@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Self, Type
 
 from aiohttp import ClientSession
+from homeassistant.core import HomeAssistant
 
 from .model import (
     XiaomiCloudMapExtractorData,
@@ -68,6 +69,7 @@ class XiaomiCloudMapExtractorConnector:
         session_creator: Callable[[], ClientSession],
         config: XiaomiCloudMapExtractorConnectorConfiguration,
         connector_config: XiaomiCloudConnectorConfig | None,
+        hass: HomeAssistant | None = None,
     ) -> None:
         self._config = config
         self._connector_config = connector_config
@@ -81,6 +83,7 @@ class XiaomiCloudMapExtractorConnector:
         self._forced_refresh = False
         self._auto_update = True
         self._last_hash = None
+        self._hass = hass
 
     async def get_data(self: Self) -> XiaomiCloudMapExtractorData:
         if self._should_get_map():
@@ -132,15 +135,35 @@ class XiaomiCloudMapExtractorConnector:
         _LOGGER.debug("Retrieving device info, server: %s", self._config.server)
         device_details = await self._cloud_connector.get_device_details(self._config.device_id, self._config.server)
 
-        if device_details is not None:
-            self._server = device_details.server
-            _LOGGER.debug("Retrieved device model: %s", device_details.model)
-            self._vacuum_connector = self._create_device(device_details)
-            _LOGGER.debug("Created device, used api: %s", self._used_api)
-            self._status = XiaomiCloudMapExtractorConnectorStatus.OK
-        else:
-            _LOGGER.error("Failed to retrieve model")
-            raise DeviceNotFoundException()
+        if device_details is None:
+            device_details = self._device_details_from_config()
+            if device_details is None:
+                _LOGGER.error("Failed to retrieve model")
+                raise DeviceNotFoundException()
+            _LOGGER.warning("Using configured Xiaomi device metadata after cloud device lookup failed")
+
+        self._server = device_details.server
+        _LOGGER.debug("Retrieved device model: %s", device_details.model)
+        self._vacuum_connector = self._create_device(device_details)
+        _LOGGER.debug("Created device, used api: %s", self._used_api)
+        self._status = XiaomiCloudMapExtractorConnectorStatus.OK
+
+    def _device_details_from_config(self: Self) -> XiaomiCloudDeviceInfo | None:
+        if not (self._config.device_id and self._config.model and self._config.mac):
+            return None
+        fallback_user_id = getattr(getattr(self._cloud_connector, "_session_data", None), "userId", 0)
+        return XiaomiCloudDeviceInfo(
+            device_id=self._config.device_id,
+            name=self._config.model,
+            model=self._config.model,
+            token=self._config.token,
+            spec_type="",
+            local_ip=self._config.host,
+            mac=self._config.mac,
+            server=self._config.server,
+            user_id=int(fallback_user_id or 0),
+            home_id=0,
+        )
 
     def _should_get_map(self: Self) -> bool:
         if self._forced_refresh:
@@ -148,6 +171,7 @@ class XiaomiCloudMapExtractorConnector:
             return True
         return (
             self._map_cache is None or
+            self._map_cache.map_data is None or
             self._vacuum_connector is None or
             (self._vacuum_connector.should_update_map and self._auto_update)
         )
@@ -204,6 +228,7 @@ class XiaomiCloudMapExtractorConnector:
             self._config.image_config,
             self._config.sizes,
             self._config.texts,
+            self._hass,
         )
         vacuum_class = AVAILABLE_VACUUM_PLATFORMS.get(self._used_api, UnsupportedCloudVacuum)
         return vacuum_class(vacuum_config)

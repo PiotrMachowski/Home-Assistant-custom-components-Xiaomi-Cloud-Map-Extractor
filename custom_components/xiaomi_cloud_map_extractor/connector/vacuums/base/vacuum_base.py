@@ -40,6 +40,7 @@ class BaseXiaomiCloudVacuum(ABC):
         self._image_config = vacuum_config.image_config
         self._sizes = vacuum_config.sizes
         self._texts = vacuum_config.texts
+        self._hass = vacuum_config.hass
 
     @staticmethod
     @abstractmethod

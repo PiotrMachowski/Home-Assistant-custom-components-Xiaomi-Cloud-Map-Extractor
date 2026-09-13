@@ -89,8 +89,20 @@ class XiaomiCloudSessionData:
     expiration: datetime.datetime | None = None
 
     def is_authenticated(self) -> bool:
-        _LOGGER.debug("Authentication check: " + self.__repr__())
-        return self.serviceToken is not None and self.expiration > datetime.datetime.now() + datetime.timedelta(days=1)
+        _LOGGER.debug(
+            "Authentication check: serviceToken=%s ssecurity=%s userId=%s expiration=%s",
+            self.serviceToken is not None,
+            self.ssecurity is not None,
+            self.userId is not None,
+            self.expiration,
+        )
+        return (
+            self.serviceToken is not None
+            and self.ssecurity is not None
+            and self.userId is not None
+            and self.expiration is not None
+            and self.expiration > datetime.datetime.now() + datetime.timedelta(days=1)
+        )
 
     async def get(self: Self, url: StrOrURL, **kwargs: Unpack[_RequestOptions]):
         passed_headers = kwargs.pop("headers", {})
@@ -724,14 +736,14 @@ class XiaomiCloudConnector:
     async def execute_api_call_encrypted(self: Self, url: str, params: dict[str, str]) -> Any:
         headers = {
             "Accept-Encoding": "identity",
-            "x-xiaomi-protocal-flag-cli": "PROTOCAL-HTTP2",
+            "X-XIAOMI-PROTOCAL-FLAG-CLI": "PROTOCAL-HTTP2",
             "MIOT-ENCRYPT-ALGORITHM": "ENCRYPT-RC4",
+            "Content-Type": "application/x-www-form-urlencoded",
         }
         cookies = {
             k: str(v)
             for k, v in {
                 "userId": self._session_data.userId,
-                "cUserId": self._session_data.cUserId,
                 "yetAnotherServiceToken": self._session_data.serviceToken,
                 "serviceToken": self._session_data.serviceToken,
                 "locale": self._locale,
@@ -749,7 +761,7 @@ class XiaomiCloudConnector:
 
         try:
             _LOGGER.debug("Request URL: %s", url)
-            response = await self._session_data.post(url, headers=headers, cookies=cookies, params=fields)
+            response = await self._session_data.post(url, headers=headers, cookies=cookies, data=fields)
             response_text = await response.text()
             _LOGGER.debug("API response: %s", response_text)
         except Exception as e:
@@ -760,6 +772,7 @@ class XiaomiCloudConnector:
         if response.status in [401, 403]:
             raise FailedLoginException()
         else:
+            _LOGGER.warning("Encrypted Xiaomi API request failed: status=%s", response.status)
             return None
 
     def get_api_url(self: Self, server: str | None = None) -> str:

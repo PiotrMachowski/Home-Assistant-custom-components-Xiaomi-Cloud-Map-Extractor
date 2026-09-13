@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
+from homeassistant.core import HomeAssistant
 from vacuum_map_parser_base.config.color import ColorsPalette
 from vacuum_map_parser_base.config.drawable import Drawable
 from vacuum_map_parser_base.config.image_config import ImageConfig
@@ -26,6 +27,7 @@ class VacuumConfig:
     image_config: ImageConfig
     sizes: Sizes
     texts: list[Text]
+    hass: HomeAssistant | None = None
 
 
 class VacuumApi(StrEnum):

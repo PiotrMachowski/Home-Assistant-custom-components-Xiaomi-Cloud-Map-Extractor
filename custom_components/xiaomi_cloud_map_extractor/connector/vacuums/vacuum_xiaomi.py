@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import json
 import logging
@@ -84,11 +85,13 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
 
         self._vacuum_map = next((mapping for models, mapping in _NON_STANDARD_MAP_PROP if self.model in models), XiaomiVacuumPropertyMapping())
 
-    @property
-    def should_update_map(self: Self) -> bool:
+    async def should_update_map(self: Self) -> bool:
         try:
-            status_value = self._miot_device.get_property_by(self._status_mapping.siid,
-                                                             self._status_mapping.piid)[0]["value"]
+            status_value = (await asyncio.to_thread(
+                self._miot_device.get_property_by,
+                self._status_mapping.siid,
+                self._status_mapping.piid,
+            ))[0]["value"]
 
             if status_value in self._status_mapping.idle_at:
                 self._off_counter += 1
@@ -116,8 +119,11 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         return self._xiaomi_map_data_parser
     
     async def get_map_name(self: Self) -> str:
-        response = self._miot_device.get_property_by(self._vacuum_map.siid,
-                                                     self._vacuum_map.piid)[0].get("value")
+        response = (await asyncio.to_thread(
+            self._miot_device.get_property_by,
+            self._vacuum_map.siid,
+            self._vacuum_map.piid,
+        ))[0].get("value")
 
         if response is None:
             return super().get_map_name()

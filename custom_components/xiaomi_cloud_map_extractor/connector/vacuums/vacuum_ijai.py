@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Self, Any
 
@@ -39,11 +40,13 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         self._status_mapping = get_status_mapping(self.model)
         self._off_counter = 0
 
-    @property
-    def should_update_map(self: Self) -> bool:
+    async def should_update_map(self: Self) -> bool:
         try:
-            status_value = self._miot_device.get_property_by(self._status_mapping.siid,
-                                                             self._status_mapping.piid)[0]["value"]
+            status_value = (await asyncio.to_thread(
+                self._miot_device.get_property_by,
+                self._status_mapping.siid,
+                self._status_mapping.piid,
+            ))[0]["value"]
 
             if status_value in self._status_mapping.idle_at:
                 self._off_counter += 1

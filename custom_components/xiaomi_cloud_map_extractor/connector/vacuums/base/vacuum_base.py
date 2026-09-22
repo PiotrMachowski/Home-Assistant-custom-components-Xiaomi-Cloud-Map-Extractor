@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from typing import Self, Any
@@ -51,8 +52,7 @@ class BaseXiaomiCloudVacuum(ABC):
     def map_archive_extension(self: Self) -> str:
         pass
 
-    @property
-    def should_update_map(self: Self) -> bool:
+    async def should_update_map(self: Self) -> bool:
         return True
 
     @property
@@ -82,7 +82,7 @@ class BaseXiaomiCloudVacuum(ABC):
             raise FailedMapDownloadException()
         _LOGGER.debug("Downloaded raw map: \"%d\".", len(raw_map_data))
         _LOGGER.debug("Parsing map...")
-        map_data = self.decode_and_parse(raw_map_data)
+        map_data = await asyncio.to_thread(self.decode_and_parse, raw_map_data)
         _LOGGER.debug("Parsed map: (%d x %d)", map_data.image.dimensions.height, map_data.image.dimensions.width)
         if map_data is not None:
             map_data.map_name = map_name

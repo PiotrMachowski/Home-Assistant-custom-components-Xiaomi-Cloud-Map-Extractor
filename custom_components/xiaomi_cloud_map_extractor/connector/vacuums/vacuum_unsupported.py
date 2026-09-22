@@ -28,8 +28,7 @@ class UnsupportedCloudVacuum(BaseXiaomiCloudVacuumV2):
     def map_archive_extension(self: Self):
         return "unknown"
 
-    @property
-    def should_update_map(self: Self) -> bool:
+    async def should_update_map(self: Self) -> bool:
         return False
 
     @property

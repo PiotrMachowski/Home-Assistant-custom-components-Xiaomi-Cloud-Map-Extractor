@@ -10,7 +10,7 @@
 
 
 [hacs_shield]: https://img.shields.io/static/v1.svg?label=HACS&message=Default&style=popout&color=green&labelColor=41bdf5&logo=HomeAssistantCommunityStore&logoColor=white
-[hacs]: https://hacs.xyz/docs/default_repositories
+[hacs]: https://www.hacs.xyz/docs/publish/start/
 
 [latest_release]: https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor/releases/latest
 [releases_shield]: https://img.shields.io/github/release/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor.svg?style=popout

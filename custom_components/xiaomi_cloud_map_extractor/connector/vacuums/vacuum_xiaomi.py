@@ -1,5 +1,8 @@
 import base64
+import dataclasses
 import json
+import struct
+import zlib
 import logging
 from dataclasses import dataclass
 from typing import Self, Any
@@ -80,7 +83,13 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         )
 
         self._status_mapping = get_status_mapping(self.model)
+        # b108gl (S20+) reports 4 = "working", which the default mapping treats as idle.
+        # Status values per https://home.miot-spec.com/spec/xiaomi.vacuum.b108gl
+        if self.model == "xiaomi.vacuum.b108gl":
+            self._status_mapping = dataclasses.replace(self._status_mapping, idle_at=(1, 2, 3, 5, 8, 10))
         self._off_counter = 0
+        self._live_trajectory: list[dict[str, Any]] = []
+        self._live_position: dict[str, Any] | None = None
 
         self._vacuum_map = next((mapping for models, mapping in _NON_STANDARD_MAP_PROP if self.model in models), XiaomiVacuumPropertyMapping())
 
@@ -152,7 +161,47 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
             model=self.model.replace("xiaomi", "mi"),
             device_id=str(self._device_id),
         )
+        if self.model == "xiaomi.vacuum.b108gl":
+            decoded_map = self._with_live_data(decoded_map)
         return self.map_data_parser.parse(decoded_map)
+
+    # The b108gl (S20+) cloud map has no robot or path. The robot publishes its
+    # position as MIoT 7-4 ({"position": [x, y, yaw_mrad]}) and names a cloud trajectory object
+    # as 7-2 (zlib records of <marker:u8 x:i32 y:i32>, marker 2 = sweep, 3 = mop).
+    async def get_map(self: Self) -> tuple[MapData, bytes]:
+        if self.model == "xiaomi.vacuum.b108gl":
+            await self._read_live_data()
+        return await super().get_map()
+
+    async def _read_live_data(self: Self) -> None:
+        self._live_trajectory, self._live_position = [], None
+        try:
+            status = self._miot_device.get_property_by(2, 1)[0].get("value")
+            if status in (2, 3, 8):  # docked: 7-2 still names the last clean's trajectory
+                return
+            position = json.loads(self._miot_device.get_property_by(7, 4)[0].get("value") or "{}").get("position")
+            if position and len(position) >= 2 and 1100 not in position[:2] and any(position[:2]):
+                yaw = position[2] / 1000 if len(position) > 2 else 0  # milliradians, parser wants radians
+                self._live_position = {"x": position[0], "y": position[1], "yaw": yaw}
+            obj = json.loads(self._miot_device.get_property_by(7, 2)[0].get("value") or "{}").get("obj_name")
+            raw = await self.get_raw_map_data(obj.split("/")[-1]) if obj else None
+            if raw:
+                self._live_trajectory = _decode_trajectory(raw)
+        except Exception as e:  # live data is optional, never fail the map for it
+            _LOGGER.debug("Failed to read b108gl live data: %s", e)
+
+    def _with_live_data(self: Self, decoded_map: Any) -> Any:
+        try:
+            payload = json.loads(decoded_map)
+        except (TypeError, json.JSONDecodeError):
+            return decoded_map
+        if self._live_trajectory and not payload.get("paths"):
+            payload["paths"] = self._live_trajectory
+        if self._live_position:
+            payload["position"] = self._live_position
+        elif self._live_trajectory:
+            payload["position"] = {**self._live_trajectory[-1], "yaw": 0}
+        return json.dumps(payload)
     
     def additional_data(self: Self) -> dict[str, Any]:
         super_data = super().additional_data()
@@ -162,3 +211,29 @@ class XiaomiCloudVacuum(BaseXiaomiCloudVacuumV2):
         )
 
         return {**super_data, "enc_key": enc_key}
+
+
+_TRAJECTORY_RECORD = struct.Struct("<Bii")
+
+
+def _decode_trajectory(raw: bytes) -> list[dict[str, Any]]:
+    try:
+        raw = base64.b64decode(json.loads(raw)["data"])
+    except (ValueError, KeyError, TypeError):
+        try:
+            raw = base64.b64decode(raw, validate=True)
+        except ValueError:
+            pass
+    try:
+        data = zlib.decompress(raw)
+    except zlib.error:
+        data = raw
+    points, i = [], 0
+    while i + _TRAJECTORY_RECORD.size <= len(data):
+        marker, x, y = _TRAJECTORY_RECORD.unpack_from(data, i)
+        if marker not in (2, 3) or abs(x) > 1_000_000 or abs(y) > 1_000_000:
+            i += 1  # header or out-of-step byte
+            continue
+        points.append({"x": x, "y": y})
+        i += _TRAJECTORY_RECORD.size
+    return points

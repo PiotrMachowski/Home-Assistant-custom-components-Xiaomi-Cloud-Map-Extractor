@@ -49,6 +49,9 @@ class XiaomiCloudMapExtractorDataUpdateCoordinator(DataUpdateCoordinator[XiaomiC
         except XiaomiCloudMapExtractorException as err:
             _LOGGER.error(err)
             raise UpdateFailed(err) from err
+        except Exception as err:
+            _LOGGER.exception("Unexpected error fetching xiaomi_cloud_map_extractor data: %s", err)
+            raise UpdateFailed(err) from err
 
     async def force_update_data(self) -> None:
         self.connector.force_refresh()

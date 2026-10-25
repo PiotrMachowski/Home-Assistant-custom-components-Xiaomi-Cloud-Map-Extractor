@@ -120,18 +120,36 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                     _LOGGER.error("Failed to get wifi_sn from vacuum")
                     raise FailedConnectionException(ex)
 
-        decoded_map = self.map_data_parser.unpack_map(
-            raw_map,
-            wifi_sn=self._wifi_info_sn,
-            owner_id=str(self._user_id),
-            device_id=str(self._device_id),
-            model=self.model,
-            device_mac=self._mac)
+        dev_ids_to_try = [str(self._device_id), "0"]
+        decoded_map = None
+        last_error = None
+        for dev_id in dev_ids_to_try:
+            try:
+                decoded_map = self.map_data_parser.unpack_map(
+                    raw_map,
+                    wifi_sn=self._wifi_info_sn,
+                    owner_id=str(self._user_id),
+                    device_id=dev_id,
+                    model=self.model,
+                    device_mac=self._mac)
+                self._used_device_id = dev_id
+                _LOGGER.debug(f"Successfully unpacked IJAI map using device_id={dev_id}")
+                break
+            except ValueError as ex:
+                last_error = ex
+                _LOGGER.debug(f"Failed unpacking IJAI map with device_id={dev_id}: {ex}")
+
+        if decoded_map is None:
+            if last_error:
+                raise last_error
+            raise ValueError("Failed to unpack IJAI map")
+
         return self.map_data_parser.parse(decoded_map)
 
     def additional_data(self: Self) -> dict[str, Any]:
         super_data = super().additional_data()
         if self._wifi_info_sn is None:
             return super_data
-        enc_key = gen_md5_key(self._wifi_info_sn, str(self._user_id), str(self._device_id), self.model, self._mac)
+        dev_id = getattr(self, "_used_device_id", str(self._device_id))
+        enc_key = gen_md5_key(self._wifi_info_sn, str(self._user_id), dev_id, self.model, self._mac)
         return {**super_data, "enc_key": enc_key}

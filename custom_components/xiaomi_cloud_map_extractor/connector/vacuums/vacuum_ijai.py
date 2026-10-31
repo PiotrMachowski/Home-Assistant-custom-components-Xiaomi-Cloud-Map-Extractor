@@ -1,8 +1,12 @@
+import asyncio
 import logging
+import time
+import zlib
 from typing import Self, Any
 
 from miio.miot_device import MiotDevice
 from miio.exceptions import DeviceException
+from google.protobuf.message import DecodeError
 from vacuum_map_parser_base.map_data import MapData
 from vacuum_map_parser_ijai.map_data_parser import IjaiMapDataParser
 from vacuum_map_parser_ijai.status_mapping import get_status_mapping
@@ -10,11 +14,13 @@ from vacuum_map_parser_ijai.aes_decryptor import gen_md5_key
 
 from .base.vacuum_v2 import BaseXiaomiCloudVacuumV2
 from .base.model import VacuumConfig, VacuumApi
-from ..utils.exceptions import FailedConnectionException
+from ..utils.exceptions import FailedConnectionException, FailedMapParseException
 from ..utils.dict_operations import path_extractor
 
 _LOGGER = logging.getLogger(__name__)
 OFF_UPDATES = 3
+# Ask the vacuum to (re)upload its current map to the cloud at most this often.
+MAP_UPLOAD_REQUEST_INTERVAL = 30
 
 
 class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
@@ -26,6 +32,7 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         self._host = vacuum_config.host
         self._mac = vacuum_config.device_info.mac
         self._wifi_info_sn = None
+        self._last_upload_request = 0.0
 
         self._miot_device = MiotDevice(self._host, self._token, timeout=2)
 
@@ -82,7 +89,28 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
     async def get_raw_map_data(self, map_name: str | None) -> bytes | None:
         if self._wifi_info_sn is None or self._wifi_info_sn == "":
             self._wifi_info_sn = await self._resolve_wifi_info_sn()
+        await self._request_map_upload()
         return await super().get_raw_map_data(map_name)
+
+    async def _request_map_upload(self) -> None:
+        # The map object in the Xiaomi cloud is only refreshed when the vacuum
+        # uploads it (e.g. while the Xiaomi Home map screen is open), so it can
+        # be stale and fail to decrypt. Ask the vacuum for an upload first
+        # (map service siid 10, upload-by-maptype, type 0 = real map).
+        now = time.monotonic()
+        if now - self._last_upload_request < MAP_UPLOAD_REQUEST_INTERVAL:
+            return
+        self._last_upload_request = now
+        try:
+            response = await self._connector.get_other_info(
+                self._device_id, "action",
+                parameters={"did": self._device_id, "siid": 10, "aiid": 6,
+                            "in": [{"piid": 7, "value": 0}]},
+            )
+            if path_extractor(response, "result.code") == 0:
+                await asyncio.sleep(2)
+        except Exception as ex:
+            _LOGGER.debug("Map upload request failed: %r", ex)
 
     async def _resolve_wifi_info_sn(self) -> str | None:
         # The local MiIO lookup requires the vacuum to be reachable on the
@@ -170,14 +198,20 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
             _LOGGER.error("Failed to get wifi_sn from vacuum (local and cloud)")
             raise FailedConnectionException(Exception("wifi_sn could not be resolved"))
 
-        decoded_map = self.map_data_parser.unpack_map(
-            raw_map,
-            wifi_sn=self._wifi_info_sn,
-            owner_id=str(self._user_id),
-            device_id=str(self._device_id),
-            model=self.model,
-            device_mac=self._mac)
-        return self.map_data_parser.parse(decoded_map)
+        try:
+            decoded_map = self.map_data_parser.unpack_map(
+                raw_map,
+                wifi_sn=self._wifi_info_sn,
+                owner_id=str(self._user_id),
+                device_id=str(self._device_id),
+                model=self.model,
+                device_mac=self._mac)
+            return self.map_data_parser.parse(decoded_map)
+        except (ValueError, zlib.error, DecodeError) as ex:
+            # Typically a stale map object in the cloud; raising a known
+            # exception lets the connector keep serving the last good map.
+            _LOGGER.warning("Could not decode Ijai map (%r), keeping last map", ex)
+            raise FailedMapParseException() from ex
 
     def additional_data(self: Self) -> dict[str, Any]:
         super_data = super().additional_data()

@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 import zlib
 from typing import Self, Any
 
@@ -19,8 +18,6 @@ from ..utils.dict_operations import path_extractor
 
 _LOGGER = logging.getLogger(__name__)
 OFF_UPDATES = 3
-# Ask the vacuum to (re)upload its current map to the cloud at most this often.
-MAP_UPLOAD_REQUEST_INTERVAL = 30
 
 
 class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
@@ -32,7 +29,8 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         self._host = vacuum_config.host
         self._mac = vacuum_config.device_info.mac
         self._wifi_info_sn = None
-        self._last_upload_request = 0.0
+        self._map_timestamp = None
+        self._raw_map_cache = None
 
         self._miot_device = MiotDevice(self._host, self._token, timeout=2)
 
@@ -89,28 +87,41 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
     async def get_raw_map_data(self, map_name: str | None) -> bytes | None:
         if self._wifi_info_sn is None or self._wifi_info_sn == "":
             self._wifi_info_sn = await self._resolve_wifi_info_sn()
-        await self._request_map_upload()
-        return await super().get_raw_map_data(map_name)
+        timestamp = await self._request_map_upload()
+        if timestamp is not None and timestamp == self._map_timestamp and self._raw_map_cache is not None:
+            # Nothing new was uploaded since the last successful decode.
+            return self._raw_map_cache
+        raw_map = await super().get_raw_map_data(map_name)
+        self._map_timestamp = timestamp
+        self._raw_map_cache = raw_map
+        return raw_map
 
-    async def _request_map_upload(self) -> None:
+    async def _request_map_upload(self) -> int | None:
         # The map object in the Xiaomi cloud is only refreshed when the vacuum
         # uploads it (e.g. while the Xiaomi Home map screen is open), so it can
-        # be stale and fail to decrypt. Ask the vacuum for an upload first
-        # (map service siid 10, upload-by-maptype, type 0 = real map).
-        now = time.monotonic()
-        if now - self._last_upload_request < MAP_UPLOAD_REQUEST_INTERVAL:
-            return
-        self._last_upload_request = now
+        # be stale and fail to decrypt. Like the Dreame and Roborock vacuums,
+        # ask the vacuum for an upload on every update (map service siid 10,
+        # upload-by-maptype, type 0 = real map). The action returns the
+        # timestamp of the uploaded map, which tells us whether it changed.
         try:
             response = await self._connector.get_other_info(
                 self._device_id, "action",
                 parameters={"did": self._device_id, "siid": 10, "aiid": 6,
                             "in": [{"piid": 7, "value": 0}]},
             )
-            if path_extractor(response, "result.code") == 0:
-                await asyncio.sleep(2)
+            if path_extractor(response, "result.code") != 0:
+                return None
+            timestamp = next(
+                (item.get("value") for item in path_extractor(response, "result.out") or []
+                 if item.get("piid") == 18),
+                None,
+            )
+            if timestamp is not None and timestamp != self._map_timestamp:
+                await asyncio.sleep(1)
+            return timestamp
         except Exception as ex:
             _LOGGER.debug("Map upload request failed: %r", ex)
+            return None
 
     async def _resolve_wifi_info_sn(self) -> str | None:
         # The local MiIO lookup requires the vacuum to be reachable on the
@@ -211,6 +222,8 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
             # Typically a stale map object in the cloud; raising a known
             # exception lets the connector keep serving the last good map.
             _LOGGER.warning("Could not decode Ijai map (%r), keeping last map", ex)
+            self._map_timestamp = None
+            self._raw_map_cache = None
             raise FailedMapParseException() from ex
 
     def additional_data(self: Self) -> dict[str, Any]:

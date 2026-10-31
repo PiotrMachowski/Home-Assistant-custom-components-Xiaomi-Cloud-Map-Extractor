@@ -1,6 +1,6 @@
 import hashlib
 import logging
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 from typing import Self, Type
 
@@ -62,14 +62,17 @@ class XiaomiCloudMapExtractorConnector:
     _forced_refresh: bool
     _auto_update: bool
     _last_hash: str | None
+    _on_session_renewed: Callable[[XiaomiCloudConnectorConfig], Awaitable[None]] | None
 
     def __init__(
         self: Self,
         session_creator: Callable[[], ClientSession],
         config: XiaomiCloudMapExtractorConnectorConfiguration,
         connector_config: XiaomiCloudConnectorConfig | None,
+        on_session_renewed: Callable[[XiaomiCloudConnectorConfig], Awaitable[None]] | None = None,
     ) -> None:
         self._config = config
+        self._on_session_renewed = on_session_renewed
         self._connector_config = connector_config
         self._session_creator = session_creator
         self._cloud_connector = None
@@ -103,6 +106,8 @@ class XiaomiCloudMapExtractorConnector:
 
         authenticated = self._is_authenticated()
         _LOGGER.debug("Is user authenticated: %s", authenticated)
+        if not authenticated and await self._renew_session():
+            authenticated = True
         if not authenticated:
             if self._config.username is None or self._config.password is None:
                 raise FailedLoginException()
@@ -111,19 +116,40 @@ class XiaomiCloudMapExtractorConnector:
                 _LOGGER.error("Not authenticated!")
                 raise FailedLoginException()
             _LOGGER.debug("Logged in.")
+            await self._save_session()
         if self._vacuum_connector is None or self._status == XiaomiCloudMapExtractorConnectorStatus.UNINITIALIZED:
             _LOGGER.debug("Initializing...")
             await self._initialize()
             _LOGGER.debug("Initialized.")
 
         _LOGGER.debug("Downloading map...")
-        map_data, map_raw_data = await self._vacuum_connector.get_map()
+        try:
+            map_data, map_raw_data = await self._vacuum_connector.get_map()
+        except FailedLoginException:
+            # serviceToken rejected before its expiration: renew once and retry
+            if not await self._renew_session():
+                raise
+            map_data, map_raw_data = await self._vacuum_connector.get_map()
         _LOGGER.debug("Downloaded map.")
         if map_data is None:
             raise FailedMapDownloadException()
         self._map_cache.map_data = map_data
         self._map_cache.map_image = to_image(map_data)
         self._map_cache.map_data_raw = map_raw_data
+
+    async def _renew_session(self: Self) -> bool:
+        if not await self._cloud_connector.login_with_pass_token():
+            return False
+        await self._save_session()
+        return True
+
+    async def _save_session(self: Self) -> None:
+        if self._on_session_renewed is None:
+            return
+        try:
+            await self._on_session_renewed(self._cloud_connector.to_config())
+        except Exception as e:
+            _LOGGER.warning("Failed to store renewed Xiaomi cloud session: %s", e)
 
     def _is_authenticated(self: Self) -> bool:
         return self._cloud_connector.is_authenticated()

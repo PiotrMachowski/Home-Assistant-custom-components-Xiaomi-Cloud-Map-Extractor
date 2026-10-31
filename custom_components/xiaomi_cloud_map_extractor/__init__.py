@@ -40,7 +40,7 @@ from .const import (
     CONF_ROOM_COLORS
 )
 from .coordinator import XiaomiCloudMapExtractorDataUpdateCoordinator
-from .store import restore_connector_config
+from .store import restore_connector_config, save_connector_config
 from .types import XiaomiCloudMapExtractorConfigEntry, XiaomiCloudMapExtractorRuntimeData
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,7 +53,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: XiaomiCloudMapExtractorC
         return async_create_clientsession(hass)
 
     connector_config = await restore_connector_config(hass, xcme_configuration.mac)
-    xcme_connector = XiaomiCloudMapExtractorConnector(session_creator, xcme_configuration, connector_config)
+    async def session_saver(config) -> None:
+        await save_connector_config(hass, xcme_configuration.mac, config)
+
+    xcme_connector = XiaomiCloudMapExtractorConnector(session_creator, xcme_configuration, connector_config,
+                                                      session_saver)
     xcme_update_coordinator = XiaomiCloudMapExtractorDataUpdateCoordinator(hass, xcme_connector)
     await xcme_update_coordinator.async_config_entry_first_refresh()
     entry.runtime_data = XiaomiCloudMapExtractorRuntimeData(xcme_update_coordinator)

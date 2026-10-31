@@ -5,7 +5,6 @@ from typing import Self, Any
 
 from miio.miot_device import MiotDevice
 from miio.exceptions import DeviceException
-from google.protobuf.message import DecodeError
 from vacuum_map_parser_base.map_data import MapData
 from vacuum_map_parser_ijai.map_data_parser import IjaiMapDataParser
 from vacuum_map_parser_ijai.status_mapping import get_status_mapping
@@ -18,6 +17,10 @@ from ..utils.dict_operations import path_extractor
 
 _LOGGER = logging.getLogger(__name__)
 OFF_UPDATES = 3
+# The vacuum replaces the map object in the cloud while it is uploading, so a
+# download can catch a half written object. Retry a few times before giving up.
+MAP_DOWNLOAD_ATTEMPTS = 3
+MAP_DOWNLOAD_RETRY_DELAY = 2
 
 
 class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
@@ -91,10 +94,32 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         if timestamp is not None and timestamp == self._map_timestamp and self._raw_map_cache is not None:
             # Nothing new was uploaded since the last successful decode.
             return self._raw_map_cache
-        raw_map = await super().get_raw_map_data(map_name)
+        raw_map = None
+        for attempt in range(MAP_DOWNLOAD_ATTEMPTS):
+            raw_map = await super().get_raw_map_data(map_name)
+            if raw_map is None or self._can_unpack(raw_map):
+                break
+            if attempt + 1 < MAP_DOWNLOAD_ATTEMPTS:
+                _LOGGER.debug("Downloaded Ijai map is not readable yet, retrying")
+                await asyncio.sleep(MAP_DOWNLOAD_RETRY_DELAY)
         self._map_timestamp = timestamp
         self._raw_map_cache = raw_map
         return raw_map
+
+    def _can_unpack(self, raw_map: bytes) -> bool:
+        if not self._wifi_info_sn:
+            return True
+        try:
+            self.map_data_parser.unpack_map(
+                raw_map,
+                wifi_sn=self._wifi_info_sn,
+                owner_id=str(self._user_id),
+                device_id=str(self._device_id),
+                model=self.model,
+                device_mac=self._mac)
+        except (ValueError, zlib.error):
+            return False
+        return True
 
     async def _request_map_upload(self) -> int | None:
         # The map object in the Xiaomi cloud is only refreshed when the vacuum
@@ -218,9 +243,10 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                 model=self.model,
                 device_mac=self._mac)
             return self.map_data_parser.parse(decoded_map)
-        except (ValueError, zlib.error, DecodeError) as ex:
-            # Typically a stale map object in the cloud; raising a known
-            # exception lets the connector keep serving the last good map.
+        except Exception as ex:  # pylint: disable=broad-except
+            # A stale or half uploaded map object in the cloud, or a map in a
+            # transitional state, can fail anywhere while decoding. Raising a
+            # known exception lets the connector keep serving the last good map.
             _LOGGER.warning("Could not decode Ijai map (%r), keeping last map", ex)
             self._map_timestamp = None
             self._raw_map_cache = None

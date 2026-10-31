@@ -34,6 +34,7 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         self._wifi_info_sn = None
         self._map_timestamp = None
         self._raw_map_cache = None
+        self._has_good_map = False
 
         self._miot_device = MiotDevice(self._host, self._token, timeout=2)
 
@@ -50,6 +51,9 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
 
     @property
     def should_update_map(self: Self) -> bool:
+        if not self._has_good_map:
+            # Keep trying while there is no map to show, even if the vacuum is idle.
+            return True
         try:
             status_value = self._miot_device.get_property_by(self._status_mapping.siid,
                                                              self._status_mapping.piid)[0]["value"]
@@ -242,7 +246,9 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                 device_id=str(self._device_id),
                 model=self.model,
                 device_mac=self._mac)
-            return self.map_data_parser.parse(decoded_map)
+            map_data = self.map_data_parser.parse(decoded_map)
+            self._has_good_map = True
+            return map_data
         except Exception as ex:  # pylint: disable=broad-except
             # A stale or half uploaded map object in the cloud, or a map in a
             # transitional state, can fail anywhere while decoding. Raising a

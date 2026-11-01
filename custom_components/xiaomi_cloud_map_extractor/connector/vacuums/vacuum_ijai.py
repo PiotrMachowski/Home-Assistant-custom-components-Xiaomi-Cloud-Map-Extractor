@@ -25,6 +25,7 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         self._host = vacuum_config.host
         self._mac = vacuum_config.device_info.mac
         self._wifi_info_sn = None
+        self._map_encryption_device_id = str(self._device_id)
 
         self._miot_device = MiotDevice(self._host, self._token, timeout=2)
 
@@ -71,7 +72,8 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         return self._ijai_map_data_parser
 
     async def get_map_url(self, map_name: str) -> str | None:
-        return await self.get_fallback_map_url(map_name)
+        url = await self.get_fallback_map_url(map_name)
+        return url if url is not None else await super().get_map_url(map_name)
 
     def get_wifi_info_sn(self):
         wifi_info_sn = None
@@ -82,12 +84,13 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
 
         for piid in piids:
             data = self._miot_device.get_property_by(1, piid)
+            value = data[0].get("value") if data else None
             if (
-                "value" in data[0]
-                and len(data[0]["value"]) in self.WIFI_INFO_SN_POSSIBLE_LEN
-                and data[0]["value"].isupper()
+                isinstance(value, str)
+                and len(value) in self.WIFI_INFO_SN_POSSIBLE_LEN
+                and value.isupper()
             ):
-                wifi_info_sn = data[0]["value"]
+                wifi_info_sn = value
                 break
 
         if not wifi_info_sn:
@@ -110,7 +113,6 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
     def decode_and_parse(self, raw_map: bytes) -> MapData:
         GET_PROP_RETRIES = 5
         if self._wifi_info_sn is None or self._wifi_info_sn == "":
-            _LOGGER.debug(f"host={self._host}, token={self._token}")
             for _ in range(GET_PROP_RETRIES):
                 try:
                     self._wifi_info_sn = self.get_wifi_info_sn()
@@ -120,18 +122,26 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                     _LOGGER.error("Failed to get wifi_sn from vacuum")
                     raise FailedConnectionException(ex)
 
-        decoded_map = self.map_data_parser.unpack_map(
-            raw_map,
-            wifi_sn=self._wifi_info_sn,
-            owner_id=str(self._user_id),
-            device_id=str(self._device_id),
-            model=self.model,
-            device_mac=self._mac)
+        kwargs = {
+            "wifi_sn": self._wifi_info_sn,
+            "owner_id": str(self._user_id),
+            "model": self.model,
+            "device_mac": self._mac,
+        }
+        self._map_encryption_device_id = str(self._device_id)
+        try:
+            decoded_map = self.map_data_parser.unpack_map(
+                raw_map, device_id=self._map_encryption_device_id, **kwargs)
+        except ValueError:
+            if self.model != "ijai.vacuum.v3":
+                raise
+            decoded_map = self.map_data_parser.unpack_map(raw_map, device_id="0", **kwargs)
+            self._map_encryption_device_id = "0"
         return self.map_data_parser.parse(decoded_map)
 
     def additional_data(self: Self) -> dict[str, Any]:
         super_data = super().additional_data()
         if self._wifi_info_sn is None:
             return super_data
-        enc_key = gen_md5_key(self._wifi_info_sn, str(self._user_id), str(self._device_id), self.model, self._mac)
+        enc_key = gen_md5_key(self._wifi_info_sn, str(self._user_id), self._map_encryption_device_id, self.model, self._mac)
         return {**super_data, "enc_key": enc_key}

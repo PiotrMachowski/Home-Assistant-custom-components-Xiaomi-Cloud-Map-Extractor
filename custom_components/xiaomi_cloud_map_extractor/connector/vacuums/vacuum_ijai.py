@@ -1,11 +1,13 @@
+import asyncio
 import logging
+import zlib
 from typing import Self, Any
 
 from miio.miot_device import MiotDevice
 from miio.exceptions import DeviceException
 from vacuum_map_parser_base.map_data import MapData
 from vacuum_map_parser_ijai.map_data_parser import IjaiMapDataParser
-from vacuum_map_parser_ijai.status_mapping import get_status_mapping
+from vacuum_map_parser_ijai.status_mapping import get_status_mapping, is_K3_model
 from vacuum_map_parser_ijai.aes_decryptor import gen_md5_key
 
 from .base.vacuum_v2 import BaseXiaomiCloudVacuumV2
@@ -14,10 +16,19 @@ from ..utils.exceptions import FailedConnectionException
 
 _LOGGER = logging.getLogger(__name__)
 OFF_UPDATES = 3
+MAP_UPLOAD_REAL_MAP = 0
+MAP_UPLOAD_MEMORY_MAP = 1
+MAP_DOWNLOAD_ATTEMPTS = 3
+MAP_DOWNLOAD_RETRY_DELAY = 2
+MAP_ENCRYPTION_DEVICE_ID_FALLBACKS = {
+    "ijai.vacuum.v17": "0",
+    "ijai.vacuum.v18": "0",
+    "ijai.vacuum.v19": "0",
+}
 
 
 class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
-    WIFI_INFO_SN_POSSIBLE_LEN = [18, 20]
+    WIFI_INFO_SN_POSSIBLE_LEN = [18, 19, 20]
 
     def __init__(self, vacuum_config: VacuumConfig):
         super().__init__(vacuum_config)
@@ -25,6 +36,7 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         self._host = vacuum_config.host
         self._mac = vacuum_config.device_info.mac
         self._wifi_info_sn = None
+        self._map_encryption_device_id = str(self._device_id)
 
         self._miot_device = MiotDevice(self._host, self._token, timeout=2)
 
@@ -73,6 +85,81 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
     async def get_map_url(self, map_name: str) -> str | None:
         return await self.get_fallback_map_url(map_name)
 
+    async def get_raw_map_data(self, map_name: str | None) -> bytes | None:
+        if map_name is None:
+            return None
+
+        if not self._wifi_info_sn:
+            self._wifi_info_sn = self.get_wifi_info_sn()
+
+        await self._request_map_upload()
+        raw_map = None
+        for attempt in range(MAP_DOWNLOAD_ATTEMPTS):
+            raw_map = await super().get_raw_map_data(map_name)
+            if raw_map is None or self._can_unpack(raw_map):
+                return raw_map
+            if attempt + 1 < MAP_DOWNLOAD_ATTEMPTS:
+                await asyncio.sleep(MAP_DOWNLOAD_RETRY_DELAY)
+                await self._request_map_upload(MAP_UPLOAD_MEMORY_MAP)
+        return raw_map
+
+    def _can_unpack(self, raw_map: bytes) -> bool:
+        if not self._wifi_info_sn:
+            return True
+        try:
+            self._unpack_map(raw_map)
+        except (ValueError, zlib.error):
+            return False
+        return True
+
+    def _unpack_map(self, raw_map: bytes) -> bytes:
+        device_ids = [self._map_encryption_device_id]
+        cloud_device_id = str(self._device_id)
+        if cloud_device_id not in device_ids:
+            device_ids.append(cloud_device_id)
+        fallback_id = MAP_ENCRYPTION_DEVICE_ID_FALLBACKS.get(self.model)
+        if fallback_id is not None and fallback_id not in device_ids:
+            device_ids.append(fallback_id)
+        elif is_K3_model(self.model) and "0" not in device_ids:
+            device_ids.append("0")
+
+        last_error: Exception | None = None
+        for device_id in device_ids:
+            try:
+                decoded_map = self.map_data_parser.unpack_map(
+                    raw_map,
+                    wifi_sn=self._wifi_info_sn,
+                    owner_id=str(self._user_id),
+                    device_id=device_id,
+                    model=self.model,
+                    device_mac=self._mac,
+                )
+                self._map_encryption_device_id = device_id
+                return decoded_map
+            except (ValueError, zlib.error) as ex:
+                last_error = ex
+
+        if last_error is not None:
+            raise last_error
+        raise ValueError("Could not decrypt IJAI map")
+
+    async def _request_map_upload(self, upload_type: int = MAP_UPLOAD_REAL_MAP) -> None:
+        try:
+            response = await self._connector.get_other_info(
+                self._device_id,
+                "action",
+                parameters={
+                    "did": self._device_id,
+                    "siid": 10,
+                    "aiid": 6,
+                    "in": [{"piid": 7, "value": upload_type}],
+                },
+            )
+            if response is not None and response.get("result", {}).get("code") == 0:
+                await asyncio.sleep(1)
+        except Exception as ex:
+            _LOGGER.debug("Map upload request failed: %r", ex)
+
     def get_wifi_info_sn(self):
         wifi_info_sn = None
 
@@ -120,18 +207,18 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                     _LOGGER.error("Failed to get wifi_sn from vacuum")
                     raise FailedConnectionException(ex)
 
-        decoded_map = self.map_data_parser.unpack_map(
-            raw_map,
-            wifi_sn=self._wifi_info_sn,
-            owner_id=str(self._user_id),
-            device_id=str(self._device_id),
-            model=self.model,
-            device_mac=self._mac)
+        decoded_map = self._unpack_map(raw_map)
         return self.map_data_parser.parse(decoded_map)
 
     def additional_data(self: Self) -> dict[str, Any]:
         super_data = super().additional_data()
         if self._wifi_info_sn is None:
             return super_data
-        enc_key = gen_md5_key(self._wifi_info_sn, str(self._user_id), str(self._device_id), self.model, self._mac)
+        enc_key = gen_md5_key(
+            self._wifi_info_sn,
+            str(self._user_id),
+            self._map_encryption_device_id,
+            self.model,
+            self._mac,
+        )
         return {**super_data, "enc_key": enc_key}

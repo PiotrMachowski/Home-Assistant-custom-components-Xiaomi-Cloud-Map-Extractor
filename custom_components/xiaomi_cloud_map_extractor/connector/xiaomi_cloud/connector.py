@@ -762,6 +762,11 @@ class XiaomiCloudConnector:
         else:
             return None
 
+    @property
+    def user_id(self: Self) -> str | None:
+        """Uid of the logged-in account (differs from the home owner on a shared device)."""
+        return self._session_data.userId if self._session_data else None
+
     def get_api_url(self: Self, server: str | None = None) -> str:
         if server is None:
             server = self.server

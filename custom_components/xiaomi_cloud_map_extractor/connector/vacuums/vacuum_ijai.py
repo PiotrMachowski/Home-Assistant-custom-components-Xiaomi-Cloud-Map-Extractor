@@ -1,4 +1,6 @@
+import json
 import logging
+import zlib
 from typing import Self, Any
 
 from miio.miot_device import MiotDevice
@@ -15,6 +17,13 @@ from ..utils.exceptions import FailedConnectionException
 _LOGGER = logging.getLogger(__name__)
 OFF_UPDATES = 3
 
+# Models that only upload a fresh map to the cloud when asked to, like the Mi Home app does:
+# action "upload-by-maptype" (siid 10, aiid 6) with map type 0 (realtime).
+# Without it the cloud keeps serving the last map uploaded at the end of a cleaning.
+REALTIME_UPLOAD_ACTION: dict[str, tuple[int, int]] = {
+    "xiaomi.vacuum.b106eu": (10, 6),
+}
+
 
 class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
     WIFI_INFO_SN_POSSIBLE_LEN = [18, 20]
@@ -25,6 +34,7 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         self._host = vacuum_config.host
         self._mac = vacuum_config.device_info.mac
         self._wifi_info_sn = None
+        self._key_uid: str | None = None
 
         self._miot_device = MiotDevice(self._host, self._token, timeout=2)
 
@@ -71,7 +81,21 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         return self._ijai_map_data_parser
 
     async def get_map_url(self, map_name: str) -> str | None:
+        action = REALTIME_UPLOAD_ACTION.get(self.model)
+        if action is not None:
+            await self._request_realtime_upload(*action)
         return await self.get_fallback_map_url(map_name)
+
+    async def _request_realtime_upload(self, siid: int, aiid: int) -> None:
+        # The robot uploads asynchronously, so the map fetched right after may still be the previous one.
+        # This call can only be made through the cloud: sent over the LAN the robot answers "user ack timeout".
+        params = {"did": str(self._device_id), "siid": siid, "aiid": aiid, "in": [0]}
+        try:
+            await self._connector.execute_api_call_encrypted(
+                self._connector.get_api_url(self._server) + "/v2/miotspec/action",
+                {"data": json.dumps({"params": params})})
+        except Exception as ex:  # the last uploaded map is still usable
+            _LOGGER.debug("Failed to request a realtime map upload: %s", ex)
 
     def get_wifi_info_sn(self):
         wifi_info_sn = None
@@ -120,18 +144,38 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                     _LOGGER.error("Failed to get wifi_sn from vacuum")
                     raise FailedConnectionException(ex)
 
-        decoded_map = self.map_data_parser.unpack_map(
-            raw_map,
-            wifi_sn=self._wifi_info_sn,
-            owner_id=str(self._user_id),
-            device_id=str(self._device_id),
-            model=self.model,
-            device_mac=self._mac)
-        return self.map_data_parser.parse(decoded_map)
+        return self.map_data_parser.parse(self._unpack_map(raw_map))
+
+    def _key_uid_candidates(self) -> list[str]:
+        # The map is encrypted with the home owner's uid, except on a vacuum shared from another
+        # Xiaomi account, where it can be encrypted with the uid of the account that is logged in.
+        if self._key_uid is not None:
+            return [self._key_uid]
+        return list(dict.fromkeys(str(uid) for uid in (self._user_id, self._connector.user_id) if uid))
+
+    def _unpack_map(self, raw_map: bytes) -> bytes:
+        candidates = self._key_uid_candidates()
+        for uid in candidates:
+            try:
+                decoded_map = self.map_data_parser.unpack_map(
+                    raw_map,
+                    wifi_sn=self._wifi_info_sn,
+                    owner_id=uid,
+                    device_id=str(self._device_id),
+                    model=self.model,
+                    device_mac=self._mac)
+            except (ValueError, zlib.error):
+                if uid == candidates[-1]:
+                    raise
+                continue
+            self._key_uid = uid
+            return decoded_map
+        raise ValueError("No user id available to decrypt the map")
 
     def additional_data(self: Self) -> dict[str, Any]:
         super_data = super().additional_data()
         if self._wifi_info_sn is None:
             return super_data
-        enc_key = gen_md5_key(self._wifi_info_sn, str(self._user_id), str(self._device_id), self.model, self._mac)
+        uid = self._key_uid or str(self._user_id)
+        enc_key = gen_md5_key(self._wifi_info_sn, uid, str(self._device_id), self.model, self._mac)
         return {**super_data, "enc_key": enc_key}

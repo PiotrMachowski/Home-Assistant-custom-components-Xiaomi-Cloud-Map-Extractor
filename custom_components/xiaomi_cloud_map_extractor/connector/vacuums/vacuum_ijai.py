@@ -20,9 +20,10 @@ OFF_UPDATES = 3
 # The vacuum replaces the map object in the cloud while it is uploading, so a
 # download can catch a half written object. Retry a few times before giving up.
 MAP_DOWNLOAD_ATTEMPTS = 3
-# upload-type values of the map service upload-by-maptype action.
+# upload-type of the map service upload-by-maptype action. Only 0 (real map) is
+# requested: 1 is the point-clean map and makes the vacuum wait for a target
+# point, 2 is the zone-clean map and 3 the memory map.
 MAP_UPLOAD_REAL_MAP = 0
-MAP_UPLOAD_MEMORY_MAP = 1
 MAP_DOWNLOAD_RETRY_DELAY = 2
 
 
@@ -107,12 +108,8 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
             if raw_map is None or self._can_unpack(raw_map):
                 break
             if attempt + 1 < MAP_DOWNLOAD_ATTEMPTS:
-                # The real map object is sometimes unreadable while the vacuum is
-                # finishing or returning to the dock; asking for the memory map
-                # upload makes a readable object available again.
-                _LOGGER.debug("Downloaded Ijai map is not readable, requesting a memory map upload")
+                _LOGGER.debug("Downloaded Ijai map is not readable yet, retrying")
                 await asyncio.sleep(MAP_DOWNLOAD_RETRY_DELAY)
-                timestamp = await self._request_map_upload(MAP_UPLOAD_MEMORY_MAP)
         self._map_timestamp = timestamp
         self._raw_map_cache = raw_map
         return raw_map
@@ -132,7 +129,7 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
             return False
         return True
 
-    async def _request_map_upload(self, upload_type: int = MAP_UPLOAD_REAL_MAP) -> int | None:
+    async def _request_map_upload(self) -> int | None:
         # The map object in the Xiaomi cloud is only refreshed when the vacuum
         # uploads it (e.g. while the Xiaomi Home map screen is open), so it can
         # be stale and fail to decrypt. Like the Dreame and Roborock vacuums,
@@ -143,7 +140,7 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
             response = await self._connector.get_other_info(
                 self._device_id, "action",
                 parameters={"did": self._device_id, "siid": 10, "aiid": 6,
-                            "in": [{"piid": 7, "value": upload_type}]},
+                            "in": [{"piid": 7, "value": MAP_UPLOAD_REAL_MAP}]},
             )
             if path_extractor(response, "result.code") != 0:
                 return None

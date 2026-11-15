@@ -1,19 +1,47 @@
 import logging
+import zlib
 from typing import Self, Any
 
 from miio.miot_device import MiotDevice
 from miio.exceptions import DeviceException
-from vacuum_map_parser_base.map_data import MapData
+from vacuum_map_parser_base.map_data import MapData, Room
 from vacuum_map_parser_ijai.map_data_parser import IjaiMapDataParser
 from vacuum_map_parser_ijai.status_mapping import get_status_mapping
 from vacuum_map_parser_ijai.aes_decryptor import gen_md5_key
 
 from .base.vacuum_v2 import BaseXiaomiCloudVacuumV2
 from .base.model import VacuumConfig, VacuumApi
-from ..utils.exceptions import FailedConnectionException
+from ..utils.exceptions import FailedConnectionException, FailedMapParseException
 
 _LOGGER = logging.getLogger(__name__)
 OFF_UPDATES = 3
+
+# Some ijai vacuums (e.g. ijai.vacuum.v3) do not always encrypt the map with
+# the cloud device id: the "device_id" part of the key can also be a small
+# index ("0", "2", ...). These values are tried after the real device id.
+MAP_KEY_FALLBACK_IDS = [str(i) for i in range(10)]
+DECRYPT_ERRORS = (ValueError, zlib.error)
+
+
+def _safe_parse_rooms(map_data_rooms: dict[int, Room]) -> None:
+    # Workaround for vacuum_map_parser_ijai: live maps may not contain the
+    # current map in mapInfo, which makes the original _parse_rooms fail with
+    # UnboundLocalError ('current_map'). Room names are read anyway.
+    robot_map = IjaiMapDataParser.robot_map
+    map_id = robot_map.mapHead.mapHeadId
+    current_map = next((m for m in robot_map.mapInfo if m.mapHeadId == map_id), None)
+    if current_map is not None:
+        _LOGGER.debug("map#%d: %s", current_map.mapHeadId, current_map.mapName)
+    else:
+        _LOGGER.debug("map#%d not found in mapInfo", map_id)
+    for r in robot_map.roomDataInfo:
+        if map_data_rooms is not None and r.roomId in map_data_rooms:
+            map_data_rooms[r.roomId].name = r.roomName
+            map_data_rooms[r.roomId].pos_x = r.roomNamePost.x
+            map_data_rooms[r.roomId].pos_y = r.roomNamePost.y
+
+
+IjaiMapDataParser._parse_rooms = staticmethod(_safe_parse_rooms)
 
 
 class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
@@ -25,6 +53,7 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
         self._host = vacuum_config.host
         self._mac = vacuum_config.device_info.mac
         self._wifi_info_sn = None
+        self._map_encryption_device_id = str(self._device_id)
 
         self._miot_device = MiotDevice(self._host, self._token, timeout=2)
 
@@ -107,6 +136,11 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                     wifi_info_sn = cleaned_prop
         return wifi_info_sn
 
+    def _map_key_ids(self) -> list[str]:
+        # Last working id first, then the real device id, then the fallbacks.
+        ids = [self._map_encryption_device_id, str(self._device_id), *MAP_KEY_FALLBACK_IDS]
+        return list(dict.fromkeys(ids))
+
     def decode_and_parse(self, raw_map: bytes) -> MapData:
         GET_PROP_RETRIES = 5
         if self._wifi_info_sn is None or self._wifi_info_sn == "":
@@ -120,18 +154,33 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                     _LOGGER.error("Failed to get wifi_sn from vacuum")
                     raise FailedConnectionException(ex)
 
-        decoded_map = self.map_data_parser.unpack_map(
-            raw_map,
-            wifi_sn=self._wifi_info_sn,
-            owner_id=str(self._user_id),
-            device_id=str(self._device_id),
-            model=self.model,
-            device_mac=self._mac)
-        return self.map_data_parser.parse(decoded_map)
+        kwargs = {
+            "wifi_sn": self._wifi_info_sn,
+            "owner_id": str(self._user_id),
+            "model": self.model,
+            "device_mac": self._mac,
+        }
+        last_err: Exception | None = None
+        for key_id in self._map_key_ids():
+            try:
+                decoded_map = self.map_data_parser.unpack_map(raw_map, device_id=key_id, **kwargs)
+            except DECRYPT_ERRORS as err:
+                last_err = err
+                continue
+            if key_id != self._map_encryption_device_id:
+                _LOGGER.debug("Map decrypted with key id %s", key_id)
+            self._map_encryption_device_id = key_id
+            return self.map_data_parser.parse(decoded_map)
+
+        # Do not fail the whole update (entities would become unavailable):
+        # report a parse failure so the connector keeps the last valid map.
+        _LOGGER.warning(
+            "Failed to decrypt map with any known key (%s), keeping last valid map", last_err)
+        raise FailedMapParseException() from last_err
 
     def additional_data(self: Self) -> dict[str, Any]:
         super_data = super().additional_data()
         if self._wifi_info_sn is None:
             return super_data
-        enc_key = gen_md5_key(self._wifi_info_sn, str(self._user_id), str(self._device_id), self.model, self._mac)
+        enc_key = gen_md5_key(self._wifi_info_sn, str(self._user_id), self._map_encryption_device_id, self.model, self._mac)
         return {**super_data, "enc_key": enc_key}

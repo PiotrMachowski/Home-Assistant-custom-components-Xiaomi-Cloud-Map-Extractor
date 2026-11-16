@@ -41,6 +41,7 @@ from .connector.utils.exceptions import (
 )
 from .connector.vacuums.base.model import VacuumApi
 from .connector.xiaomi_cloud.connector import XiaomiCloudConnector, XiaomiCloudDeviceInfo
+from .connector.xiaomi_cloud.const import AVAILABLE_SERVERS
 from .const import (
     DOMAIN,
     CONF_USED_MAP_API,
@@ -83,6 +84,8 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         self._captcha_exception: CaptchaRequiredException | None = None
         self._two_factor_exception: TwoFactorAuthRequiredException | None = None
         self._wait_for_login_task: Task | None = None
+        self._selected_server: str | None = None
+        self._region_selected = False
 
     @staticmethod
     @callback
@@ -218,9 +221,10 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         return await self._after_auth()
 
     async def _after_auth(self: Self) -> ConfigFlowResult:
-
+        if not self._region_selected:
+            return await self.async_step_select_server()
         try:
-            devices_raw = await self._connector.get_devices()
+            devices_raw = await self._connector.get_devices(self._selected_server)
         except Exception as e:
             _LOGGER.error(
                 "Unexpected exception while attempting to Miio cloud get devices"
@@ -240,6 +244,35 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             return await self.async_step_confirm_data()
 
         return await self.async_step_select_vacuum()
+
+    async def async_step_select_server(
+            self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Select discovery region without changing the official login flow."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            server = user_input.get(CONF_SERVER, "auto")
+            if server in ("auto", *AVAILABLE_SERVERS):
+                self._selected_server = None if server == "auto" else server
+                self._region_selected = True
+                return await self._after_auth()
+            errors[CONF_SERVER] = "invalid_region"
+        return self.async_show_form(
+            step_id="select_server",
+            data_schema=vol.Schema({
+                vol.Required(CONF_SERVER, default=self._selected_server or "auto"): SelectSelector(
+                    SelectSelectorConfig(
+                        options=["auto", *AVAILABLE_SERVERS],
+                        translation_key="cloud_region",
+                        custom_value=False,
+                        sort=False,
+                        mode=SelectSelectorMode.LIST,
+                    )
+                )
+            }),
+            errors=errors,
+            last_step=False,
+        )
 
     async def async_step_select_vacuum(
             self, user_input: dict[str, Any] | None = None

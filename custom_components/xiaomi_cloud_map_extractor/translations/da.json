@@ -1,0 +1,470 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Enheden er allerede konfigureret",
+      "already_in_progress": "Opsætningen er allerede i gang",
+      "unknown": "Uventet fejl",
+      "cloud_no_devices": "Der blev ikke fundet støvsugere på denne Xiaomi Cloud-konto.",
+      "reauth_successful": "Godkendelsen blev fornyet",
+      "cannot_connect": "Der kunne ikke oprettes forbindelse til Xiaomi. Kontrollér internetforbindelsen, og prøv igen.",
+      "qr_code_unavailable": "Xiaomi kunne ikke levere en QR-kode. Prøv igen, eller vælg login med brugernavn og adgangskode."
+    },
+    "error": {
+      "invalid_captcha": "Billedkoden er forkert. Prøv igen.",
+      "invalid_region": "Vælg Automatisk eller en af de understøttede Xiaomi-regioner.",
+      "cloud_login_error": "Kunne ikke logge ind på Xiaomi Cloud. Kontrollér brugernavn og adgangskode.",
+      "cloud_no_devices": "Der blev ikke fundet støvsugere på denne Xiaomi Cloud-konto.",
+      "invalid_vacuum": "Forbindelsen til støvsugeren mislykkedes. Kontrollér indstillingerne."
+    },
+    "flow_title": "{name}",
+    "step": {
+      "auth_method_selection": {
+        "description": "Vælg loginmetode.",
+        "menu_options": {
+          "auth_credentials": "Brugernavn og adgangskode",
+          "auth_qr": "QR-kode eller loginlink"
+        }
+      },
+      "auth_credentials": {
+        "data": {"password": "Adgangskode", "username": "Brugernavn"},
+        "description": "Indtast dine loginoplysninger til Xiaomi Cloud"
+      },
+      "auth_captcha": {
+        "data": {"captcha_code": "Koden fra billedet (der skelnes mellem store og små bogstaver)"},
+        "description": "Indtast koden fra dette billede:\n![](data:image/jpeg;base64,{captcha_image_b64})",
+        "title": "Billedgodkendelse"
+      },
+      "auth_two_factor": {
+        "data": {"two_factor_code": "Godkendelseskode"},
+        "description": "Indtast godkendelseskoden fra mailen.",
+        "title": "Totrinsgodkendelse"
+      },
+      "confirm_data": {
+        "data": {
+          "host": "IP-adresse",
+          "token": "API-token",
+          "used_map_api": "Anvendt kort-API"
+        },
+        "data_description": {"used_map_api": "API til afkodning af kortet. (*) betyder automatisk registreret."},
+        "description": "Bekræft de registrerede enhedsindstillinger."
+      },
+      "reauth_confirm": {
+        "description": "Xiaomi Cloud Map Extractor skal godkende din konto igen for at opdatere tokens eller tilføje manglende loginoplysninger til skyen.",
+        "title": "Godkendelsen er udløbet for {name}"
+      },
+      "select_server": {
+        "title": "Vælg Xiaomi-region",
+        "description": "Vælg den region, der skal søges efter din støvsuger i. Automatisk søger i alle understøttede regioner, også regioner som din router eventuelt blokerer. Vælg Tyskland / Europa (de) for kun at søge i den region. Valget ændrer ikke regionen i din Xiaomi Home-app.",
+        "data": {"server": "Xiaomi-region"}
+      },
+      "select_vacuum": {
+        "data": {"select_vacuum": "Tilgængelige støvsugere"},
+        "description": "Vælg den støvsuger, du vil konfigurere.",
+        "data_description": {"select_vacuum": "[server] Navn - modelkode (MAC-adresse)"}
+      }
+    },
+    "progress": {
+      "wait_for_login": "Scan QR-koden, eller brug [dette link]({login_link}) for at logge ind:\n![](data:image/jpeg;base64,{qr_image_b64})"
+    }
+  },
+  "options": {
+    "error": {
+      "left_and_right_sum_over_100": "Summen af beskæringen til venstre og højre overstiger 100 %",
+      "top_and_bottom_sum_over_100": "Summen af beskæringen øverst og nederst overstiger 100 %",
+      "some_room_ids_are_not_integers": "Nogle rum-id'er er ikke heltal"
+    },
+    "step": {
+      "init": {
+        "description": "Vælg de indstillinger, du vil ændre.",
+        "menu_options": {
+          "image_config": "Billedmål",
+          "colors": "Billedfarver",
+          "room_colors_step1": "Rumfarver",
+          "drawables": "Viste kortelementer",
+          "sizes": "Kortelementernes størrelser"
+        }
+      },
+      "image_config": {
+        "description": "Vælg billedindstillinger.",
+        "data": {
+          "scale": "Skalering",
+          "rotate": "Rotation",
+          "trim_left": "Beskæring til venstre",
+          "trim_right": "Beskæring til højre",
+          "trim_top": "Beskæring øverst",
+          "trim_bottom": "Beskæring nederst"
+        }
+      },
+      "colors": {
+        "description": "Vælg farver og gennemsigtighed til visning af kortet.",
+        "data": {
+          "color_carpets": "Tæpper",
+          "color_carpets_alpha": "Tæpper - gennemsigtighed",
+          "color_charger": "Ladestation",
+          "color_charger_alpha": "Ladestation - gennemsigtighed",
+          "color_charger_outline": "Ladestationens omrids",
+          "color_charger_outline_alpha": "Ladestationens omrids - gennemsigtighed",
+          "color_cleaned_area": "Rengjort område",
+          "color_cleaned_area_alpha": "Rengjort område - gennemsigtighed",
+          "color_goto_path": "Rute til mål",
+          "color_goto_path_alpha": "Rute til mål - gennemsigtighed",
+          "color_grey_wall": "Grå væg",
+          "color_grey_wall_alpha": "Grå væg - gennemsigtighed",
+          "color_ignored_obstacle": "Ignoreret forhindring",
+          "color_ignored_obstacle_alpha": "Ignoreret forhindring - gennemsigtighed",
+          "color_ignored_obstacle_with_photo": "Ignoreret forhindring med foto",
+          "color_ignored_obstacle_with_photo_alpha": "Ignoreret forhindring med foto - gennemsigtighed",
+          "color_map_inside": "Kortets inderside",
+          "color_map_inside_alpha": "Kortets inderside - gennemsigtighed",
+          "color_map_outside": "Kortets yderside",
+          "color_map_outside_alpha": "Kortets yderside - gennemsigtighed",
+          "color_map_wall": "Kortvæg",
+          "color_map_wall_alpha": "Kortvæg - gennemsigtighed",
+          "color_map_wall_v2": "Kortvæg v2",
+          "color_map_wall_v2_alpha": "Kortvæg v2 - gennemsigtighed",
+          "color_mop_path": "Vaskerute",
+          "color_mop_path_alpha": "Vaskerute - gennemsigtighed",
+          "color_new_discovered_area": "Nyopdaget område",
+          "color_new_discovered_area_alpha": "Nyopdaget område - gennemsigtighed",
+          "color_no_carpet_zones": "Zoner uden tæpper",
+          "color_no_carpet_zones_alpha": "Zoner uden tæpper - gennemsigtighed",
+          "color_no_carpet_zones_outline": "Omrids af zoner uden tæpper",
+          "color_no_carpet_zones_outline_alpha": "Omrids af zoner uden tæpper - gennemsigtighed",
+          "color_no_go_zones": "Forbudte zoner",
+          "color_no_go_zones_alpha": "Forbudte zoner - gennemsigtighed",
+          "color_no_go_zones_outline": "Omrids af forbudte zoner",
+          "color_no_go_zones_outline_alpha": "Omrids af forbudte zoner - gennemsigtighed",
+          "color_no_mop_zones": "Zoner uden gulvvask",
+          "color_no_mop_zones_alpha": "Zoner uden gulvvask - gennemsigtighed",
+          "color_no_mop_zones_outline": "Omrids af zoner uden gulvvask",
+          "color_no_mop_zones_outline_alpha": "Omrids af zoner uden gulvvask - gennemsigtighed",
+          "color_obstacle": "Forhindring",
+          "color_obstacle_alpha": "Forhindring - gennemsigtighed",
+          "color_obstacle_with_photo": "Forhindring med foto",
+          "color_obstacle_with_photo_alpha": "Forhindring med foto - gennemsigtighed",
+          "color_path": "Rute",
+          "color_path_alpha": "Rute - gennemsigtighed",
+          "color_predicted_path": "Forventet rute",
+          "color_predicted_path_alpha": "Forventet rute - gennemsigtighed",
+          "color_robo": "Robot",
+          "color_robo_alpha": "Robot - gennemsigtighed",
+          "color_robo_outline": "Robottens omrids",
+          "color_robo_outline_alpha": "Robottens omrids - gennemsigtighed",
+          "color_room_names": "Rumnavne",
+          "color_room_names_alpha": "Rumnavne - gennemsigtighed",
+          "color_scan": "Scanning",
+          "color_scan_alpha": "Scanning - gennemsigtighed",
+          "color_unknown": "Ukendt",
+          "color_unknown_alpha": "Ukendt - gennemsigtighed",
+          "color_virtual_walls": "Virtuelle vægge",
+          "color_virtual_walls_alpha": "Virtuelle vægge - gennemsigtighed",
+          "color_zones": "Zoner",
+          "color_zones_alpha": "Zoner - gennemsigtighed",
+          "color_zones_outline": "Zonernes omrids",
+          "color_zones_outline_alpha": "Zonernes omrids - gennemsigtighed"
+        }
+      },
+      "room_colors_step1": {
+        "description": "Vælg de rum, du vil konfigurere farver for.",
+        "data": {"room_color_ids": "Rum-id'er"}
+      },
+      "room_colors_step2": {"description": "Vælg rummenes farver.", "data": {}},
+      "drawables": {
+        "description": "Vælg de kortelementer, der skal vises.",
+        "data": {"drawables": "Kortelementer"}
+      },
+      "sizes": {
+        "description": "Indstil kortelementernes størrelser.",
+        "data": {
+          "charger_radius": "Ladestationens radius",
+          "ignored_obstacle_radius": "Radius for en ignoreret forhindring",
+          "ignored_obstacle_with_photo_radius": "Radius for en ignoreret forhindring med foto",
+          "mop_path_width": "Vaskerutens bredde",
+          "obstacle_radius": "Radius for en forhindring",
+          "obstacle_with_photo_radius": "Radius for en forhindring med foto",
+          "vacuum_radius": "Støvsugerens radius",
+          "path_width": "Støvsugerens rutebredde"
+        }
+      }
+    }
+  },
+  "selector": {
+    "cloud_region": {
+      "options": {
+        "auto": "Automatisk — alle regioner",
+        "cn": "Kina (cn)",
+        "de": "Tyskland / Europa (de)",
+        "us": "USA (us)",
+        "ru": "Rusland (ru)",
+        "tw": "Taiwan (tw)",
+        "sg": "Singapore (sg)",
+        "in": "Indien (in)",
+        "i2": "Indien — region 2 (i2)"
+      }
+    },
+    "drawables": {
+      "options": {
+        "charger": "Ladestation",
+        "cleaned_area": "Rengjort område",
+        "goto_path": "Rute til mål",
+        "ignored_obstacles": "Ignorerede forhindringer",
+        "ignored_obstacles_with_photo": "Ignorerede forhindringer med foto",
+        "mop_path": "Vaskerute",
+        "no_carpet_zones": "Zoner uden tæpper",
+        "no_go_zones": "Forbudte zoner",
+        "no_mopping_zones": "Zoner uden gulvvask",
+        "obstacles": "Forhindringer",
+        "obstacles_with_photo": "Forhindringer med foto",
+        "path": "Rute",
+        "predicted_path": "Forventet rute",
+        "room_names": "Rumnavne",
+        "vacuum_position": "Støvsugerens position",
+        "virtual_walls": "Virtuelle vægge",
+        "zones": "Zoner"
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "force_update": {
+        "name": "Gennemtving kortopdatering",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"}
+        }
+      }
+    },
+    "camera": {
+      "live_map": {
+        "name": "Livekort",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "calibration_points": {"name": "Kalibreringspunkter"},
+          "rooms": {"name": "Rum"}
+        }
+      }
+    },
+    "image": {
+      "live_map": {
+        "name": "Livekort",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "calibration_points": {"name": "Kalibreringspunkter"},
+          "rooms": {"name": "Rum"}
+        }
+      }
+    },
+    "binary_sensor": {
+      "is_map_empty": {
+        "name": "Kortet er tomt",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"}
+        }
+      }
+    },
+    "sensor": {
+      "no_go_areas": {
+        "name": "Forbudte områder",
+        "unit_of_measurement": "områder",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "areas": {"name": "Områder"}
+        }
+      },
+      "charger_position": {
+        "name": "Ladestationens position",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "x": {"name": "X"}, "y": {"name": "Y"}, "a": {"name": "Vinkel"}
+        }
+      },
+      "vacuum_position": {
+        "name": "Støvsugerens position",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "x": {"name": "X"}, "y": {"name": "Y"}, "a": {"name": "Vinkel"}
+        }
+      },
+      "vacuum_room_id": {
+        "name": "Støvsugerens rum-id",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"}
+        }
+      },
+      "vacuum_room_name": {
+        "name": "Støvsugerens rumnavn",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"}
+        }
+      },
+      "no_carpet_areas": {
+        "name": "Områder uden tæpper",
+        "unit_of_measurement": "områder",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "areas": {"name": "Områder"}
+        }
+      },
+      "no_mopping_areas": {
+        "name": "Områder uden gulvvask",
+        "unit_of_measurement": "områder",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "areas": {"name": "Områder"}
+        }
+      },
+      "cleaned_rooms_ids": {
+        "name": "Rengjorte rum",
+        "unit_of_measurement": "rum",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "rooms_ids": {"name": "Rum-id'er"}
+        }
+      },
+      "goto_position": {
+        "name": "Målposition",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "x": {"name": "X"}, "y": {"name": "Y"}, "a": {"name": "Vinkel"}
+        }
+      },
+      "goto_path": {
+        "name": "Rute til mål",
+        "unit_of_measurement": "punkter",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "point_length": {"name": "Punktlængde"}, "point_size": {"name": "Punktstørrelse"},
+          "angle": {"name": "Vinkel"}, "path": {"name": "Rute"}
+        }
+      },
+      "goto_predicted_path": {
+        "name": "Forventet rute til mål",
+        "unit_of_measurement": "punkter",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "point_length": {"name": "Punktlængde"}, "point_size": {"name": "Punktstørrelse"},
+          "angle": {"name": "Vinkel"}, "path": {"name": "Rute"}
+        }
+      },
+      "mop_path": {
+        "name": "Vaskerute",
+        "unit_of_measurement": "punkter",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "point_length": {"name": "Punktlængde"}, "point_size": {"name": "Punktstørrelse"},
+          "angle": {"name": "Vinkel"}, "path": {"name": "Rute"}
+        }
+      },
+      "path": {
+        "name": "Støvsugerens rute",
+        "unit_of_measurement": "punkter",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "point_length": {"name": "Punktlængde"}, "point_size": {"name": "Punktstørrelse"},
+          "angle": {"name": "Vinkel"}, "path": {"name": "Rute"}
+        }
+      },
+      "obstacles": {
+        "name": "Forhindringer",
+        "unit_of_measurement": "forhindringer",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "obstacles": {"name": "Forhindringer"}
+        }
+      },
+      "ignored_obstacles": {
+        "name": "Ignorerede forhindringer",
+        "unit_of_measurement": "forhindringer",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "obstacles": {"name": "Forhindringer"}
+        }
+      },
+      "obstacles_with_photo": {
+        "name": "Forhindringer med foto",
+        "unit_of_measurement": "forhindringer",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "obstacles": {"name": "Forhindringer"}
+        }
+      },
+      "ignored_obstacles_with_photo": {
+        "name": "Ignorerede forhindringer med foto",
+        "unit_of_measurement": "forhindringer",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "obstacles": {"name": "Forhindringer"}
+        }
+      },
+      "walls": {
+        "name": "Virtuelle vægge",
+        "unit_of_measurement": "vægge",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "walls": {"name": "Vægge"}
+        }
+      },
+      "zones": {
+        "name": "Zoner",
+        "unit_of_measurement": "zoner",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "zones": {"name": "Zoner"}
+        }
+      },
+      "map_name": {
+        "name": "Kortnavn",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"}
+        }
+      },
+      "rooms": {
+        "name": "Rum",
+        "unit_of_measurement": "rum",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"},
+          "rooms": {"name": "Rum"}
+        }
+      }
+    },
+    "switch": {
+      "auto_update": {
+        "name": "Opdater kort",
+        "state_attributes": {
+          "last_update_timestamp": {"name": "Seneste opdatering"},
+          "last_successful_update_timestamp": {"name": "Seneste vellykkede opdatering"}
+        }
+      }
+    }
+  },
+  "issues": {
+    "deprecated_yaml": {
+      "description": "Opsætning af {integration_title} med YAML udfases.\n\nDin eksisterende YAML-konfiguration er automatisk importeret til brugerfladen.\n\nFjern kameraet `{domain}` fra din configuration.yaml-fil, og genstart Home Assistant for at løse problemet.",
+      "title": "YAML-konfigurationen for {integration_title} udfases"
+    }
+  }
+}

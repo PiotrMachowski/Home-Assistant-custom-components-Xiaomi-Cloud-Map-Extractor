@@ -9,6 +9,7 @@
     },
     "error": {
       "invalid_captcha": "Invalid captcha provided, try again.",
+      "invalid_region": "Select Automatic or one of the supported Xiaomi regions.",
       "cloud_login_error": "Could not login to Xiaomi Cloud, check the credentials.",
       "cloud_no_devices": "No vacuums found for this Xiaomi Cloud account.",
       "invalid_vacuum": "Connection to vacuum failed, please check the configuration."
@@ -57,6 +58,13 @@
       "reauth_confirm": {
         "description": "The Xiaomi Cloud Map Extractor integration needs to re-authenticate your account in order to update the tokens or add missing cloud credentials.",
         "title": "Authentication expired for {name}"
+      },
+      "select_server": {
+        "title": "Choose Xiaomi region",
+        "description": "Choose the region to search for your vacuum. Automatic searches all supported regions, including regions that may be blocked by your router. Choose Germany / Europe (de) to search only that region. This does not change the region in your Xiaomi Home app.",
+        "data": {
+          "server": "Xiaomi region"
+        }
       },
       "select_vacuum": {
         "data": {
@@ -202,6 +210,19 @@
     }
   },
   "selector": {
+    "cloud_region": {
+      "options": {
+        "auto": "Automatic — all regions",
+        "cn": "China (cn)",
+        "de": "Germany / Europe (de)",
+        "us": "United States (us)",
+        "ru": "Russia (ru)",
+        "tw": "Taiwan (tw)",
+        "sg": "Singapore (sg)",
+        "in": "India (in)",
+        "i2": "India — region 2 (i2)"
+      }
+    },
     "drawables": {
       "options": {
         "charger": "Charger",

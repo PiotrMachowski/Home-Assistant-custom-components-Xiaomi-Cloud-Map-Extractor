@@ -11,6 +11,7 @@ from vacuum_map_parser_ijai.status_mapping import get_status_mapping
 from vacuum_map_parser_ijai.aes_decryptor import gen_md5_key
 
 from .base.vacuum_v2 import BaseXiaomiCloudVacuumV2
+from .ijai_render import create_parser
 from .base.model import VacuumConfig, VacuumApi
 from ..utils.exceptions import FailedConnectionException, FailedMapParseException
 from ..utils.dict_operations import path_extractor
@@ -42,13 +43,14 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
 
         self._miot_device = MiotDevice(self._host, self._token, timeout=2)
 
-        self._ijai_map_data_parser = IjaiMapDataParser(
+        self._render_config = (
             vacuum_config.palette,
             vacuum_config.sizes,
             vacuum_config.drawables,
             vacuum_config.image_config,
-            vacuum_config.texts
+            vacuum_config.texts,
         )
+        self._ijai_map_data_parser = IjaiMapDataParser(*self._render_config)
 
         self._status_mapping = get_status_mapping(self.model)
         self._off_counter = 0
@@ -250,7 +252,8 @@ class IjaiCloudVacuum(BaseXiaomiCloudVacuumV2):
                 device_id=str(self._device_id),
                 model=self.model,
                 device_mac=self._mac)
-            map_data = self.map_data_parser.parse(decoded_map)
+            # The image configuration and element sizes are fitted to every map.
+            map_data = create_parser(*self._render_config, decoded_map).parse(decoded_map)
             self._has_good_map = True
             return map_data
         except Exception as ex:  # pylint: disable=broad-except

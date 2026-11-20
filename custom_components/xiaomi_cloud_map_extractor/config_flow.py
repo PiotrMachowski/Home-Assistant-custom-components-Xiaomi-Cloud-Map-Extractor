@@ -83,6 +83,7 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         self._captcha_exception: CaptchaRequiredException | None = None
         self._two_factor_exception: TwoFactorAuthRequiredException | None = None
         self._wait_for_login_task: Task | None = None
+        self._qr_placeholders: dict[str, str] = {}
 
     @staticmethod
     @callback
@@ -180,8 +181,6 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_auth_qr(self: Self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        placeholders = {}
-
         if self._wait_for_login_task is None:
             if self._connector is None:
 
@@ -195,8 +194,10 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                 qr_image = qr_data[0]
                 login_link = qr_data[1]
                 qr_image_b64 = base64.b64encode(qr_image).decode("utf-8")
-                placeholders["qr_image_b64"] = qr_image_b64
-                placeholders["login_link"] = login_link
+                self._qr_placeholders = {
+                    "qr_image_b64": qr_image_b64,
+                    "login_link": login_link,
+                }
             except FailedLoginException:
                 return self.async_abort(reason="qr_code_unavailable")
 
@@ -210,7 +211,7 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         return self.async_show_progress(
             step_id="auth_qr",
             progress_action="wait_for_login",
-            description_placeholders=placeholders,
+            description_placeholders=self._qr_placeholders,
             progress_task=self._wait_for_login_task,
         )
 

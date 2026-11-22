@@ -339,6 +339,7 @@ class XiaomiCloudConnector:
         _LOGGER.debug("Xiaomi cloud qr login - JSON response polling: %s", json_resp)
 
         self._session_data.userId = json_resp["userId"]
+        self._session_data.cUserId = json_resp.get("cUserId")
         self._session_data.ssecurity = json_resp["ssecurity"]
 
         service_token_cookie = resp.cookies.get("serviceToken")

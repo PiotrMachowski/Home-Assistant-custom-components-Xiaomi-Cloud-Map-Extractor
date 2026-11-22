@@ -5,7 +5,9 @@
       "already_in_progress": "Configuration flow is already in progress",
       "unknown": "Unexpected error",
       "cloud_no_devices": "No vacuums found for this Xiaomi Cloud account.",
-      "reauth_successful": "Re-authentication was successful"
+      "reauth_successful": "Re-authentication was successful",
+      "cannot_connect": "Could not log in to Xiaomi Cloud using QR code, please try again.",
+      "qr_code_unavailable": "QR code is not available, please try again later."
     },
     "error": {
       "invalid_captcha": "Invalid captcha provided, try again.",

@@ -204,7 +204,7 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             self._wait_for_login_task = self.hass.async_create_task(_wait_for_login())
         if self._wait_for_login_task.done():
             if self._wait_for_login_task.exception():
-                return self.async_abort(reason="cannot_connect")
+                return self.async_show_progress_done(next_step_id="auth_qr_failed")
             return self.async_show_progress_done(next_step_id="after_auth")
 
         return self.async_show_progress(
@@ -213,6 +213,9 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             description_placeholders=placeholders,
             progress_task=self._wait_for_login_task,
         )
+
+    async def async_step_auth_qr_failed(self: Self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        return self.async_abort(reason="cannot_connect")
 
     async def async_step_after_auth(self: Self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return await self._after_auth()

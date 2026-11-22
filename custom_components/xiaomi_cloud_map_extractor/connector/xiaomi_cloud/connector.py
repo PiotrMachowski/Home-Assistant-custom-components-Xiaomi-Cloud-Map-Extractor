@@ -321,11 +321,15 @@ class XiaomiCloudConnector:
             raise FailedLoginException("Long polling failed, please try again")
 
         json_resp = to_json(await resp.text())
-        max_age = int(resp.cookies.get("userId").get("max-age"))
 
         if json_resp['code'] != 0:
             _LOGGER.debug("Xiaomi cloud qr login - Long polling succeeded, but returned error %s: %s", json_resp['code'], json_resp['desc'])
             raise FailedLoginException("Long polling succeeded, but returned error")
+
+        user_id_cookie = resp.cookies.get("userId")
+        max_age = int(user_id_cookie.get("max-age") or 0) if user_id_cookie is not None else 0
+        if max_age <= 0:
+            max_age = 20 * 24 * 60 * 60
 
         resp = await self._session_data.get(json_resp["location"])
         if resp.status != 200:
@@ -337,7 +341,12 @@ class XiaomiCloudConnector:
         self._session_data.userId = json_resp["userId"]
         self._session_data.ssecurity = json_resp["ssecurity"]
 
-        self._session_data.serviceToken = resp.cookies.get("serviceToken").value
+        service_token_cookie = resp.cookies.get("serviceToken")
+        if service_token_cookie is None:
+            _LOGGER.debug("Xiaomi cloud qr login - Service token missing in response")
+            raise FailedLoginException("Service token missing, please try again")
+
+        self._session_data.serviceToken = service_token_cookie.value
         self._session_data.expiration = datetime.datetime.now() + datetime.timedelta(seconds=max_age)
         _LOGGER.debug("Xiaomi cloud qr login - session data: %s", self._session_data)
 

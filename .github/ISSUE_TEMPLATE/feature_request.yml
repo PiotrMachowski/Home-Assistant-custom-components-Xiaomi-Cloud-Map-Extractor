@@ -2,7 +2,7 @@
 name: Request a feature in Xiaomi Cloud Map Extractor
 description: Request a feature in Xiaomi Cloud Map Extractor
 labels: enhancement
-assignees: 'PiotrMachowski'
+assignees: 'Igloczek'
 body:
   - type: markdown
     attributes:

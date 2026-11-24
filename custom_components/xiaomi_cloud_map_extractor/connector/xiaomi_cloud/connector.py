@@ -675,7 +675,7 @@ class XiaomiCloudConnector:
         try:
             if (response := await self.execute_api_call_encrypted(url, params)) is None:
                 return []
-        except FailedConnectionException | TimeoutError as e:
+        except (FailedConnectionException, TimeoutError) as e:
             _LOGGER.error("Failed to get devices from home: %s", e)
             return []
 

@@ -1,23 +1,16 @@
----
 name: Validate HACS
+
 on:
   push:
   pull_request:
+
 jobs:
-  ci:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        name: Download repo
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v2
-        name: Setup Python
-        with:
-          python-version: '3.13.x'
-
-      - name: HACS Action
+      - name: Validate HACS
         uses: hacs/action@main
         with:
           category: integration

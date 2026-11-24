@@ -7,32 +7,47 @@ on:
 env:
   COMPONENT_NAME: xiaomi_cloud_map_extractor
 
+permissions:
+  contents: write
+
 jobs:
   release:
     name: Prepare release
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
     steps:
-      - name: Download repo
-        uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v7
 
-      - name: Adjust version number
-        shell: bash
+      - uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: requirements_test.txt
+
+      - name: Test the released commit
+        run: |
+          pip install -r requirements_test.txt
+          ruff check .
+          pytest
+
+      - name: Set the manifest version to the tag
         run: |
           version="${{ github.event.release.tag_name }}"
-          yq e -P -o=json \
-            -i ".version = \"${version}\"" \
-            "${{ github.workspace }}/custom_components/${{ env.COMPONENT_NAME }}/manifest.json"
+          version="${version#v}"
+          manifest="custom_components/${COMPONENT_NAME}/manifest.json"
+          jq --arg version "$version" '.version = $version' "$manifest" > "$manifest.tmp"
+          mv "$manifest.tmp" "$manifest"
+          cat "$manifest"
 
-      - name: Zip ${{ env.COMPONENT_NAME }} dir
+      - name: Zip the integration
+        # HACS (hacs.json zip_release) unpacks this archive into custom_components/xiaomi_cloud_map_extractor/,
+        # so the files sit at the archive root.
         run: |
-          cd "${{ github.workspace }}/custom_components/${{ env.COMPONENT_NAME }}"
-          zip ${{ env.COMPONENT_NAME }}.zip -r ./
+          cd "custom_components/${COMPONENT_NAME}"
+          find . -name __pycache__ -prune -exec rm -rf {} +
+          zip -r "${GITHUB_WORKSPACE}/${COMPONENT_NAME}.zip" .
+          unzip -l "${GITHUB_WORKSPACE}/${COMPONENT_NAME}.zip" | grep -q ' manifest.json$'
 
-
-      - name: Upload zip to release
-        uses: softprops/action-gh-release@v2.1.0
+      - name: Upload the zip to the release
+        uses: softprops/action-gh-release@v3
         with:
-          files: ${{ github.workspace }}/custom_components/${{ env.COMPONENT_NAME }}/${{ env.COMPONENT_NAME }}.zip
+          files: ${{ env.COMPONENT_NAME }}.zip

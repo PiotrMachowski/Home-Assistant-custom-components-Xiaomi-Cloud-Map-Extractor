@@ -55,7 +55,7 @@
         "description": "Confirm detected device configuration."
       },
       "reauth_confirm": {
-        "description": "The Xiaomi Cloud Map Extractor integration needs to re-authenticate your account in order to update the tokens or add missing cloud credentials.",
+        "description": "The Better Xiaomi Cloud Map Extractor integration needs to re-authenticate your account in order to update the tokens or add missing cloud credentials.",
         "title": "Authentication expired for {name}"
       },
       "select_vacuum": {

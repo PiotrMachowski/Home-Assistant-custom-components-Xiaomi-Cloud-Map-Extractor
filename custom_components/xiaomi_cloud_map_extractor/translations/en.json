@@ -5,7 +5,8 @@
       "already_in_progress": "Configuration flow is already in progress",
       "unknown": "Unexpected error",
       "cloud_no_devices": "No vacuums found for this Xiaomi Cloud account.",
-      "reauth_successful": "Re-authentication was successful"
+      "reauth_successful": "Re-authentication was successful",
+      "reauth_wrong_vacuum": "The selected vacuum is not the one this entry was configured for."
     },
     "error": {
       "invalid_captcha": "Invalid captcha provided, try again.",

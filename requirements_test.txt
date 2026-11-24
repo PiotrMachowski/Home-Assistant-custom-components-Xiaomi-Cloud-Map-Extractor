@@ -1,0 +1,13 @@
+pytest-homeassistant-custom-component
+python-miio
+pybase64
+pycryptodome
+vacuum-map-parser-base==0.1.5
+vacuum-map-parser-roborock==0.1.4
+vacuum-map-parser-viomi==0.1.3
+vacuum-map-parser-roidmi==0.1.3
+vacuum-map-parser-dreame==0.1.3
+vacuum-map-parser-ijai==0.1.0
+vacuum-map-parser-xiaomi==0.1.3
+protobuf
+PyTurboJPEG

@@ -285,21 +285,26 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             else:
                 unique_id = format_mac(self._cloud_vacuum.mac)
 
-                existing_entry = next(
-                    filter(
-                        lambda entry: entry.data[CONF_HOST] == host,
-                        self._async_current_entries(include_ignore=False),
-                    ),
-                    None,
-                )
-                await self.async_set_unique_id(
-                    unique_id, raise_on_progress=False
-                )
-                if self.source != SOURCE_REAUTH:
+                if self.source == SOURCE_REAUTH:
+                    existing_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+                    # Entries imported from YAML have no unique_id, but usually know the MAC.
+                    configured_mac = existing_entry.unique_id or existing_entry.data.get(CONF_MAC)
+                    if configured_mac and format_mac(configured_mac) != unique_id:
+                        return self.async_abort(reason="reauth_wrong_vacuum")
+                else:
+                    await self.async_set_unique_id(unique_id, raise_on_progress=False)
                     self._abort_if_unique_id_configured()
+                    # Entries imported from YAML have no unique_id; adopt the one with the same host.
+                    existing_entry = next(
+                        filter(
+                            lambda entry: entry.unique_id is None and entry.data.get(CONF_HOST) == host,
+                            self._async_current_entries(include_ignore=False),
+                        ),
+                        None,
+                    )
                 self._connector.server = self._cloud_vacuum.server
                 await save_connector_config(self.hass, self._cloud_vacuum.mac, self._connector.to_config())
-                if existing_entry or self.source == SOURCE_REAUTH:
+                if existing_entry:
                     data = existing_entry.data.copy()
                     data[CONF_HOST] = host
                     data[CONF_TOKEN] = token
@@ -311,7 +316,11 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
                     data[CONF_PASSWORD] = self._password
                     data[CONF_SERVER] = self._cloud_vacuum.server
                     data[CONF_USED_MAP_API] = used_map_api
-                    result_entry = self.async_update_reload_and_abort(existing_entry, data=data)
+                    result_entry = self.async_update_reload_and_abort(
+                        existing_entry,
+                        unique_id=self._unique_id_for(existing_entry, unique_id),
+                        data=data,
+                    )
                 else:
                     result_entry = self.async_create_entry(
                         title=self._cloud_vacuum.name,
@@ -452,6 +461,16 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         except Exception as e:
             _LOGGER.error(e, exc_info=True)
             return False
+
+    def _unique_id_for(self: Self, entry: XiaomiCloudMapExtractorConfigEntry, unique_id: str) -> str | None:
+        """Give an entry without unique_id (YAML import) the vacuum's MAC, unless another entry already uses it."""
+        if entry.unique_id is not None:
+            return entry.unique_id
+        taken = any(
+            other.unique_id == unique_id and other.entry_id != entry.entry_id
+            for other in self._async_current_entries(include_ignore=True)
+        )
+        return None if taken else unique_id
 
     @staticmethod
     def _default_image_config() -> dict[str, float]:

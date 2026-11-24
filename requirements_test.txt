@@ -2,7 +2,7 @@
 # custom_components/xiaomi_cloud_map_extractor/manifest.json.
 pytest-homeassistant-custom-component==0.13.375
 ruff==0.14.6
-Pillow
+Pillow  # provided by Home Assistant itself; hassfest forbids it in the manifest
 pybase64
 python-miio
 pycryptodome

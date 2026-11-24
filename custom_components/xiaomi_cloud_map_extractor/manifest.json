@@ -10,7 +10,6 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Igloczek/Home-Assistant-custom-components-Better-Xiaomi-Cloud-Map-Extractor/issues",
   "requirements": [
-    "Pillow",
     "pybase64",
     "python-miio",
     "pycryptodome",

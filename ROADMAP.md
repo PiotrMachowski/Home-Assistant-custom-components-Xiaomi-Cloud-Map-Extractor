@@ -16,9 +16,10 @@ with a test that fails first (see [AGENTS.md](AGENTS.md)).
 
 - **Re-authentication crash.** Reauth reaches `confirm_data` without an existing entry and ends in
   "Unknown error occurred". Includes upstream #730 and the regression test from upstream PR #754.
-- **Cloud login robustness.** Captcha, two-factor and email verification, session expiry and
-  renewal: upstream PR #777 (passToken renewal, needs the token persisted in `to_config()` and
-  captured on password login too), PR #793 (cloud region selection), issues #697, #700, #712, #780.
+- **Cloud login robustness.** Session renewal with the `passToken` (upstream PR #777, #697) and
+  a reauth flow that explains captcha and account verification (#780: the link) are in review.
+  Still open: PR #793 (cloud region selection), #700, #712 and the `verifyEmail` finish location
+  in #780.
 
 ## Next, in order
 

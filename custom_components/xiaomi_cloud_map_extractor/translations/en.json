@@ -18,6 +18,7 @@
       "auth_method_selection": {
         "description": "Choose login method.",
         "menu_options": {
+          "auth_saved_credentials": "Log in again with the saved username and password",
           "auth_credentials": "Credentials",
           "auth_qr": "QR code/login link"
         }
@@ -38,10 +39,10 @@
       },
       "auth_two_factor": {
         "data": {
-          "two_factor_code": "Two-factor code"
+          "two_factor_code": "Verification code"
         },
-        "description": "Please provide the two-factor authentication code from the email.",
-        "title": "Two-factor authentication"
+        "description": "Xiaomi wants to confirm it's you and has sent a verification code to the email address (or phone) of your account. Enter it below.\n\nNo code? Open [this verification page]({verification_url}) on a device connected to the same network (same public IP) as Home Assistant, finish the verification there, then come back and submit this form with the field left empty to log in again.",
+        "title": "Verify your Xiaomi account"
       },
       "confirm_data": {
         "data": {
@@ -55,7 +56,7 @@
         "description": "Confirm detected device configuration."
       },
       "reauth_confirm": {
-        "description": "The Better Xiaomi Cloud Map Extractor integration needs to re-authenticate your account in order to update the tokens or add missing cloud credentials.",
+        "description": "Home Assistant could not keep the Xiaomi Cloud session for {name} alive and needs you to log in again. The map stays on its last version until you do.",
         "title": "Authentication expired for {name}"
       },
       "select_vacuum": {
@@ -66,6 +67,14 @@
         "data_description": {
           "select_vacuum": "[server] Name - model code (MAC address)"
         }
+      },
+      "reauth_captcha": {
+        "title": "Xiaomi asked for a captcha",
+        "description": "The Xiaomi Cloud session for {name} expired and could not be renewed automatically. When Home Assistant tried to log in again with the saved password, Xiaomi asked for a captcha, which only you can solve.\n\nSubmit to continue: you'll log in again and see the captcha image."
+      },
+      "reauth_verification": {
+        "title": "Xiaomi asked to verify your account",
+        "description": "The Xiaomi Cloud session for {name} expired and could not be renewed automatically. When Home Assistant tried to log in again with the saved password, Xiaomi asked to verify that it's you.\n\n1. Open [this verification page]({verification_url}) on a device connected to the same network (same public IP) as Home Assistant and complete the verification.\n2. Come back and submit to log in again."
       }
     },
     "progress": {
@@ -177,8 +186,7 @@
       },
       "room_colors_step2": {
         "description": "Choose rooms' colors.",
-        "data": {
-        }
+        "data": {}
       },
       "drawables": {
         "description": "Choose map elements to draw.",
@@ -663,6 +671,23 @@
     "deprecated_yaml": {
       "description": "Configuring {integration_title} using YAML is being removed.\n\nYour existing YAML configuration has been imported into the UI automatically.\n\nRemove the `{domain}` camera from your configuration.yaml file and restart Home Assistant to fix this issue.",
       "title": "The {integration_title} YAML configuration is being removed"
+    }
+  },
+  "exceptions": {
+    "captcha_required": {
+      "message": "Xiaomi asked for a captcha to log in again. Open the re-authentication in Settings to continue."
+    },
+    "verification_required": {
+      "message": "Xiaomi asked to verify the account to log in again. Open the re-authentication in Settings to continue."
+    },
+    "invalid_credentials": {
+      "message": "Xiaomi rejected the saved username or password. Open the re-authentication in Settings to log in again."
+    },
+    "session_expired": {
+      "message": "The Xiaomi Cloud session expired and could not be renewed. Open the re-authentication in Settings to log in again."
+    },
+    "device_not_found": {
+      "message": "The vacuum was not found in the Xiaomi Cloud account. Open the re-authentication in Settings to log in again."
     }
   }
 }

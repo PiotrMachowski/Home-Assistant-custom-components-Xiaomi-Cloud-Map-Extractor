@@ -41,6 +41,7 @@ from .connector.utils.exceptions import (
 )
 from .connector.vacuums.base.model import VacuumApi
 from .connector.xiaomi_cloud.connector import XiaomiCloudConnector, XiaomiCloudDeviceInfo
+from .coordinator import AuthIssue
 from .const import (
     DOMAIN,
     CONF_USED_MAP_API,
@@ -83,6 +84,7 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         self._captcha_exception: CaptchaRequiredException | None = None
         self._two_factor_exception: TwoFactorAuthRequiredException | None = None
         self._wait_for_login_task: Task | None = None
+        self._reauth_issue: AuthIssue | None = None
 
     @staticmethod
     @callback
@@ -111,7 +113,19 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             self, entry_data: Mapping[str, Any]
     ) -> ConfigFlowResult:
         """Perform reauth upon an authentication error or missing cloud credentials."""
+        self._reauth_issue = self._background_auth_issue()
+        reason = self._reauth_issue.reason if self._reauth_issue else None
+        if reason == "captcha_required":
+            return await self.async_step_reauth_captcha()
+        if reason == "verification_required" and self._reauth_issue.verification_url:
+            return await self.async_step_reauth_verification()
         return await self.async_step_reauth_confirm()
+
+    def _background_auth_issue(self) -> AuthIssue | None:
+        """What the map update ran into, when the entry is loaded far enough to know."""
+        runtime_data = getattr(self._get_reauth_entry(), "runtime_data", None)
+        coordinator = getattr(runtime_data, "coordinator", None)
+        return getattr(coordinator, "auth_issue", None)
 
     async def async_step_reauth_confirm(
             self, user_input: dict[str, Any] | None = None
@@ -119,7 +133,41 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         """Dialog that informs the user that reauth is required."""
         if user_input is not None:
             return await self.async_step_auth_method_selection()
-        return self.async_show_form(step_id="reauth_confirm")
+        return self.async_show_form(step_id="reauth_confirm", description_placeholders=self._entry_placeholders())
+
+    async def async_step_reauth_captcha(
+            self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Xiaomi asked for a captcha when the map update tried to log in again."""
+        if user_input is not None:
+            return await self.async_step_auth_method_selection()
+        return self.async_show_form(step_id="reauth_captcha", description_placeholders=self._entry_placeholders())
+
+    async def async_step_reauth_verification(
+            self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Xiaomi asked to verify the account (email/SMS) when the map update tried to log in again."""
+        if user_input is not None:
+            return await self.async_step_auth_method_selection()
+        return self.async_show_form(
+            step_id="reauth_verification",
+            description_placeholders={
+                **self._entry_placeholders(),
+                "verification_url": self._reauth_issue.verification_url,
+            },
+        )
+
+    def _entry_placeholders(self) -> dict[str, str]:
+        return {"name": self._get_reauth_entry().title}
+
+    def _saved_credentials(self) -> tuple[str, str] | None:
+        if self.source != SOURCE_REAUTH:
+            return None
+        data = self._get_reauth_entry().data
+        username, password = data.get(CONF_USERNAME), data.get(CONF_PASSWORD)
+        if not username or not password:
+            return None
+        return username, password
 
     async def async_step_user(
             self, user_input: dict[str, Any] | None = None
@@ -130,13 +178,20 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
     async def async_step_auth_method_selection(
             self: Self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        menu_options = ["auth_credentials", "auth_qr"]
+        if self._saved_credentials() is not None:
+            menu_options.insert(0, "auth_saved_credentials")
         return self.async_show_menu(
             step_id="auth_method_selection",
-            menu_options=[
-                "auth_credentials",
-                "auth_qr"
-            ],
+            menu_options=menu_options,
         )
+
+    async def async_step_auth_saved_credentials(
+            self: Self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Log in again with the username and password already stored in the entry."""
+        username, password = self._saved_credentials()
+        return await self.async_step_auth_credentials({CONF_USERNAME: username, CONF_PASSWORD: password})
 
     async def async_step_auth_credentials(
             self: Self, user_input: dict[str, Any] | None = None
@@ -416,9 +471,16 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            two_factor_code = user_input[CONF_TWO_FACTOR_CODE]
+            two_factor_code = (user_input.get(CONF_TWO_FACTOR_CODE) or "").strip()
+            if not two_factor_code:
+                # Verified in the browser through the link instead: Xiaomi should let the login through now.
+                return await self.async_step_auth_credentials(
+                    {CONF_USERNAME: self._username, CONF_PASSWORD: self._password}
+                )
             try:
-                await self._connector.continue_login_with_two_factor(two_factor_code, self._two_factor_exception)
+                if not await self._connector.continue_login_with_two_factor(
+                        two_factor_code, self._two_factor_exception):
+                    raise FailedLoginException()
                 return await self._after_auth()
             except TwoFactorAuthRequiredException as e:
                 self._two_factor_exception = e
@@ -434,12 +496,13 @@ class XiaomiCloudMapExtractorFlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="auth_two_factor",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
+                    vol.Optional(
                         CONF_TWO_FACTOR_CODE
                     ): str
                 }
             ),
             errors=errors,
+            description_placeholders={"verification_url": self._two_factor_exception.url},
         )
 
     async def _validate_vacuum(self: Self, host: str, token: str, used_map_api: VacuumApi) -> bool:

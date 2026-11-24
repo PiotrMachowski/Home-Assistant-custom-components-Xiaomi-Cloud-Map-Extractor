@@ -1,7 +1,7 @@
 import hashlib
 import logging
-from collections.abc import Callable
-from datetime import datetime
+from collections.abc import Awaitable, Callable
+from datetime import datetime, timedelta
 from typing import Self, Type
 
 from aiohttp import ClientSession
@@ -14,7 +14,9 @@ from .model import (
 from .utils import to_image
 from .utils.exceptions import (
     DeviceNotFoundException,
+    FailedConnectionException,
     InvalidCredentialsException,
+    SessionExpiredException,
     InvalidDeviceTokenException,
     TwoFactorAuthRequiredException,
     FailedLoginException,
@@ -37,6 +39,11 @@ from .xiaomi_cloud.connector import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# A proactive renewal that Xiaomi turned down is not retried on every 10 s update.
+RENEWAL_RETRY_INTERVAL = timedelta(hours=1)
+
+SessionSaver = Callable[[XiaomiCloudConnectorConfig], Awaitable[None]]
 
 AVAILABLE_VACUUM_PLATFORMS: dict[VacuumApi, Type[BaseXiaomiCloudVacuum]] = {v.vacuum_platform(): v for v in [
     RoborockCloudVacuum,
@@ -68,8 +75,11 @@ class XiaomiCloudMapExtractorConnector:
         session_creator: Callable[[], ClientSession],
         config: XiaomiCloudMapExtractorConnectorConfiguration,
         connector_config: XiaomiCloudConnectorConfig | None,
+        on_session_changed: SessionSaver | None = None,
     ) -> None:
         self._config = config
+        self._on_session_changed = on_session_changed
+        self._last_renewal_attempt: datetime | None = None
         self._connector_config = connector_config
         self._session_creator = session_creator
         self._cloud_connector = None
@@ -94,23 +104,23 @@ class XiaomiCloudMapExtractorConnector:
         if self._cloud_connector is None:
             if self._connector_config is None:
                 _LOGGER.debug("Creating a new connector...")
-                self._cloud_connector = XiaomiCloudConnector(self._session_creator)
+                self._cloud_connector = XiaomiCloudConnector(self._session_creator, server=self._config.server)
             else:
                 _LOGGER.debug("Restoring connector configuration...")
                 self._cloud_connector = await XiaomiCloudConnector.from_config(
                     self._connector_config, self._session_creator
                 )
 
-        authenticated = self._is_authenticated()
-        _LOGGER.debug("Is user authenticated: %s", authenticated)
-        if not authenticated:
-            if self._config.username is None or self._config.password is None:
-                raise FailedLoginException()
-            await self._cloud_connector.login_with_credentials(self._config.username, self._config.password)
-            if not self._is_authenticated():
-                _LOGGER.error("Not authenticated!")
-                raise FailedLoginException()
-            _LOGGER.debug("Logged in.")
+        await self._ensure_session()
+        try:
+            await self._download_map()
+        except SessionExpiredException:
+            # The serviceToken can stop working before its stored expiration.
+            _LOGGER.info("Xiaomi Cloud rejected the session, renewing it")
+            await self._recover_session()
+            await self._download_map()
+
+    async def _download_map(self: Self) -> None:
         if self._vacuum_connector is None or self._status == XiaomiCloudMapExtractorConnectorStatus.UNINITIALIZED:
             _LOGGER.debug("Initializing...")
             await self._initialize()
@@ -125,8 +135,57 @@ class XiaomiCloudMapExtractorConnector:
         self._map_cache.map_image = to_image(map_data)
         self._map_cache.map_data_raw = map_raw_data
 
-    def _is_authenticated(self: Self) -> bool:
-        return self._cloud_connector.is_authenticated()
+    async def _ensure_session(self: Self) -> None:
+        """Makes sure there is a session to use, renewing it ahead of its expiration when possible.
+
+        Like the Mi Home app, a session that is about to expire keeps being used when renewal is not
+        possible right now; only Xiaomi rejecting it (SessionExpiredException) forces a new login.
+        """
+        if not self._cloud_connector.has_service_token():
+            await self._recover_session()
+            return
+        if not self._cloud_connector.is_session_expiring() or not self._renewal_allowed():
+            return
+        try:
+            await self._renew_session()
+        except FailedConnectionException as e:
+            _LOGGER.debug("Could not renew the Xiaomi Cloud session now, keeping the current one: %s", e)
+
+    async def _recover_session(self: Self) -> None:
+        """Gets a working session: passToken renewal first, password login only when that is refused."""
+        if self._cloud_connector.has_pass_token() and await self._renew_session():
+            return
+        await self._login_with_password()
+
+    def _renewal_allowed(self: Self) -> bool:
+        return (self._last_renewal_attempt is None
+                or datetime.now() - self._last_renewal_attempt >= RENEWAL_RETRY_INTERVAL)
+
+    async def _renew_session(self: Self) -> bool:
+        self._last_renewal_attempt = datetime.now()
+        if not await self._cloud_connector.renew_session():
+            return False
+        await self._save_session()
+        return True
+
+    async def _login_with_password(self: Self) -> None:
+        if self._config.username is None or self._config.password is None:
+            raise FailedLoginException()
+        _LOGGER.info("Logging in to Xiaomi Cloud with the stored credentials")
+        await self._cloud_connector.login_with_credentials(self._config.username, self._config.password)
+        if not self._cloud_connector.has_service_token():
+            _LOGGER.error("Not authenticated!")
+            raise FailedLoginException()
+        _LOGGER.debug("Logged in.")
+        await self._save_session()
+
+    async def _save_session(self: Self) -> None:
+        if self._on_session_changed is None:
+            return
+        try:
+            await self._on_session_changed(self._cloud_connector.to_config())
+        except Exception as e:
+            _LOGGER.warning("Failed to store the Xiaomi Cloud session: %s", e)
 
     async def _initialize(self: Self) -> None:
         _LOGGER.debug("Retrieving device info, server: %s", self._config.server)
